@@ -1,0 +1,43 @@
+.classic__input {
+    display: grid;
+    padding-top: 10px;
+    padding-bottom: 10px;
+
+    span {
+        padding-bottom: 10px;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    input {
+        height: 40px;
+        padding: 10px;
+        border-radius: 6px;
+        border-style: solid;
+        border-color: rgba(207, 214, 221, 1);
+        font-size: 16px;
+        color: black;
+    }
+
+    input::placeholder {
+        color: rgba(126, 139, 153, 1);
+    }
+}
+
+.classic__button {
+    place-items: center;
+    display: grid;
+    width: 100%;
+    height: 40px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    background-color: rgba(48, 98, 212, 1);
+    border-style: none;
+    color: white;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+.classic__button:focus {
+    opacity: 0.5;
+}
