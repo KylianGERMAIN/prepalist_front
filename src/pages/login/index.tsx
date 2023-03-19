@@ -21,7 +21,11 @@ export default function Login() {
                                 <span className="dark_blue">Password</span>
                                 <input placeholder="Your password" />
                             </div>
-                            <button className="classic__button">Login</button>
+                            <Link href="/home">
+                                <button className="classic__button">
+                                    Login
+                                </button>
+                            </Link>
                             <div className="bottom_message_login">
                                 <span className="basic_grey">
                                     New to Prepalist?

@@ -1,0 +1,49 @@
+.body-list__box {
+    .add-meal__box {
+        background-color: white;
+        height: 130px;
+        gap: 30px;
+        h3 {
+            height: 100%;
+            display: grid;
+            align-items: center;
+            padding-left: 40px;
+        }
+
+        button {
+            width: 100px;
+        }
+    }
+
+    .meal-list__box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 30px;
+        margin: 30px;
+        background-color: white;
+
+        .name-meal__box {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+
+            span {
+                font-size: 15px;
+            }
+        }
+    }
+}
+
+@media (min-width: 833px) {
+    .header-switch-day__box {
+        padding-left: 300px;
+        margin-top: 0px;
+        border-top: none;
+    }
+
+    .body-list__box {
+        padding-left: 300px;
+        margin-top: 0px;
+    }
+}

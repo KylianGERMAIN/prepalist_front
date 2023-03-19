@@ -26,9 +26,12 @@ export default function Login() {
                                 <span className="dark_blue">Password</span>
                                 <input placeholder="Your password" />
                             </div>
-                            <button className="classic__button">
-                                Create an account
-                            </button>
+
+                            <Link href="/home">
+                                <button className="classic__button">
+                                    Create an account
+                                </button>
+                            </Link>
                             <div className="bottom_message_register">
                                 <span className="basic_grey">
                                     Already have an account?

@@ -64,6 +64,7 @@
         display: flex;
         height: 100%;
         width: 100%;
+        border-right: 1px solid rgba(233, 236, 239, 1);
 
         .support__text {
             display: block;
@@ -82,6 +83,7 @@
         .navbar-top__box,
         .navbar-bottom__box > .support_section {
             .title__box {
+                height: 70px;
                 border-bottom: 1px solid rgba(233, 236, 239, 1);
                 h1 {
                     padding: 20px;
@@ -109,8 +111,8 @@
                 background-color: rgba(233, 236, 239, 1);
             }
 
-            ul > li,
-            .support_section > ul > li {
+            ul > a > li,
+            .support_section > ul > a > li {
                 align-items: center;
                 display: flex;
                 gap: 19px;
@@ -123,11 +125,11 @@
                 line-height: 24px;
                 letter-spacing: 0.2px;
             }
-            ul > li {
+            ul > a > li {
                 margin: 10px;
                 border-radius: 10px;
             }
-            ul > li:hover {
+            ul > a > li:hover {
                 color: rgba(30, 80, 192, 1);
                 background-color: rgba(229, 238, 255, 1);
             }

@@ -1,0 +1,92 @@
+.header-switch-day__box {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    height: 70px;
+    color: black;
+    display: grid;
+    align-items: center;
+    border-bottom: 1px solid rgba(233, 236, 239, 1);
+    border-top: 1px solid rgba(233, 236, 239, 1);
+    margin-top: 45px;
+
+    .date-switch_box {
+        padding-left: 20px;
+        align-items: center;
+        display: flex;
+        gap: 14px;
+    }
+}
+
+.body-day__box {
+    align-items: center;
+
+    h2 {
+        background-color: white;
+        color: black;
+        text-align: center;
+        font-weight: 300;
+        border-radius: 30px;
+        padding: 10px;
+        margin-top: 30px;
+        margin-right: 30px;
+        margin-left: 30px;
+    }
+
+    .meal__box {
+        padding: 30px;
+        margin-top: 30px;
+        margin-right: 30px;
+        margin-left: 30px;
+        background-color: white;
+        align-items: center;
+        display: grid;
+        .time__box {
+            max-width: 200px;
+            width: 20%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .meal-display__box {
+            .meal__icon {
+                background-color: rgba(245, 150, 56, 1);
+                color: white;
+                border-radius: 100%;
+                padding: 5px;
+            }
+
+            margin-top: 20px;
+            align-items: center;
+            display: flex;
+            gap: 10px;
+            border-radius: 20px;
+            padding: 5px;
+            padding-right: 10px;
+            font-weight: 600;
+            background-color: rgba(245, 150, 56, 0.5);
+            color: black;
+        }
+    }
+}
+
+@media (min-width: 833px) {
+    .header-switch-day__box {
+        padding-left: 300px;
+        margin-top: 0px;
+        border-top: none;
+    }
+
+    .body-day__box {
+        padding-left: 300px;
+        margin-top: 0px;
+
+        .meal__box {
+            .meal-display__box {
+                margin-top: 0px;
+            }
+            display: flex;
+        }
+    }
+}
