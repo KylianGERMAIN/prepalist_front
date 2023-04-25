@@ -54,7 +54,7 @@ export default function Register() {
                                 />
                             </div>
                             <div
-                                onClick={() =>
+                                onClick={(e) =>
                                     register(
                                         username,
                                         email,
