@@ -92,7 +92,7 @@ export function Sidebar() {
                                     </li>
                                 </Link>
                                 <hr className="separator__hr" />
-                                <Link href="/home">
+                                <Link href="/login">
                                     <li className="">
                                         <MdLogout size={25} />
                                         Logout
