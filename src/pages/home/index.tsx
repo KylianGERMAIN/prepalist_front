@@ -8,11 +8,14 @@ import { GiWheat } from "react-icons/gi";
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { IDay, get_week } from "@/api/week/get_week";
+import { useRouter } from "next/router";
+import { create_my_week } from "@/api/week/create_new_week";
 
 export function Sidebar() {
     const [burger, setBurger] = useState(false);
-    const [style_dashboard, setstyle_dashboard] = useState("");
-    const [my_meals_dashboard, setmy_meals_dashboard] = useState("");
+    const [style_dashboard, setStyle_dashboard] = useState("");
+    const [my_meals_dashboard, setMy_meals_dashboard] = useState("");
 
     useEffect(() => {
         window.addEventListener("resize", () => {
@@ -22,9 +25,9 @@ export function Sidebar() {
         });
         if (window.location.pathname) {
             if (window.location.pathname == "/my-meals") {
-                setmy_meals_dashboard("selected_li");
+                setMy_meals_dashboard("selected_li");
             } else {
-                setstyle_dashboard("selected_li");
+                setStyle_dashboard("selected_li");
             }
         }
     }, [burger]);
@@ -107,7 +110,22 @@ export function Sidebar() {
     );
 }
 
-export default function Home() {
+export default function Home(props: any) {
+    const [my_week, setMy_week] = useState<IDay[]>([]);
+    const [index, setindex] = useState(0);
+
+    const router = useRouter();
+    const options = {
+        weekday: "long" as "long",
+        year: "numeric" as "numeric",
+        month: "long" as "long",
+        day: "numeric" as "numeric",
+    };
+
+    useEffect(() => {
+        get_week(router, setMy_week);
+    }, []);
+
     return (
         <>
             <Head>
@@ -116,51 +134,83 @@ export default function Home() {
             </Head>
             <div className="layout">
                 {Sidebar()}
-                <div className="home__container">
-                    <div className="header-switch-day__box">
-                        <div className="date-switch_box basic_grey">
-                            <IoIosArrowBack
-                                size={25}
-                                onClick={() => console.log("previous")}
-                            />
-                            <IoIosArrowForward
-                                size={25}
-                                onClick={() => console.log("next")}
-                            />
-                            <span className="">Samedi 18 Mars 2020</span>
-                        </div>
-                    </div>
-                    <div className="body-day__box">
-                        <h2>Samedi</h2>
-
-                        <div className="meal__box flex">
-                            <div className="time__box">
-                                <span className="basic_grey">12h</span>
-                                <h3>Déjeuner</h3>
-                            </div>
-                            <div className="meal-display__box">
-                                <div className="meal__icon">
-                                    <GiWheat size={20} />
-                                </div>
-                                <span className="">Pates à la carbona</span>
-                            </div>
-                        </div>
-                        <div className="meal__box">
-                            <div className="time__box">
-                                <span className="basic_grey">20h30</span>
-                                <h3>Dinner</h3>
-                            </div>
-                            <div className="meal-display__box">
-                                <div className="meal__icon">
-                                    <GiWheat size={20} />
-                                </div>
+                {my_week.length > 0 ? (
+                    <div className="home__container">
+                        <div className="header-switch-day__box">
+                            <div className="date-switch_box">
+                                <IoIosArrowBack
+                                    size={25}
+                                    onClick={() =>
+                                        setindex(index == 0 ? 0 : index - 1)
+                                    }
+                                />
+                                <IoIosArrowForward
+                                    size={25}
+                                    onClick={() =>
+                                        setindex(index == 6 ? 6 : index + 1)
+                                    }
+                                />
                                 <span className="">
-                                    Bâtonnets de poisson pané et riz
+                                    {new Date(
+                                        my_week[index].date.split(" ")[0]
+                                    ).toLocaleDateString("fr-FR", options)}
                                 </span>
                             </div>
+
+                            <button
+                                className="next_week__button"
+                                onClick={async () => {
+                                    await create_my_week(router);
+                                    get_week(router, setMy_week);
+                                }}
+                            >
+                                Créer une semaine
+                            </button>
+
+                            <button className="next_week__button_respo">
+                                +
+                            </button>
+                        </div>
+                        <div className="body-day__box">
+                            <h2>
+                                {new Date(
+                                    my_week[index].date.split(" ")[0]
+                                ).toLocaleDateString("fr-FR", {
+                                    weekday: "long" as "long",
+                                })}
+                            </h2>
+
+                            <div className="meal__box flex">
+                                <div className="time__box">
+                                    <span className="basic_grey">12h</span>
+                                    <h3>Déjeuner</h3>
+                                </div>
+                                <div className="meal-display__box">
+                                    <div className="meal__icon">
+                                        <GiWheat size={20} />
+                                    </div>
+                                    <span className="">
+                                        {my_week[index].lunch.name}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="meal__box">
+                                <div className="time__box">
+                                    <span className="basic_grey">20h30</span>
+                                    <h3>Dinner</h3>
+                                </div>
+                                <div className="meal-display__box">
+                                    <div className="meal__icon">
+                                        <GiWheat size={20} />
+                                    </div>
+                                    <span className="">
+                                        {my_week[index].dinner.name}
+                                    </span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                ) : null}
             </div>
         </>
     );

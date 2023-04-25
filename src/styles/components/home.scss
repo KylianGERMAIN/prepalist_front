@@ -4,11 +4,32 @@
     background-color: white;
     height: 70px;
     color: black;
-    display: grid;
+    display: flex;
+    justify-content: space-between;
+    padding-right: 20px;
     align-items: center;
     border-bottom: 1px solid rgba(233, 236, 239, 1);
     border-top: 1px solid rgba(233, 236, 239, 1);
     margin-top: 45px;
+
+    .next_week__button {
+        display: none;
+    }
+
+    .next_week__button_respo {
+        place-items: center;
+        display: grid;
+        padding-left: 10px;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-right: 10px;
+        background-color: rgba(48, 98, 212, 1);
+        border-style: none;
+        color: white;
+        border-radius: 90px;
+        font-size: 20px;
+        cursor: pointer;
+    }
 
     .date-switch_box {
         padding-left: 20px;
@@ -76,6 +97,28 @@
         padding-left: 300px;
         margin-top: 0px;
         border-top: none;
+
+        .next_week__button_respo {
+            display: none;
+        }
+
+        .next_week__button {
+            place-items: center;
+            display: grid;
+            padding: 10px;
+            height: 40px;
+            margin-top: 10px;
+            margin-bottom: 10px;
+            background-color: rgba(48, 98, 212, 1);
+            border-style: none;
+            color: white;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        .next_week__button:hover {
+            opacity: 0.8;
+        }
     }
 
     .body-day__box {
