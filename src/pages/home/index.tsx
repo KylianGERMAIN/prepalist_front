@@ -4,7 +4,6 @@ import { AiOutlineHome, AiOutlineClose } from "react-icons/ai";
 import { MdOutlineFastfood, MdLogout } from "react-icons/md";
 import { BsEnvelopePaper } from "react-icons/bs";
 import { FiHelpCircle } from "react-icons/fi";
-import { IoIosArrowForward, IoIosArrowBack } from "react-icons/Io";
 import { GiWheat } from "react-icons/gi";
 
 import { useEffect, useState } from "react";
@@ -13,6 +12,7 @@ import { IDay, get_week } from "@/api/week/get_week";
 import { useRouter } from "next/router";
 import { create_my_week } from "@/api/week/create_new_week";
 import { get_meals, get_meals_count } from "@/api/meal/get_meals";
+import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 
 export const options = {
     weekday: "long" as "long",
