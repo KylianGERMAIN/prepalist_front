@@ -21,7 +21,7 @@ export function create_meals(
         body: JSON.stringify(meal),
     };
 
-    fetch("http://127.0.0.1:8000/meal", requestOptions)
+    fetch(process.env.NEXT_PUBLIC_URL_API + "/meal", requestOptions)
         .then(async (response) => {
             if (response.status != 201) {
                 response.json().then((json) => {

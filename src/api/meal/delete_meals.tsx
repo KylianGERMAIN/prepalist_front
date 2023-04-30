@@ -20,7 +20,7 @@ export function delete_meal(
         headers: myHeaders,
     };
 
-    fetch(`http://127.0.0.1:8000/meal/${id}`, requestOptions)
+    fetch(process.env.NEXT_PUBLIC_URL_API + `/meal/${id}`, requestOptions)
         .then(async (response) => {
             console.log(response);
             if (response.status != 202) {

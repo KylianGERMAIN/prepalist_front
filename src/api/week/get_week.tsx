@@ -23,7 +23,7 @@ export function get_week(
         headers: myHeaders,
     };
 
-    fetch("http://127.0.0.1:8000/my_week", requestOptions)
+    fetch(`${process.env.NEXT_PUBLIC_URL_API}/my_week`, requestOptions)
         .then(async (response) => {
             if (response.status != 200) {
                 response.json().then((json) => {

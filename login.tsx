@@ -1,15 +1,8 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter, useRouter } from "next/router";
+import { asignError } from "@/api/authentification/register";
 
-export function asignError(
-    response: { detail: string },
-    setError: Dispatch<SetStateAction<string>>
-) {
-    if (response.detail) setError(response.detail);
-}
-
-export function register(
-    username: string,
+export function login(
     email: string,
     password: string,
     setError: Dispatch<SetStateAction<string>>,
@@ -22,7 +15,6 @@ export function register(
     myHeaders.append("Access-Control-Allow-Credentials", "true");
 
     var raw = JSON.stringify({
-        username: username,
         email: email,
         password: password,
     });
@@ -33,9 +25,9 @@ export function register(
         body: raw,
     };
 
-    fetch(process.env.NEXT_PUBLIC_URL_API + "/register", requestOptions)
+    fetch(process.env.NEXT_PUBLIC_URL_API + "/login", requestOptions)
         .then(async (response) => {
-            if (response.status != 201) {
+            if (response.status != 200) {
                 response.json().then((json) => {
                     asignError(json, setError);
                 });
@@ -47,5 +39,7 @@ export function register(
                 });
             }
         })
-        .catch((error) => console.log("error", error));
+        .catch((error) =>
+            asignError({ detail: "Error fill in the form correctly" }, setError)
+        );
 }

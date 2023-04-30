@@ -25,7 +25,7 @@ export function login(
         body: raw,
     };
 
-    fetch("http://127.0.0.1:8000/login", requestOptions)
+    fetch(process.env.NEXT_PUBLIC_URL_API + "/login", requestOptions)
         .then(async (response) => {
             if (response.status != 200) {
                 response.json().then((json) => {
