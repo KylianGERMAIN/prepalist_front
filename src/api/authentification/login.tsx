@@ -27,14 +27,12 @@ export function login(
 
     fetch("http://127.0.0.1:8000/login", requestOptions)
         .then(async (response) => {
-            console.log(response);
             if (response.status != 200) {
                 response.json().then((json) => {
                     asignError(json, setError);
                 });
             } else {
                 response.json().then((json) => {
-                    console.log(json);
                     localStorage.setItem("access_token", json.access_token);
                     localStorage.setItem("refresh_token", json.refresh_token);
                     router.push("/home");

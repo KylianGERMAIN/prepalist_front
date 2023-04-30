@@ -1,23 +1,28 @@
 import Head from "next/head";
-import { Sidebar } from "../home";
-import { AiOutlineHome, AiOutlineClose } from "react-icons/ai";
+import { Sidebar, options } from "../home";
+import { AiOutlineClose } from "react-icons/ai";
 import Modal_add_meal from "@/components/modal_add_meal";
-import { useState } from "react";
-
-function Ingredient() {
-    return (
-        <div className="classic__input">
-            <span className="dark_blue">Name ingredients 1</span>
-            <input placeholder="Pasta carbonara" />
-        </div>
-    );
-}
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { IMeal, get_meals } from "@/api/meal/get_meals";
+import { useRouter } from "next/router";
+import { delete_meal } from "@/api/meal/delete_meals";
 
 export default function My_meals() {
     const [open_modal, setModal] = useState(false);
-    const [listinput, setlistinput] = useState<JSX.Element[]>([
-        <Ingredient key="1" />,
+    const [listMeal, setMeal] = useState<IMeal[]>([
+        {
+            id: "",
+            name: "",
+            ingredients: [{ ingredient: "" }],
+            created_at: "",
+        },
     ]);
+
+    const router = useRouter();
+
+    useEffect(() => {
+        get_meals(router, setMeal);
+    }, [router]);
 
     return (
         <>
@@ -27,9 +32,13 @@ export default function My_meals() {
             </Head>
             <div className="layout">
                 {Sidebar()}
-                {open_modal == true
-                    ? Modal_add_meal(setModal, setlistinput, listinput)
-                    : null}
+                {open_modal == true ? (
+                    <Modal_add_meal
+                        setModal={setModal}
+                        setMeal={setMeal}
+                        router={router}
+                    />
+                ) : null}
                 <div className="home__container">
                     <div className="header-switch-day__box">
                         <div className="date-switch_box basic_grey">
@@ -38,27 +47,49 @@ export default function My_meals() {
                     </div>
                     <div className="body-list__box">
                         <div className="add-meal__box flex">
-                            <h3>Total : 234</h3>
+                            <h3>Total : {listMeal.length}</h3>
                             <button
                                 className="classic__button"
                                 onClick={() => {
-                                    setModal(!open_modal),
-                                        setlistinput([<Ingredient key="1" />]);
+                                    setModal(!open_modal);
                                 }}
                             >
                                 Create
                             </button>
                         </div>
-                        <div className="meal-list__box">
-                            <div className="name-meal__box">
-                                <h4>Pate à la carbonara</h4>
-                                <span>Ajouté le 18 Mars 2023</span>
-                            </div>
-                            <AiOutlineClose
-                                size={25}
-                                onClick={() => console.log("delete element")}
-                            />
-                        </div>
+                        {listMeal.length == 0
+                            ? null
+                            : listMeal.map((meal: IMeal, index: number) => (
+                                  <div key={index} className="meal-list__box">
+                                      <div className="name-meal__box">
+                                          <h4>{meal.name}</h4>
+                                          <span>
+                                              Ajouté le{" "}
+                                              {meal.created_at
+                                                  ? new Date(
+                                                        meal.created_at.split(
+                                                            " "
+                                                        )[0]
+                                                    ).toLocaleDateString(
+                                                        "fr-FR",
+                                                        options
+                                                    )
+                                                  : "null"}
+                                          </span>
+                                      </div>
+                                      <AiOutlineClose
+                                          size={25}
+                                          onClick={(e) => {
+                                              delete_meal(
+                                                  listMeal,
+                                                  meal.id,
+                                                  router,
+                                                  setMeal
+                                              );
+                                          }}
+                                      />
+                                  </div>
+                              ))}
                     </div>
                 </div>
             </div>

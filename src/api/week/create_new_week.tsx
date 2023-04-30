@@ -7,7 +7,10 @@ export interface IDay {
     dinner: { name: string; id: string };
 }
 
-export function create_my_week(router: NextRouter) {
+export function create_my_week(
+    router: NextRouter,
+    setMy_week: Dispatch<SetStateAction<IDay[]>>
+) {
     const access_token = localStorage.getItem("access_token") || "";
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -22,16 +25,18 @@ export function create_my_week(router: NextRouter) {
 
     fetch("http://127.0.0.1:8000/create_my_week", requestOptions)
         .then(async (response) => {
-            console.log(response);
             if (response.status != 200) {
                 response.json().then((json) => {
-                    console.log(json);
                     if (json.detail == "Invalid token") {
                         localStorage.removeItem("access_token");
                         router.push("/login");
                     }
                 });
             }
+            response.json().then((json) => {
+                var week: IDay[] = json;
+                setMy_week(week);
+            });
         })
         .catch((error) => console.log(error));
 }

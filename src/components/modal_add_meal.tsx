@@ -8,21 +8,51 @@ import { GiWheat } from "react-icons/gi";
 
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Link from "next/link";
+import { IMeal } from "@/api/meal/get_meals";
+import { create_meals } from "@/api/meal/create_meals";
+import { NextRouter } from "next/router";
 
-function Ingredient() {
-    return (
-        <div className="classic__input">
-            <span className="dark_blue">Name ingredients 1</span>
-            <input placeholder="Pasta carbonara" />
-        </div>
-    );
+interface Props {
+    index: number;
 }
 
-export default function Modal_add_meal(
-    setModal: Dispatch<SetStateAction<boolean>>,
-    setlistinput: Dispatch<SetStateAction<JSX.Element[]>>,
-    listinput: JSX.Element[]
-) {
+interface PropsModal {
+    setModal: Dispatch<SetStateAction<boolean>>;
+    setMeal: Dispatch<SetStateAction<IMeal[]>>;
+    router: NextRouter;
+}
+
+export default function Modal_add_meal({
+    setModal,
+    setMeal,
+    router,
+}: PropsModal) {
+    const [name, setName] = useState("");
+    const [ingredients, setIngredients] = useState<string[]>([]);
+    const [listinput, setlistinput] = useState<JSX.Element[]>([
+        <Ingredient key="0" index={0} />,
+    ]);
+
+    const updateIngredient = (index: number) => (e: any) => {
+        setIngredients((ingredients) => ({
+            ...ingredients,
+            [index]: e.target.value,
+        }));
+    };
+
+    function Ingredient({ index }: Props) {
+        return (
+            <div className="classic__input">
+                <span className="dark_blue">Name ingredients {index + 1}</span>
+                <input
+                    placeholder="Pasta carbonara"
+                    value={ingredients[index]}
+                    onChange={updateIngredient(index)}
+                />
+            </div>
+        );
+    }
+
     return (
         <div id="myModal" className="modal">
             <div className="modal-content">
@@ -35,7 +65,11 @@ export default function Modal_add_meal(
                 <div className="body-modal__box">
                     <div className="classic__input padding--modal">
                         <span className="dark_blue">Name</span>
-                        <input placeholder="Pasta carbonara" />
+                        <input
+                            placeholder="Pasta carbonara"
+                            value={name}
+                            onChange={(e) => setName(e.target.value)}
+                        />
                     </div>
 
                     <div className="ingredients__box">
@@ -43,22 +77,40 @@ export default function Modal_add_meal(
                         <div className="flex ingredients-button__box">
                             <button
                                 className="classic__button"
-                                onClick={() =>
-                                    setlistinput((listinput) => [
-                                        ...listinput,
+                                onClick={(e) => {
+                                    setlistinput((element: any) => [
+                                        ...element,
                                         <Ingredient
-                                            key={(
-                                                listinput.length + 1
-                                            ).toString()}
+                                            key={listinput.length}
+                                            index={listinput.length}
                                         />,
-                                    ])
-                                }
+                                    ]);
+                                }}
                             >
                                 Add 1 ingredients
                             </button>
                             <button
                                 className="classic__button"
-                                onClick={() => setModal(false)}
+                                onClick={() => {
+                                    var newar = [];
+                                    for (var key in ingredients) {
+                                        console.log(ingredients[key]);
+                                        if (ingredients[key] != "")
+                                            newar.push({
+                                                ingredient: ingredients[key],
+                                            });
+                                    }
+                                    var newMeal = {
+                                        name: name,
+                                        ingredients: newar,
+                                    } as IMeal;
+                                    create_meals(
+                                        newMeal,
+                                        setModal,
+                                        setMeal,
+                                        router
+                                    );
+                                }}
                             >
                                 Save
                             </button>
