@@ -19,7 +19,7 @@ export default function Login() {
             </Head>
             <div className="layout">
                 <div className="authentification__container flex">
-                    <div className="authentification-first__box center-midle-screen ">
+                    <div className="center-midle-screen">
                         <div className="login__section">
                             <h1>Log in</h1>
                             <div className="classic__input">

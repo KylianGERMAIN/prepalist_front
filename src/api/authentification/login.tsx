@@ -25,7 +25,6 @@ export function login(
         body: raw,
     };
 
-    console.log("lol");
     fetch(process.env.NEXT_PUBLIC_URL_API + "/login", requestOptions)
         .then(async (response) => {
             if (response.status != 200) {

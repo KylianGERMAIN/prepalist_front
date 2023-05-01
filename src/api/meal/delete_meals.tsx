@@ -22,7 +22,6 @@ export function delete_meal(
 
     fetch(process.env.NEXT_PUBLIC_URL_API + `/meal/${id}`, requestOptions)
         .then(async (response) => {
-            console.log(response);
             if (response.status != 202) {
                 response.json().then((json) => {
                     if (json.detail == "Invalid token") {

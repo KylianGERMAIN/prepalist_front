@@ -21,7 +21,7 @@ export default function Register() {
             <div className="layout">
                 <div className="authentification__container flex">
                     <div className="authentification-second__box"></div>
-                    <div className="authentification-first__box center-midle-screen ">
+                    <div className="center-midle-screen ">
                         <div className="login__section">
                             <h1>Register</h1>
                             <div className="classic__input">
