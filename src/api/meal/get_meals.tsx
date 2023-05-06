@@ -24,7 +24,7 @@ export function get_meals(
         headers: myHeaders,
     };
 
-    fetch(process.env.NEXT_PUBLIC_URL_API + "/meals", requestOptions)
+    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meals`, requestOptions)
         .then(async (response) => {
             if (response.status != 200) {
                 response.json().then((json) => {
@@ -69,7 +69,7 @@ export function get_meals_count(
         headers: myHeaders,
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/meals`, requestOptions)
+    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meals`, requestOptions)
         .then(async (response) => {
             if (response.status != 200) {
                 response.json().then((json) => {

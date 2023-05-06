@@ -23,7 +23,7 @@ export function create_meals(
         body: JSON.stringify(meal),
     };
 
-    fetch(process.env.NEXT_PUBLIC_URL_API + "/meal", requestOptions)
+    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal`, requestOptions)
         .then(async (response) => {
             if (response.status != 201) {
                 response.json().then((json) => {

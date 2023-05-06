@@ -33,7 +33,7 @@ export function register(
         body: raw,
     };
 
-    fetch(process.env.NEXT_PUBLIC_URL_API + "/register", requestOptions)
+    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/register`, requestOptions)
         .then(async (response) => {
             if (response.status != 201) {
                 response.json().then((json) => {

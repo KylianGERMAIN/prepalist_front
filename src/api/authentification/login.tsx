@@ -25,7 +25,7 @@ export function login(
         body: raw,
     };
 
-    fetch(process.env.NEXT_PUBLIC_URL_API + "/login", requestOptions)
+    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/login`, requestOptions)
         .then(async (response) => {
             if (response.status != 200) {
                 response.json().then((json) => {

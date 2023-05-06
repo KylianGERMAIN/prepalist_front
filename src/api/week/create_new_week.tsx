@@ -23,7 +23,10 @@ export function create_my_week(
         headers: myHeaders,
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/create_my_week`, requestOptions)
+    fetch(
+        `${process.env.NEXT_PUBLIC_URL_API}/api/v1/create_my_week`,
+        requestOptions
+    )
         .then(async (response) => {
             if (response.status != 200) {
                 response.json().then((json) => {

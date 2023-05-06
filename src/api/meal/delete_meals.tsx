@@ -20,7 +20,10 @@ export function delete_meal(
         headers: myHeaders,
     };
 
-    fetch(process.env.NEXT_PUBLIC_URL_API + `/meal/${id}`, requestOptions)
+    fetch(
+        `${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal/${id}`,
+        requestOptions
+    )
         .then(async (response) => {
             if (response.status != 202) {
                 response.json().then((json) => {
