@@ -9,7 +9,6 @@
     padding-right: 20px;
     align-items: center;
     border-bottom: 1px solid rgba(233, 236, 239, 1);
-    border-top: 1px solid rgba(233, 236, 239, 1);
     margin-top: 45px;
 
     .header__container {
@@ -54,8 +53,6 @@
 
 .body-day__box {
     align-items: center;
-
-    height: calc(100% - 120px);
     h2 {
         background-color: white;
         color: black;
@@ -110,6 +107,7 @@
     max-width: 500px;
     margin: auto;
     height: 100%;
+    height: calc(100vh - 115px);
     position: relative;
 
     .no_enought_meal__window {
@@ -172,6 +170,10 @@
         .next_week__button:hover {
             opacity: 0.8;
         }
+    }
+
+    .no_enought_meal__container {
+        height: calc(100vh - 70px);
     }
 
     .body-day__box {

@@ -9,14 +9,7 @@ import { delete_meal } from "@/api/meal/delete_meals";
 
 export default function My_meals() {
     const [open_modal, setModal] = useState(false);
-    const [listMeal, setMeal] = useState<IMeal[]>([
-        {
-            id: "",
-            name: "",
-            ingredients: [{ ingredient: "" }],
-            created_at: "",
-        },
-    ]);
+    const [listMeal, setMeal] = useState<IMeal[]>([]);
 
     const router = useRouter();
 
@@ -31,7 +24,7 @@ export default function My_meals() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className="layout">
-                {Sidebar()}
+                <Sidebar />
                 {open_modal == true ? (
                     <Modal_add_meal
                         setModal={setModal}

@@ -1,12 +1,14 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter, useRouter } from "next/router";
 import { IMeal } from "./get_meals";
+import { asignError } from "../authentification/register";
 
 export function create_meals(
     meal: IMeal,
     setModal: Dispatch<SetStateAction<boolean>>,
     setMeal: Dispatch<SetStateAction<IMeal[]>>,
-    router: NextRouter
+    router: NextRouter,
+    setError: Dispatch<SetStateAction<string>>
 ) {
     var myHeaders = new Headers();
     const access_token = localStorage.getItem("access_token") || "";
@@ -25,6 +27,7 @@ export function create_meals(
         .then(async (response) => {
             if (response.status != 201) {
                 response.json().then((json) => {
+                    asignError(json, setError);
                     if (json.detail == "Invalid token") {
                         localStorage.removeItem("access_token");
                         router.push("/login");

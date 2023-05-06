@@ -130,7 +130,7 @@ export default function Home(props: any) {
     useEffect(() => {
         get_meals_count(router, setCountMeal);
         if (count_meal >= 6) get_week(router, setMy_week);
-    }, [count_meal]);
+    }, [count_meal, router]);
 
     if (count_meal != -1 && loading) {
         setLoading(false);
@@ -143,16 +143,16 @@ export default function Home(props: any) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className="layout">
-                {Sidebar()}
+                <Sidebar />
                 {loading == false ? (
                     <>
                         {count_meal < 10 ? (
-                            <>
-                                <div className="home__container">
+                            <div className="no_enought__container">
+                                <div>
                                     <div className="header-switch-day__box"></div>
                                 </div>
 
-                                <div className="body-day__box">
+                                <div className="body-day__box ">
                                     <div className="no_enought_meal__container">
                                         <div className="no_enought_meal__window">
                                             <img src="https://cdn-icons-png.flaticon.com/512/5973/5973349.png" />
@@ -168,131 +168,142 @@ export default function Home(props: any) {
                                         </div>
                                     </div>
                                 </div>
-                            </>
-                        ) : null}
-                        <div className="home__container">
-                            <div className="header-switch-day__box">
-                                {my_week.length > 0 ? (
-                                    <div className="header__container">
-                                        <div className="date-switch_box">
-                                            <IoIosArrowBack
-                                                size={25}
-                                                onClick={() =>
-                                                    setindex(
-                                                        index == 0
-                                                            ? 0
-                                                            : index - 1
-                                                    )
-                                                }
-                                            />
-                                            <IoIosArrowForward
-                                                size={25}
-                                                onClick={() =>
-                                                    setindex(
-                                                        index == 6
-                                                            ? 6
-                                                            : index + 1
-                                                    )
-                                                }
-                                            />
-                                            <span className="">
+                            </div>
+                        ) : (
+                            <div>
+                                <div className="header-switch-day__box">
+                                    {my_week.length > 0 ? (
+                                        <div className="header__container">
+                                            <div className="date-switch_box">
+                                                <IoIosArrowBack
+                                                    size={25}
+                                                    onClick={() =>
+                                                        setindex(
+                                                            index == 0
+                                                                ? 0
+                                                                : index - 1
+                                                        )
+                                                    }
+                                                />
+                                                <IoIosArrowForward
+                                                    size={25}
+                                                    onClick={() =>
+                                                        setindex(
+                                                            index == 6
+                                                                ? 6
+                                                                : index + 1
+                                                        )
+                                                    }
+                                                />
+                                                <span className="">
+                                                    {new Date(
+                                                        my_week[
+                                                            index
+                                                        ].date.split(" ")[0]
+                                                    ).toLocaleDateString(
+                                                        "fr-FR",
+                                                        options
+                                                    )}
+                                                </span>
+                                            </div>
+                                            <button
+                                                className="next_week__button"
+                                                onClick={() => {
+                                                    create_my_week(
+                                                        router,
+                                                        setMy_week
+                                                    );
+                                                }}
+                                            >
+                                                Créer une semaine
+                                            </button>
+
+                                            <button className="next_week__button_respo">
+                                                +
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="next_week_button__container">
+                                            <button
+                                                className="next_week__button"
+                                                onClick={() => {
+                                                    create_my_week(
+                                                        router,
+                                                        setMy_week
+                                                    );
+                                                }}
+                                            >
+                                                Créer une semaine
+                                            </button>
+
+                                            <button className="next_week__button_respo">
+                                                +
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="body-day__box">
+                                    {my_week.length > 0 ? (
+                                        <>
+                                            <h2>
                                                 {new Date(
                                                     my_week[index].date.split(
                                                         " "
                                                     )[0]
-                                                ).toLocaleDateString(
-                                                    "fr-FR",
-                                                    options
-                                                )}
-                                            </span>
-                                        </div>
-                                        <button
-                                            className="next_week__button"
-                                            onClick={() => {
-                                                create_my_week(
-                                                    router,
-                                                    setMy_week
-                                                );
-                                            }}
-                                        >
-                                            Créer une semaine
-                                        </button>
+                                                ).toLocaleDateString("fr-FR", {
+                                                    weekday: "long" as "long",
+                                                })}
+                                            </h2>
 
-                                        <button className="next_week__button_respo">
-                                            +
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="next_week_button__container">
-                                        <button
-                                            className="next_week__button"
-                                            onClick={() => {
-                                                create_my_week(
-                                                    router,
-                                                    setMy_week
-                                                );
-                                            }}
-                                        >
-                                            Créer une semaine
-                                        </button>
-
-                                        <button className="next_week__button_respo">
-                                            +
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="body-day__box">
-                                {my_week.length > 0 ? (
-                                    <>
-                                        <h2>
-                                            {new Date(
-                                                my_week[index].date.split(
-                                                    " "
-                                                )[0]
-                                            ).toLocaleDateString("fr-FR", {
-                                                weekday: "long" as "long",
-                                            })}
-                                        </h2>
-
-                                        <div className="meal__box flex">
-                                            <div className="time__box">
-                                                <span className="basic_grey">
-                                                    12h
-                                                </span>
-                                                <h3>Déjeuner</h3>
-                                            </div>
-                                            <div className="meal-display__box">
-                                                <div className="meal__icon">
-                                                    <GiWheat size={20} />
+                                            <div className="meal__box flex">
+                                                <div className="time__box">
+                                                    <span className="basic_grey">
+                                                        12h
+                                                    </span>
+                                                    <h3>Déjeuner</h3>
                                                 </div>
-                                                <span className="">
-                                                    {my_week[index].lunch.name}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="meal__box">
-                                            <div className="time__box">
-                                                <span className="basic_grey">
-                                                    20h30
-                                                </span>
-                                                <h3>Dinner</h3>
-                                            </div>
-                                            <div className="meal-display__box">
-                                                <div className="meal__icon">
-                                                    <GiWheat size={20} />
+                                                <div className="meal-display__box">
+                                                    <div className="meal__icon">
+                                                        <GiWheat size={20} />
+                                                    </div>
+                                                    <span className="">
+                                                        {
+                                                            my_week[index].lunch
+                                                                .name
+                                                        }
+                                                    </span>
                                                 </div>
-                                                <span className="">
-                                                    {my_week[index].dinner.name}
-                                                </span>
                                             </div>
-                                        </div>
-                                    </>
-                                ) : null}
+                                            <div className="meal__box">
+                                                <div className="time__box">
+                                                    <span className="basic_grey">
+                                                        20h30
+                                                    </span>
+                                                    <h3>Dinner</h3>
+                                                </div>
+                                                <div className="meal-display__box">
+                                                    <div className="meal__icon">
+                                                        <GiWheat size={20} />
+                                                    </div>
+                                                    <span className="">
+                                                        {
+                                                            my_week[index]
+                                                                .dinner.name
+                                                        }
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : null}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </>
-                ) : null}
+                ) : (
+                    <div>
+                        <div className="header-switch-day__box"></div>
+                    </div>
+                )}
             </div>
         </>
     );

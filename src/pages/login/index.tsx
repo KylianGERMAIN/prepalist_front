@@ -71,7 +71,7 @@ export default function Login() {
                             </div>
                         </div>
                     </div>
-                    <div className="authentification-second__box"></div>
+                    <div className="authentification-second__box" />
                 </div>
             </div>
         </>

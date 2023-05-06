@@ -4,12 +4,8 @@
         height: 130px;
         gap: 30px;
         h3 {
-            height: 100%;
-            display: grid;
-            align-items: center;
             padding-left: 40px;
         }
-
         button {
             width: 100px;
         }
@@ -22,14 +18,15 @@
         padding: 30px;
         margin: 30px;
         background-color: white;
+        border-radius: 20px;
 
         .name-meal__box {
-            display: flex;
-            flex-direction: column;
+            display: grid;
             gap: 10px;
 
             span {
                 font-size: 15px;
+                font-weight: lighter;
             }
         }
     }

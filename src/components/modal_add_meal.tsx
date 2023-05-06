@@ -32,6 +32,13 @@ export default function Modal_add_meal({
     const [listinput, setlistinput] = useState<JSX.Element[]>([
         <Ingredient key="0" index={0} />,
     ]);
+    const [error, setError] = useState<string>("");
+
+    useEffect(() => {
+        const element = document.querySelector(".ingredients__box");
+        if (!element) return;
+        element.scrollTop = element.scrollHeight;
+    }, [listinput]);
 
     const updateIngredient = (index: number) => (e: any) => {
         setIngredients((ingredients) => ({
@@ -42,7 +49,7 @@ export default function Modal_add_meal({
 
     function Ingredient({ index }: Props) {
         return (
-            <div className="classic__input">
+            <div className="classic__input  padding__modal">
                 <span className="dark_blue">Name ingredients {index + 1}</span>
                 <input
                     placeholder="Pasta carbonara"
@@ -63,7 +70,7 @@ export default function Modal_add_meal({
                     </span>
                 </div>
                 <div className="body-modal__box">
-                    <div className="classic__input padding--modal">
+                    <div className="classic__input padding__modal">
                         <span className="dark_blue">Name</span>
                         <input
                             placeholder="Pasta carbonara"
@@ -74,47 +81,51 @@ export default function Modal_add_meal({
 
                     <div className="ingredients__box">
                         {listinput.map((element) => element)}
-                        <div className="flex ingredients-button__box">
-                            <button
-                                className="classic__button"
-                                onClick={(e) => {
-                                    setlistinput((element: any) => [
-                                        ...element,
-                                        <Ingredient
-                                            key={listinput.length}
-                                            index={listinput.length}
-                                        />,
-                                    ]);
-                                }}
-                            >
-                                Add 1 ingredients
-                            </button>
-                            <button
-                                className="classic__button"
-                                onClick={() => {
-                                    var newar = [];
-                                    for (var key in ingredients) {
-                                        console.log(ingredients[key]);
-                                        if (ingredients[key] != "")
-                                            newar.push({
-                                                ingredient: ingredients[key],
-                                            });
-                                    }
-                                    var newMeal = {
-                                        name: name,
-                                        ingredients: newar,
-                                    } as IMeal;
-                                    create_meals(
-                                        newMeal,
-                                        setModal,
-                                        setMeal,
-                                        router
-                                    );
-                                }}
-                            >
-                                Save
-                            </button>
-                        </div>
+                    </div>
+                    <div>
+                        <span className="error_content">{error}</span>
+                    </div>
+                    <div className="flex ingredients-button__box">
+                        <button
+                            className="classic__button"
+                            onClick={(e) => {
+                                setlistinput((element: any) => [
+                                    ...element,
+                                    <Ingredient
+                                        key={listinput.length}
+                                        index={listinput.length}
+                                    />,
+                                ]);
+                            }}
+                        >
+                            More ingredients
+                        </button>
+                        <button
+                            className="classic__button"
+                            onClick={() => {
+                                var newar = [];
+                                for (var key in ingredients) {
+                                    console.log(ingredients[key]);
+                                    if (ingredients[key] != "")
+                                        newar.push({
+                                            ingredient: ingredients[key],
+                                        });
+                                }
+                                var newMeal = {
+                                    name: name,
+                                    ingredients: newar,
+                                } as IMeal;
+                                create_meals(
+                                    newMeal,
+                                    setModal,
+                                    setMeal,
+                                    router,
+                                    setError
+                                );
+                            }}
+                        >
+                            Save
+                        </button>
                     </div>
                 </div>
             </div>
