@@ -19,14 +19,11 @@ export function create_my_week(
     myHeaders.append("Authorization", "Bearer " + access_token);
 
     var requestOptions = {
-        method: "GET",
+        method: "POST",
         headers: myHeaders,
     };
 
-    fetch(
-        `${process.env.NEXT_PUBLIC_URL_API}/api/v1/create_my_week`,
-        requestOptions
-    )
+    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/week`, requestOptions)
         .then(async (response) => {
             if (response.status != 200) {
                 response.json().then((json) => {
