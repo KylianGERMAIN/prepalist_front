@@ -2,7 +2,7 @@
 import Head from "next/head";
 import { AiOutlineHome, AiOutlineClose } from "react-icons/ai";
 import { MdOutlineFastfood, MdLogout } from "react-icons/md";
-import { BsEnvelopePaper } from "react-icons/bs";
+import { BsEnvelopePaper, BsListCheck } from "react-icons/bs";
 import { FiHelpCircle } from "react-icons/fi";
 import { GiWheat } from "react-icons/gi";
 
@@ -23,8 +23,7 @@ export const options = {
 
 export function Sidebar() {
     const [burger, setBurger] = useState(false);
-    const [style_dashboard, setStyle_dashboard] = useState("");
-    const [my_meals_dashboard, setMy_meals_dashboard] = useState("");
+    const [style_dashboard, setStyle_dashboard] = useState(["", "", ""]);
 
     useEffect(() => {
         window.addEventListener("resize", () => {
@@ -33,10 +32,12 @@ export function Sidebar() {
             }
         });
         if (window.location.pathname) {
-            if (window.location.pathname == "/my-meals") {
-                setMy_meals_dashboard("selected_li");
+            if (window.location.pathname == "/home") {
+                setStyle_dashboard(["selected_li", "", ""]);
+            } else if (window.location.pathname == "/my-meals") {
+                setStyle_dashboard(["", "selected_li", ""]);
             } else {
-                setStyle_dashboard("selected_li");
+                setStyle_dashboard(["", "", "selected_li"]);
             }
         }
     }, [burger]);
@@ -74,17 +75,23 @@ export function Sidebar() {
                         </div>
                         <ul>
                             <Link href="/home">
-                                <li className={style_dashboard}>
+                                <li className={style_dashboard[0]}>
                                     <AiOutlineHome size={25} />
                                     Dashboard
                                 </li>
                             </Link>
                             <Link href="/my-meals">
-                                <li className={my_meals_dashboard}>
+                                <li className={style_dashboard[1]}>
                                     <MdOutlineFastfood size={25} />
                                     My meals
                                 </li>
                             </Link>
+                            {/* <Link href="/my-list">
+                                <li className={style_dashboard[2]}>
+                                    <BsListCheck size={25} />
+                                    My list
+                                </li>
+                            </Link> */}
                         </ul>
                     </div>
                     <div className="navbar-bottom__box">
