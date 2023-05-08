@@ -86,12 +86,12 @@ export function Sidebar() {
                                     My meals
                                 </li>
                             </Link>
-                            {/* <Link href="/my-list">
+                            <Link href="/my-list">
                                 <li className={style_dashboard[2]}>
                                     <BsListCheck size={25} />
                                     My list
                                 </li>
-                            </Link> */}
+                            </Link>
                         </ul>
                     </div>
                     <div className="navbar-bottom__box">
