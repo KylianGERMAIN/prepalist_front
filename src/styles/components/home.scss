@@ -125,8 +125,8 @@
 }
 
 @media (min-width: 1530px) {
-    .home__container {
-        display: flex;
+    .home__container__header {
+        display: grid;
         justify-content: center;
         width: 100%;
         .body-day__box {
@@ -183,6 +183,11 @@
 }
 
 @media (min-width: 500px) {
+    .home__container {
+        display: grid;
+        width: 100%;
+    }
+
     .no_enought_meal__container {
         height: calc(100vh - 70px);
     }

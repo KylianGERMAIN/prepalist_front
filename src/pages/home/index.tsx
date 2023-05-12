@@ -222,28 +222,32 @@ export default function Home(props: any) {
                                 <div className="header-switch-day__box"></div>
 
                                 <div className="home__container">
-                                    <div className="body-day__box">
-                                        {my_week.map(
-                                            (day: IDay, index: any) => (
-                                                <Card_Day
-                                                    key={index}
-                                                    day_of_week={week[index]}
-                                                    day={day}
-                                                />
-                                            )
-                                        )}
+                                    <div className="home__container__header">
+                                        <div className="body-day__box">
+                                            {my_week.map(
+                                                (day: IDay, index: any) => (
+                                                    <Card_Day
+                                                        key={index}
+                                                        day_of_week={
+                                                            week[index]
+                                                        }
+                                                        day={day}
+                                                    />
+                                                )
+                                            )}
 
-                                        <button
-                                            className="add_new_week__button"
-                                            onClick={() => {
-                                                create_my_week(
-                                                    router,
-                                                    setMy_week
-                                                );
-                                            }}
-                                        >
-                                            +
-                                        </button>
+                                            <button
+                                                className="add_new_week__button"
+                                                onClick={() => {
+                                                    create_my_week(
+                                                        router,
+                                                        setMy_week
+                                                    );
+                                                }}
+                                            >
+                                                +
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
