@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter, useRouter } from "next/router";
+import { customFetch } from "../custom_fetch";
 
 export function asignError(
     response: { detail: string },
@@ -33,19 +34,17 @@ export function register(
         body: raw,
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/register`, requestOptions)
-        .then(async (response) => {
-            if (response.status != 201) {
-                response.json().then((json) => {
-                    asignError(json, setError);
-                });
+    let custom_fetch = new customFetch(requestOptions, router);
+    custom_fetch
+        .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/register`)
+        .then((response: any) => {
+            if (!response.detail) {
+                localStorage.setItem("access_token", response.access_token);
+                localStorage.setItem("refresh_token", response.refresh_token);
+                router.push("/home");
             } else {
-                response.json().then((json) => {
-                    localStorage.setItem("access_token", json.access_token);
-                    localStorage.setItem("refresh_token", json.refresh_token);
-                    router.push("/home");
-                });
+                asignError(response, setError);
             }
         })
-        .catch((error) => console.log("error", error));
+        .catch((error: any) => console.log(error));
 }

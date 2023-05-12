@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter, useRouter } from "next/router";
+import { customFetch } from "../custom_fetch";
 
 export interface IMeal {
     id: string;
@@ -24,33 +25,26 @@ export function get_meals(
         headers: myHeaders,
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meals`, requestOptions)
-        .then(async (response) => {
-            if (response.status != 200) {
-                response.json().then((json) => {
-                    if (json.detail == "Invalid token") {
-                        localStorage.removeItem("access_token");
-                        router.push("/login");
-                    }
-                });
-            } else {
-                response.json().then((json) => {
-                    var meals: IMeal[] = [];
-                    for (let i = 0; i < json.length; i++) {
-                        meals.push({
-                            id: json[i]._id,
-                            name: json[i].name,
-                            ingredients: json[i].ingredients,
-                            created_at: json[i].created_at
-                                ? json[i].created_at
-                                : "none",
-                        });
-                    }
-                    setMeal(meals);
-                });
+    let custom_fetch = new customFetch(requestOptions, router);
+    custom_fetch
+        .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meals`)
+        .then((response: any) => {
+            if (!response.detail) {
+                var meals: IMeal[] = [];
+                for (let i = 0; i < response.length; i++) {
+                    meals.push({
+                        id: response[i]._id,
+                        name: response[i].name,
+                        ingredients: response[i].ingredients,
+                        created_at: response[i].created_at
+                            ? response[i].created_at
+                            : "none",
+                    });
+                }
+                setMeal(meals);
             }
         })
-        .catch((error) => console.log(error));
+        .catch((error: any) => console.log(error));
 }
 
 export function get_meals_count(
@@ -69,21 +63,13 @@ export function get_meals_count(
         headers: myHeaders,
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meals`, requestOptions)
-        .then(async (response) => {
-            if (response.status != 200) {
-                response.json().then((json) => {
-                    if (json.detail == "Invalid token") {
-                        localStorage.removeItem("access_token");
-                        router.push("/login");
-                    }
-                });
-            } else {
-                response.json().then((json) => {
-                    setCountMeal(json.length);
-                    return json.length;
-                });
+    let custom_fetch = new customFetch(requestOptions, router);
+    custom_fetch
+        .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meals`)
+        .then((response: { detail: any; length: SetStateAction<number> }) => {
+            if (!response.detail) {
+                setCountMeal(response.length);
             }
         })
-        .catch((error) => console.log(error));
+        .catch((error: any) => console.log(error));
 }

@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter, useRouter } from "next/router";
+import { customFetch } from "../custom_fetch";
 
 export interface IDay {
     date: string;
@@ -7,7 +8,7 @@ export interface IDay {
     dinner: { name: string; id: string };
 }
 
-export function create_my_week(
+export async function create_my_week(
     router: NextRouter,
     setMy_week: Dispatch<SetStateAction<IDay[]>>
 ) {
@@ -17,26 +18,18 @@ export function create_my_week(
     myHeaders.append("Access-Control-Allow-Origin", "http://localhost:8000");
     myHeaders.append("Access-Control-Allow-Credentials", "true");
     myHeaders.append("Authorization", "Bearer " + access_token);
-
     var requestOptions = {
         method: "POST",
         headers: myHeaders,
     };
-
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/week`, requestOptions)
-        .then(async (response) => {
-            if (response.status != 200) {
-                response.json().then((json) => {
-                    if (json.detail == "Invalid token") {
-                        localStorage.removeItem("access_token");
-                        router.push("/login");
-                    }
-                });
-            }
-            response.json().then((json) => {
-                var week: IDay[] = json;
+    let custom_fetch = new customFetch(requestOptions, router);
+    custom_fetch
+        .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/week`)
+        .then((response) => {
+            if (!response.detail) {
+                var week: IDay[] = response;
                 setMy_week(week);
-            });
+            }
         })
         .catch((error) => console.log(error));
 }

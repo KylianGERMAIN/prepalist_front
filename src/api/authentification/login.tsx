@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter, useRouter } from "next/router";
 import { asignError } from "./register";
+import { customFetch } from "../custom_fetch";
 
 export function login(
     email: string,
@@ -25,21 +26,19 @@ export function login(
         body: raw,
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/login`, requestOptions)
-        .then(async (response) => {
-            if (response.status != 200) {
-                response.json().then((json) => {
-                    asignError(json, setError);
-                });
+    let custom_fetch = new customFetch(requestOptions, router);
+    custom_fetch
+        .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/login`)
+        .then((response: any) => {
+            if (!response.detail) {
+                localStorage.setItem("access_token", response.access_token);
+                localStorage.setItem("refresh_token", response.refresh_token);
+                router.push("/home");
             } else {
-                response.json().then((json) => {
-                    localStorage.setItem("access_token", json.access_token);
-                    localStorage.setItem("refresh_token", json.refresh_token);
-                    router.push("/home");
-                });
+                asignError(response, setError);
             }
         })
-        .catch((error) =>
+        .catch((error: any) =>
             asignError({ detail: "Error fill in the form correctly" }, setError)
         );
 }

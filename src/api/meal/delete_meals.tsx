@@ -1,6 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter, useRouter } from "next/router";
 import { IMeal } from "./get_meals";
+import { customFetch } from "../custom_fetch";
 
 export function delete_meal(
     listMeal: IMeal[],
@@ -20,21 +21,13 @@ export function delete_meal(
         headers: myHeaders,
     };
 
-    fetch(
-        `${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal/${id}`,
-        requestOptions
-    )
-        .then(async (response) => {
-            if (response.status != 202) {
-                response.json().then((json) => {
-                    if (json.detail == "Invalid token") {
-                        localStorage.removeItem("access_token");
-                        router.push("/login");
-                    }
-                });
-            } else {
+    let custom_fetch = new customFetch(requestOptions, router);
+    custom_fetch
+        .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal/${id}`)
+        .then((response: any) => {
+            if (!response.detail) {
                 setMeal(listMeal.filter((item) => item.id !== id));
             }
         })
-        .catch((error) => console.log(error));
+        .catch((error: any) => console.log(error));
 }

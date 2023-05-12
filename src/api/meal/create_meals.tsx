@@ -2,6 +2,7 @@ import { Dispatch, SetStateAction } from "react";
 import { NextRouter, useRouter } from "next/router";
 import { IMeal } from "./get_meals";
 import { asignError } from "../authentification/register";
+import { customFetch } from "../custom_fetch";
 
 export function create_meals(
     meal: IMeal,
@@ -23,22 +24,14 @@ export function create_meals(
         body: JSON.stringify(meal),
     };
 
-    fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal`, requestOptions)
-        .then(async (response) => {
-            if (response.status != 201) {
-                response.json().then((json) => {
-                    asignError(json, setError);
-                    if (json.detail == "Invalid token") {
-                        localStorage.removeItem("access_token");
-                        router.push("/login");
-                    }
-                });
-            } else {
-                response.json().then((json) => {
-                    setMeal((meal) => [...meal, json]);
-                    setModal(false);
-                });
+    let custom_fetch = new customFetch(requestOptions, router);
+    custom_fetch
+        .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal`)
+        .then((response: any) => {
+            if (!response.detail) {
+                setMeal((meal) => [...meal, response]);
+                setModal(false);
             }
         })
-        .catch((error) => console.log(error));
+        .catch((error: any) => console.log(error));
 }
