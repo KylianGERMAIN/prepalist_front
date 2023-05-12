@@ -7,11 +7,13 @@ import { IIngredient, get_list } from "@/api/list/get_list";
 
 export default function My_meals() {
     const [list, setList] = useState<IIngredient[]>([]);
+    const [loading, setLoading] = useState<boolean>(true);
 
     const router = useRouter();
 
     useEffect(() => {
         get_list(router, setList);
+        setLoading(false);
     }, [router]);
 
     return (
@@ -29,23 +31,28 @@ export default function My_meals() {
                         </div>
                     </div>
                     <div className="body-list__box">
-                        <div className="add-meal__box flex">
-                            <h3>Total : 20</h3>
-                        </div>
-                        {list.length == 0
-                            ? null
-                            : list.map(
-                                  (ingredient: IIngredient, index: number) => (
-                                      <div
-                                          key={index}
-                                          className="meal-list__box"
-                                      >
-                                          <div className="name-meal__box">
-                                              <h4>{ingredient.ingredient}</h4>
-                                          </div>
-                                      </div>
-                                  )
-                              )}
+                        {loading ? null : (
+                            <>
+                                <div className="add-meal__box flex">
+                                    <h3>Total : {list.length}</h3>
+                                </div>
+                                {list.map(
+                                    (
+                                        ingredient: IIngredient,
+                                        index: number
+                                    ) => (
+                                        <div
+                                            key={index}
+                                            className="meal-list__box"
+                                        >
+                                            <div className="name-meal__box">
+                                                <h4>{ingredient.ingredient}</h4>
+                                            </div>
+                                        </div>
+                                    )
+                                )}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

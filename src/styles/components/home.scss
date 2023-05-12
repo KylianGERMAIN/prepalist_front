@@ -1,14 +1,31 @@
-.header-switch-day__box {
+.header-home__box {
     background-color: white;
     height: 70px;
     border-bottom: 1px solid rgba(233, 236, 239, 1);
     margin-top: 45px;
+    display: grid;
+    justify-content: center;
+    place-items: center;
+
+    .add_new_week__button {
+        display: block;
+        background-color: #3062d4;
+        padding: 5px;
+        font-size: 15px;
+        color: white;
+        font-weight: bolder;
+        border: none;
+        height: 30px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
 }
 
 .no_enought_meal__container {
     max-width: 500px;
-    margin: auto;
     height: 100%;
+    padding-left: 0px;
+    width: 100vw;
     height: calc(100vh - 115px);
     position: relative;
 
@@ -182,7 +199,7 @@
     }
 }
 
-@media (min-width: 500px) {
+@media (min-width: 833px) {
     .home__container {
         display: grid;
         width: 100%;
@@ -190,6 +207,21 @@
 
     .no_enought_meal__container {
         height: calc(100vh - 70px);
+        padding-left: 150px;
+        width: 400px;
+    }
+
+    .header-home__box {
+        background-color: white;
+        height: 70px;
+        border-bottom: 1px solid rgba(233, 236, 239, 1);
+        margin-top: 0px;
+        display: grid;
+        justify-content: center;
+        place-items: center;
+        .add_new_week__button {
+            display: none;
+        }
     }
 
     .body-day__box {
@@ -199,6 +231,7 @@
         place-items: center;
 
         .add_new_week__button {
+            cursor: pointer;
             display: block;
             background-color: #3062d4;
             padding: 5px;

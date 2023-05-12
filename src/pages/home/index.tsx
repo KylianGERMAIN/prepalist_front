@@ -1,14 +1,21 @@
+/* eslint-disable @next/next/no-img-element */
+/* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable react/no-unescaped-entities */
 import Head from "next/head";
 import { AiOutlineHome, AiOutlineClose } from "react-icons/ai";
-import { MdOutlineFastfood, MdLogout, MdLunchDining } from "react-icons/md";
+import {
+    MdOutlineFastfood,
+    MdLogout,
+    MdLunchDining,
+    MdDinnerDining,
+} from "react-icons/md";
 import { BsEnvelopePaper, BsListCheck } from "react-icons/bs";
 import { FiHelpCircle } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { IDay, get_week } from "@/api/week/get_week";
 import { useRouter } from "next/router";
-import { get_meals, get_meals_count } from "@/api/meal/get_meals";
+import { get_meals_count } from "@/api/meal/get_meals";
 import { create_my_week } from "@/api/week/create_new_week";
 
 export const options = {
@@ -141,7 +148,7 @@ export function Card_Day({
         else
             return (
                 <div className="card_categorie_dinner__container">
-                    <MdLunchDining size={"19px"} color="#EE7353" />
+                    <MdDinnerDining size={"19px"} color="#EE7353" />
                     <span>{name_category}</span>
                 </div>
             );
@@ -170,14 +177,16 @@ export default function Home(props: any) {
     const [my_week, setMy_week] = useState<IDay[]>([]);
     const [count_meal, setCountMeal] = useState<number>(-1);
     const [loading, setLoading] = useState<boolean>(true);
-    const [index, setindex] = useState(0);
 
     const router = useRouter();
     const week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
 
     useEffect(() => {
         get_meals_count(router, setCountMeal);
-        if (count_meal >= 6) get_week(router, setMy_week);
+        if (count_meal >= 10) {
+            get_week(router, setMy_week);
+            setLoading(false);
+        }
     }, [count_meal, router]);
 
     if (count_meal != -1 && loading) {
@@ -219,36 +228,47 @@ export default function Home(props: any) {
                             </div>
                         ) : (
                             <div>
-                                <div className="header-switch-day__box"></div>
+                                <div className="header-home__box">
+                                    <button
+                                        className="add_new_week__button center-midle-screen"
+                                        onClick={() => {
+                                            create_my_week(router, setMy_week);
+                                        }}
+                                    >
+                                        Plannifier ma semaine
+                                    </button>
+                                </div>
 
                                 <div className="home__container">
-                                    <div className="home__container__header">
-                                        <div className="body-day__box">
-                                            {my_week.map(
-                                                (day: IDay, index: any) => (
-                                                    <Card_Day
-                                                        key={index}
-                                                        day_of_week={
-                                                            week[index]
-                                                        }
-                                                        day={day}
-                                                    />
-                                                )
-                                            )}
+                                    {my_week.length < 6 ? null : (
+                                        <div className="home__container__header">
+                                            <div className="body-day__box">
+                                                {my_week.map(
+                                                    (day: IDay, index: any) => (
+                                                        <Card_Day
+                                                            key={index}
+                                                            day_of_week={
+                                                                week[index]
+                                                            }
+                                                            day={day}
+                                                        />
+                                                    )
+                                                )}
 
-                                            <button
-                                                className="add_new_week__button"
-                                                onClick={() => {
-                                                    create_my_week(
-                                                        router,
-                                                        setMy_week
-                                                    );
-                                                }}
-                                            >
-                                                +
-                                            </button>
+                                                <button
+                                                    className="add_new_week__button"
+                                                    onClick={() => {
+                                                        create_my_week(
+                                                            router,
+                                                            setMy_week
+                                                        );
+                                                    }}
+                                                >
+                                                    +
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
                                 </div>
                             </div>
                         )}
