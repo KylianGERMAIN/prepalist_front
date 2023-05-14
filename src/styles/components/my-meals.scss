@@ -58,13 +58,13 @@
         align-items: center;
     }
 
-    .meal_icon__box {
-        display: flex;
-        gap: 20px;
-    }
-
     .body-list__box {
         padding-left: 300px;
         margin-top: 0px;
+
+        .meal_icon__box {
+            display: flex;
+            gap: 20px !important;
+        }
     }
 }
