@@ -14,26 +14,26 @@ export default function Login() {
     return (
         <>
             <Head>
-                <title>Prepalist - Login</title>
+                <title>Prepalist - Connexion</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className="layout">
                 <div className="authentification__container flex">
                     <div className="center-midle-screen">
                         <div className="login__section">
-                            <h1>Log in</h1>
+                            <h1>Connexion</h1>
                             <div className="classic__input">
-                                <span className="dark_blue">Email</span>
+                                <span className="dark_blue">Adresse mail</span>
                                 <input
-                                    placeholder="Your address email "
+                                    placeholder="Votre adresse mail"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />
                             </div>
                             <div className="classic__input">
-                                <span className="dark_blue">Password</span>
+                                <span className="dark_blue">Mot de passe</span>
                                 <input
-                                    placeholder="Your password"
+                                    placeholder="Votre mot de passe"
                                     type="password"
                                     value={password}
                                     onChange={(e) =>
@@ -53,7 +53,7 @@ export default function Login() {
                                             : "classic__button"
                                     }
                                 >
-                                    Login
+                                    Connexion
                                 </button>
                             </div>
                             <div>
@@ -61,11 +61,11 @@ export default function Login() {
                             </div>
                             <div className="bottom_message_login">
                                 <span className="basic_grey">
-                                    New to Prepalist?
+                                    {"Vous n'avez pas de compte ?"}
                                 </span>
                                 <Link href="/register">
                                     <span className="blue_opacity">
-                                        Get Started
+                                        Inscription
                                     </span>
                                 </Link>
                             </div>

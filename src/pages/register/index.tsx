@@ -15,7 +15,7 @@ export default function Register() {
     return (
         <>
             <Head>
-                <title>Prepalist - Login</title>
+                <title>Prepalist - Inscription</title>
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <div className="layout">
@@ -23,11 +23,11 @@ export default function Register() {
                     <div className="authentification-second__box" />
                     <div className="center-midle-screen ">
                         <div className="login__section">
-                            <h1>Register</h1>
+                            <h1>Inscription</h1>
                             <div className="classic__input">
-                                <span className="dark_blue">Name</span>
+                                <span className="dark_blue">Nom</span>
                                 <input
-                                    placeholder="Your name"
+                                    placeholder="Votre nom"
                                     value={username}
                                     onChange={(e) =>
                                         setUsername(e.target.value)
@@ -35,17 +35,17 @@ export default function Register() {
                                 />
                             </div>
                             <div className="classic__input">
-                                <span className="dark_blue">Email</span>
+                                <span className="dark_blue">Adresse mail</span>
                                 <input
-                                    placeholder="Your address email"
+                                    placeholder="Votre adresse mail"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                 />
                             </div>
                             <div className="classic__input">
-                                <span className="dark_blue">Password</span>
+                                <span className="dark_blue">Mot de passe</span>
                                 <input
-                                    placeholder="Your password"
+                                    placeholder="Votre mot de passe"
                                     type="password"
                                     value={password}
                                     onChange={(e) =>
@@ -71,7 +71,7 @@ export default function Register() {
                                             : "classic__button"
                                     }
                                 >
-                                    Create an account
+                                    Créer un compte
                                 </button>
                                 <div>
                                     <span className="error_content">
@@ -81,10 +81,12 @@ export default function Register() {
                             </div>
                             <div className="bottom_message_register">
                                 <span className="basic_grey">
-                                    Already have an account?
+                                    Vous avez déjà un compte ?
                                 </span>
                                 <Link href="/login">
-                                    <span className="blue_opacity">Login</span>
+                                    <span className="blue_opacity">
+                                        Connexion
+                                    </span>
                                 </Link>
                             </div>
                         </div>

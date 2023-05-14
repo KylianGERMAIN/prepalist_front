@@ -50,7 +50,9 @@ export default function Add_meal_content_modal({
     function Ingredient({ index }: Props) {
         return (
             <div className="classic__input  padding__modal">
-                <span className="dark_blue">Name ingredients {index + 1}</span>
+                <span className="dark_blue">
+                    {"Nom de l'ingrédient"} {index + 1}
+                </span>
                 <input
                     placeholder="Pasta carbonara"
                     value={ingredients[index]}
@@ -63,7 +65,7 @@ export default function Add_meal_content_modal({
     return (
         <>
             <div className="classic__input padding__modal">
-                <span className="dark_blue">Name</span>
+                <span className="dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
                     value={name}
@@ -90,7 +92,7 @@ export default function Add_meal_content_modal({
                         ]);
                     }}
                 >
-                    More ingredients
+                    Ajouter 1 ingrédient
                 </button>
                 <button
                     className="classic__button"
@@ -115,7 +117,7 @@ export default function Add_meal_content_modal({
                         );
                     }}
                 >
-                    Save
+                    Créer le repas
                 </button>
             </div>
         </>

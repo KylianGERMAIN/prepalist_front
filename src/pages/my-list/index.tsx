@@ -27,7 +27,7 @@ export default function My_meals() {
                 <div className="home__container">
                     <div className="header-switch-day__box">
                         <div className="date-switch_box basic_grey">
-                            <span className="">My list</span>
+                            <span className="">Ma liste de courses</span>
                         </div>
                     </div>
                     <div className="body-list__box">

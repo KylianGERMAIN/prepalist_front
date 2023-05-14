@@ -18,12 +18,7 @@ import { useRouter } from "next/router";
 import { get_meals_count } from "@/api/meal/get_meals";
 import { create_my_week } from "@/api/week/create_new_week";
 
-export const options = {
-    weekday: "long" as "long",
-    year: "numeric" as "numeric",
-    month: "long" as "long",
-    day: "numeric" as "numeric",
-};
+export const options = {};
 
 export function Sidebar() {
     const [burger, setBurger] = useState(false);
@@ -81,19 +76,19 @@ export function Sidebar() {
                             <Link href="/home">
                                 <li className={style_dashboard[0]}>
                                     <AiOutlineHome size={25} />
-                                    Dashboard
+                                    Tableau de bord
                                 </li>
                             </Link>
                             <Link href="/my-meals">
                                 <li className={style_dashboard[1]}>
                                     <MdOutlineFastfood size={25} />
-                                    My meals
+                                    Mes repas
                                 </li>
                             </Link>
                             <Link href="/my-list">
                                 <li className={style_dashboard[2]}>
                                     <BsListCheck size={25} />
-                                    My list
+                                    Ma liste de courses
                                 </li>
                             </Link>
                         </ul>
@@ -111,14 +106,14 @@ export function Sidebar() {
                                 <Link href="/home">
                                     <li>
                                         <FiHelpCircle size={25} />
-                                        Help Center
+                                        Centre d'aide
                                     </li>
                                 </Link>
                                 <hr className="separator__hr" />
                                 <Link href="/login">
                                     <li className="">
                                         <MdLogout size={25} />
-                                        Logout
+                                        Se déconnecter
                                     </li>
                                 </Link>
                             </ul>
@@ -154,17 +149,19 @@ export function Card_Day({
             );
     }
 
+    var date = new Date(day.date.split(" ")[0]);
+    var french_date = date.toLocaleDateString("fr-FR");
     return (
         <div className="card-day__container">
             <div className="card-day__element">
                 <h2 className="day_of_week__text">{day_of_week}</h2>
                 <div className="meal-diner__container">
-                    <span className="date__text">{day.date.split(" ")[0]}</span>
+                    <span className="date__text">{french_date}</span>
                     <CardCategorie name_category="Déjeuner" />
                     <span className="name_meal__text">{day.lunch.name}</span>
                 </div>
                 <div className="meal-diner__container">
-                    <span className="date__text">{day.date.split(" ")[0]}</span>
+                    <span className="date__text">{french_date}</span>
                     <CardCategorie name_category="Diner" />
                     <span className="name_meal__text">{day.dinner.name}</span>
                 </div>
@@ -217,10 +214,10 @@ export default function Home(props: any) {
                                             <p>
                                                 Pour planifier votre semaine de
                                                 repas, créez plus de 10 plats en
-                                                visitant la rubrique "My meals".
-                                                C'est simple et facile, et vous
-                                                pourrez ainsi profiter de repas
-                                                sains et savoureux.
+                                                visitant la rubrique "Mes
+                                                repas". C'est simple et facile,
+                                                et vous pourrez ainsi profiter
+                                                de repas sains et savoureux.
                                             </p>
                                         </div>
                                     </div>

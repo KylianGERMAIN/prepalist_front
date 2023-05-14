@@ -73,7 +73,7 @@ export default function My_meals() {
                 <Modal
                     setModal={setAddMealModal}
                     open_modal={modal_add_meal}
-                    title="Create new meal "
+                    title="Ajouter un repas"
                 >
                     <Add_meal_content_modal
                         setModal={setAddMealModal}
@@ -84,7 +84,7 @@ export default function My_meals() {
                 <Modal
                     setModal={setUpdateMealModal}
                     open_modal={modal_update_meal}
-                    title="Update meal"
+                    title="Mettre à jour le repas"
                 >
                     <Update_meal_content_modal
                         setModal={setUpdateMealModal}
@@ -114,7 +114,7 @@ export default function My_meals() {
                                 setDeleteMealModal(!modal_delete_meal);
                             }}
                         >
-                            Yes
+                            Oui
                         </button>
                         <button
                             className="classic__button no_modal"
@@ -122,7 +122,7 @@ export default function My_meals() {
                                 setDeleteMealModal(!modal_delete_meal);
                             }}
                         >
-                            No
+                            Non
                         </button>
                     </div>
                 </Modal>
@@ -130,7 +130,7 @@ export default function My_meals() {
                 <div className="home__container">
                     <div className="header-switch-day__box">
                         <div className="date-switch_box basic_grey">
-                            <span className="">My meals</span>
+                            <span className="">Mes repas</span>
                         </div>
                     </div>
                     <div className="body-list__box">
@@ -142,7 +142,7 @@ export default function My_meals() {
                                     setAddMealModal(!modal_add_meal);
                                 }}
                             >
-                                Create
+                                Créer
                             </button>
                         </div>
                         {listMeal.map((meal: IMeal, index: number) => (

@@ -55,7 +55,7 @@ export default function Update_meal_content_modal({
     return (
         <>
             <div className="classic__input padding__modal">
-                <span className="dark_blue">Name</span>
+                <span className="dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
                     value={meal.name}
@@ -71,7 +71,7 @@ export default function Update_meal_content_modal({
                 {meal.ingredients.map((element, key) => (
                     <div key={key} className="classic__input  padding__modal">
                         <span className="dark_blue">
-                            Name ingredients {key + 1}
+                            {"Nom de l'ingrédient"} {key + 1}
                         </span>
                         <input
                             placeholder="Pasta carbonara"
@@ -104,7 +104,7 @@ export default function Update_meal_content_modal({
                         element.scrollTop = element.scrollHeight;
                     }}
                 >
-                    More ingredients
+                    Ajouter 1 ingrédient
                 </button>
                 <button
                     className="classic__button"
@@ -124,7 +124,7 @@ export default function Update_meal_content_modal({
                         );
                     }}
                 >
-                    Save
+                    Mettre à jour le repas
                 </button>
             </div>
         </>
