@@ -97,7 +97,6 @@ export default function Add_meal_content_modal({
                     onClick={() => {
                         var newar = [];
                         for (var key in ingredients) {
-                            console.log(ingredients[key]);
                             if (ingredients[key] != "")
                                 newar.push({
                                     ingredient: ingredients[key],

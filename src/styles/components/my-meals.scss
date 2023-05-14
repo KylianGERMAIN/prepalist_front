@@ -3,6 +3,9 @@
     height: 70px;
     border-bottom: 1px solid rgba(233, 236, 239, 1);
     margin-top: 45px;
+    display: grid;
+    align-items: center;
+    padding-left: 20px;
 }
 
 .body-list__box {
@@ -36,6 +39,11 @@
                 font-weight: lighter;
             }
         }
+
+        .meal_icon__box {
+            display: flex;
+            gap: 5px;
+        }
     }
 }
 
@@ -48,6 +56,11 @@
         width: 100%;
         display: grid;
         align-items: center;
+    }
+
+    .meal_icon__box {
+        display: flex;
+        gap: 20px;
     }
 
     .body-list__box {
