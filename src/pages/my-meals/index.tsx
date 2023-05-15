@@ -8,6 +8,7 @@ import { delete_meal } from "@/api/meal/delete_meals";
 import Modal from "@/components/modal/modal";
 import Add_meal_content_modal from "@/components/modal/add_meal";
 import Update_meal_content_modal from "@/components/modal/update_meal";
+import Tiny_Modal from "@/components/modal/tiny_modal";
 
 export default function My_meals() {
     const [modal_add_meal, setAddMealModal] = useState(false);
@@ -96,10 +97,10 @@ export default function My_meals() {
                     />
                 </Modal>
 
-                <Modal
+                <Tiny_Modal
                     setModal={setDeleteMealModal}
                     open_modal={modal_delete_meal}
-                    title="Are you sure you want to delete this meal ?"
+                    title="Etes-vous sûr de vouloir supprimer ce repas ?"
                 >
                     <div className="flex ingredients-button__box">
                         <button
@@ -125,7 +126,7 @@ export default function My_meals() {
                             Non
                         </button>
                     </div>
-                </Modal>
+                </Tiny_Modal>
 
                 <div className="home__container">
                     <div className="header-switch-day__box">

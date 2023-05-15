@@ -109,7 +109,7 @@ export default function Update_meal_content_modal({
                 <button
                     className="classic__button"
                     onClick={() => {
-                        for (var i = 0; i < meal.ingredients.length; i++) {
+                        for (var i = meal.ingredients.length - 1; i >= 0; i--) {
                             if (meal.ingredients[i].ingredient == "") {
                                 meal.ingredients.splice(i, 1);
                             }

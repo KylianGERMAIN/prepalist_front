@@ -13,7 +13,7 @@ import { create_meals } from "@/api/meal/create_meals";
 import { NextRouter } from "next/router";
 import React from "react";
 
-export default function Modal({
+export default function Tiny_Modal({
     children,
     setModal,
     open_modal,
@@ -27,8 +27,8 @@ export default function Modal({
     if (open_modal == true)
         return (
             <React.Fragment>
-                <div id="myModal" className="modal">
-                    <div className="modal-content">
+                <div id="myModal" className="tiny-modal">
+                    <div className="tiny-modal-content">
                         <div className="header-modal__box">
                             <h1 className="title_modal">{title}</h1>
                             <span
