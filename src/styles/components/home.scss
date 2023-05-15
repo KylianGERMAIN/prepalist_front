@@ -86,7 +86,7 @@
                 font-weight: 600;
                 padding-left: 5px;
             }
-            .meal-diner__container {
+            .meal__container {
                 background-color: white;
                 border-radius: 20px;
                 margin-top: 10px;
@@ -95,6 +95,7 @@
                 padding: 15px;
                 border: #dddddd 1px solid;
                 width: 100%;
+                cursor: pointer;
 
                 .date__text {
                     font-weight: 300;

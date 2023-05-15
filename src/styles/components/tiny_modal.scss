@@ -54,20 +54,3 @@
     color: black;
     cursor: pointer;
 }
-
-.padding__modal {
-    padding-right: 20px !important;
-    padding-left: 20px !important;
-    margin-bottom: 10px;
-}
-
-@media (min-width: 833px) {
-    .modal-content {
-        background-color: #fefefe;
-        margin: 60px auto;
-        padding: 20px;
-        border-radius: 20px;
-        width: 600px;
-        padding: 20px;
-    }
-}

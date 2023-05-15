@@ -10,30 +10,30 @@
 
 .modal-content {
     background-color: white;
-    margin: 60px auto;
-    width: 80%;
+    width: 100%;
     border-radius: 20px;
-    padding: 20px;
     display: grid;
-    min-height: 300px;
     max-height: 800px;
 
     .header-modal__box {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-bottom: 20px;
+        padding-right: 20px;
+        padding-left: 20px;
         border-bottom: 1px solid rgba(233, 236, 239, 1);
     }
 
     .title_modal {
         font-size: 20px;
+        padding: 20px;
         font-weight: 600;
         color: rgba(0, 0, 0, 0.8);
         text-align: center;
     }
 
     .body-modal__box {
+        padding: 20px;
         padding-top: 10px;
         max-height: 70vh !important;
         .no_modal {
@@ -46,6 +46,7 @@
 
         .ingredients__box {
             border-top: 1px solid rgba(233, 236, 239, 1);
+            margin-top: 10px;
             padding-top: 10px;
             overflow: scroll;
             max-height: 50vh;
@@ -67,9 +68,11 @@
     color: black;
     cursor: pointer;
 }
-
-.padding__modal {
-    padding-right: 20px !important;
-    padding-left: 20px !important;
-    margin-bottom: 10px;
+@media (min-width: 833px) {
+    .modal-content {
+        background-color: #fefefe;
+        margin: 60px auto;
+        border-radius: 20px;
+        width: 600px;
+    }
 }

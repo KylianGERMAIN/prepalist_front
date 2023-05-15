@@ -11,12 +11,14 @@ import {
 } from "react-icons/md";
 import { BsEnvelopePaper, BsListCheck } from "react-icons/bs";
 import { FiHelpCircle } from "react-icons/fi";
-import { useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Link from "next/link";
 import { IDay, get_week } from "@/api/week/get_week";
 import { useRouter } from "next/router";
 import { get_meals_count } from "@/api/meal/get_meals";
 import { create_my_week } from "@/api/week/create_new_week";
+import Modal from "@/components/modal/modal";
+import View_meal_modal from "@/components/modal/content/view_meal";
 
 export const options = {};
 
@@ -128,9 +130,13 @@ export function Sidebar() {
 export function Card_Day({
     day,
     day_of_week,
+    setMealViewModal,
+    setSelectedMeal,
 }: {
     day: IDay;
     day_of_week: string;
+    setMealViewModal: Dispatch<SetStateAction<boolean>>;
+    setSelectedMeal: Dispatch<SetStateAction<any>>;
 }) {
     function CardCategorie({ name_category }: { name_category: string }) {
         if (name_category == "Déjeuner")
@@ -155,12 +161,24 @@ export function Card_Day({
         <div className="card-day__container">
             <div className="card-day__element">
                 <h2 className="day_of_week__text">{day_of_week}</h2>
-                <div className="meal-diner__container">
+                <div
+                    className="meal__container"
+                    onClick={async (e) => {
+                        await setSelectedMeal(day.lunch);
+                        setMealViewModal(true);
+                    }}
+                >
                     <span className="date__text">{french_date}</span>
                     <CardCategorie name_category="Déjeuner" />
                     <span className="name_meal__text">{day.lunch.name}</span>
                 </div>
-                <div className="meal-diner__container">
+                <div
+                    className="meal__container"
+                    onClick={async (e) => {
+                        await setSelectedMeal(day.dinner);
+                        setMealViewModal(true);
+                    }}
+                >
                     <span className="date__text">{french_date}</span>
                     <CardCategorie name_category="Diner" />
                     <span className="name_meal__text">{day.dinner.name}</span>
@@ -174,6 +192,11 @@ export default function Home(props: any) {
     const [my_week, setMy_week] = useState<IDay[]>([]);
     const [count_meal, setCountMeal] = useState<number>(-1);
     const [loading, setLoading] = useState<boolean>(true);
+    const [modal_meal_view, setMealViewModal] = useState(false);
+    const [select_meal, setSelectedMeal] = useState<any>({
+        lunch: { name: "", id: "" },
+        dinner: { name: "", id: "" },
+    });
 
     const router = useRouter();
     const week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
@@ -198,6 +221,13 @@ export default function Home(props: any) {
             </Head>
             <div className="layout">
                 <Sidebar />
+                <Modal
+                    setModal={setMealViewModal}
+                    open_modal={modal_meal_view}
+                    title="Mettre à jour le repas"
+                >
+                    <View_meal_modal meal={select_meal} router={router} />
+                </Modal>
                 {loading == false ? (
                     <>
                         {count_meal < 10 ? (
@@ -248,6 +278,12 @@ export default function Home(props: any) {
                                                                 week[index]
                                                             }
                                                             day={day}
+                                                            setMealViewModal={
+                                                                setMealViewModal
+                                                            }
+                                                            setSelectedMeal={
+                                                                setSelectedMeal
+                                                            }
                                                         />
                                                     )
                                                 )}

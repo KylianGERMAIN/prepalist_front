@@ -6,8 +6,8 @@ import { IMeal, get_meals } from "@/api/meal/get_meals";
 import { useRouter } from "next/router";
 import { delete_meal } from "@/api/meal/delete_meals";
 import Modal from "@/components/modal/modal";
-import Add_meal_content_modal from "@/components/modal/add_meal";
-import Update_meal_content_modal from "@/components/modal/update_meal";
+import Add_meal_content_modal from "@/components/modal/content/add_meal";
+import Update_meal_content_modal from "@/components/modal/content/update_meal";
 import Tiny_Modal from "@/components/modal/tiny_modal";
 
 export default function My_meals() {

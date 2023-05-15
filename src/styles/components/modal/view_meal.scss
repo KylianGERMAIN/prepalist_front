@@ -1,0 +1,24 @@
+.view_meal__container {
+    padding-right: 20px;
+    padding-left: 20px;
+
+    .view_meal__title {
+        font-size: 1.2rem;
+        padding-bottom: 20px;
+        padding-top: 20px;
+        border-bottom: 1px solid rgba(233, 236, 239, 1);
+    }
+
+    .view_meal_ingredients__title {
+        font-size: 1.2rem;
+        padding-bottom: 20px;
+        padding-top: 20px;
+    }
+
+    ul > li {
+        padding-bottom: 10px;
+        padding-top: 10px;
+        margin-left: 25px;
+        list-style-type: disc;
+    }
+}

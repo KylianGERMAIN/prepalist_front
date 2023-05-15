@@ -64,7 +64,7 @@ export default function Add_meal_content_modal({
 
     return (
         <>
-            <div className="classic__input padding__modal">
+            <div className="classic__input">
                 <span className="dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
