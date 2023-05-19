@@ -26,6 +26,8 @@ export class customFetch {
         return data;
     }
 
+    // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2ODQ0ODQ3NzUsImlhdCI6MTY4NDQ4Mjk3NSwiaWQiOiI2NDRlMzY0YzRjZTU3MmZhMzIwMGUyNGMifQ.K_mL8e5CDTr_AVwnWXs-woeCbKOpjZfB2EjzVu_PBpY
+
     async fetch_refresh() {
         const refresh_token = localStorage.getItem("refresh_token") || "";
         var myHeaders = new Headers();

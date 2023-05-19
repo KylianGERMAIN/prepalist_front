@@ -16,9 +16,9 @@ import Link from "next/link";
 import { IDay, get_week } from "@/api/week/get_week";
 import { useRouter } from "next/router";
 import { get_meals_count } from "@/api/meal/get_meals";
-import { create_my_week } from "@/api/week/create_new_week";
 import Modal from "@/components/modal/modal";
 import View_meal_modal from "@/components/modal/content/view_meal";
+import Create_week_modal from "@/components/modal/content/create_week";
 
 export const options = {};
 
@@ -127,6 +127,23 @@ export function Sidebar() {
     );
 }
 
+export function CardCategorie({ name_category }: { name_category: string }) {
+    if (name_category == "Déjeuner")
+        return (
+            <div className="card_categorie_lunch__container">
+                <MdLunchDining size={"19px"} color="#5686E1" />
+                <span>{name_category}</span>
+            </div>
+        );
+    else
+        return (
+            <div className="card_categorie_dinner__container">
+                <MdDinnerDining size={"19px"} color="#EE7353" />
+                <span>{name_category}</span>
+            </div>
+        );
+}
+
 export function Card_Day({
     day,
     day_of_week,
@@ -138,23 +155,6 @@ export function Card_Day({
     setMealViewModal: Dispatch<SetStateAction<boolean>>;
     setSelectedMeal: Dispatch<SetStateAction<any>>;
 }) {
-    function CardCategorie({ name_category }: { name_category: string }) {
-        if (name_category == "Déjeuner")
-            return (
-                <div className="card_categorie_lunch__container">
-                    <MdLunchDining size={"19px"} color="#5686E1" />
-                    <span>{name_category}</span>
-                </div>
-            );
-        else
-            return (
-                <div className="card_categorie_dinner__container">
-                    <MdDinnerDining size={"19px"} color="#EE7353" />
-                    <span>{name_category}</span>
-                </div>
-            );
-    }
-
     var date = new Date(day.date.split(" ")[0]);
     var french_date = date.toLocaleDateString("fr-FR");
     return (
@@ -193,6 +193,7 @@ export default function Home(props: any) {
     const [count_meal, setCountMeal] = useState<number>(-1);
     const [loading, setLoading] = useState<boolean>(true);
     const [modal_meal_view, setMealViewModal] = useState(false);
+    const [modal_create_week, setCreateWeekModal] = useState(false);
     const [select_meal, setSelectedMeal] = useState<any>({
         lunch: { name: "", id: "" },
         dinner: { name: "", id: "" },
@@ -224,9 +225,20 @@ export default function Home(props: any) {
                 <Modal
                     setModal={setMealViewModal}
                     open_modal={modal_meal_view}
-                    title="Mettre à jour le repas"
+                    title="Informations sur le repas"
                 >
                     <View_meal_modal meal={select_meal} router={router} />
+                </Modal>
+                <Modal
+                    setModal={setCreateWeekModal}
+                    open_modal={modal_create_week}
+                    title="Créer une semaine de repas"
+                >
+                    <Create_week_modal
+                        router={router}
+                        setMy_week={setMy_week}
+                        setModal={setCreateWeekModal}
+                    />
                 </Modal>
                 {loading == false ? (
                     <>
@@ -259,7 +271,7 @@ export default function Home(props: any) {
                                     <button
                                         className="add_new_week__button center-midle-screen"
                                         onClick={() => {
-                                            create_my_week(router, setMy_week);
+                                            setCreateWeekModal(true);
                                         }}
                                     >
                                         Plannifier ma semaine
@@ -291,9 +303,8 @@ export default function Home(props: any) {
                                                 <button
                                                     className="add_new_week__button"
                                                     onClick={() => {
-                                                        create_my_week(
-                                                            router,
-                                                            setMy_week
+                                                        setCreateWeekModal(
+                                                            true
                                                         );
                                                     }}
                                                 >

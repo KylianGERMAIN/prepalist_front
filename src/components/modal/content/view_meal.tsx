@@ -26,13 +26,12 @@ export default function View_meal_modal({ meal }: PropsModal) {
         }
         return <>{list}</>;
     }
-
     return (
         <div className="view_meal__container">
             {listMeal.ingredients.length >= 1 ? (
                 <>
                     <div className="view_meal__title">
-                        <span>{meal.name}</span>
+                        <span>{meal.name} </span>
                     </div>
                     <div>
                         <div className="view_meal_ingredients__title">

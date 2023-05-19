@@ -4,8 +4,8 @@ import { customFetch } from "../custom_fetch";
 
 export interface IDay {
     date: string;
-    lunch: { name: string; id: string };
-    dinner: { name: string; id: string };
+    lunch: { name: string; id: string; serving?: number };
+    dinner: { name: string; id: string; serving?: number };
 }
 
 export function get_week(
