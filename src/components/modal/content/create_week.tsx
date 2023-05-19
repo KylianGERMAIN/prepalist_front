@@ -122,11 +122,18 @@ export default function Create_week_modal({
             }));
     };
 
+    const onChange = (option: any, index: number, setmeal: any) => {
+        setmeal((meals: any) => ({
+            ...meals,
+            [index]: option,
+        }));
+    };
+
     if (meal_serving.length == 0) return <div></div>;
     else
         return (
             <div className="">
-                <div className="generate_week__container vv">
+                <div className="generate_week__container">
                     {my_week.map((day: IDay, index: number) => {
                         var date = new Date(day.date.split(" ")[0]);
                         var french_date = date.toLocaleDateString(
@@ -152,6 +159,24 @@ export default function Create_week_modal({
                                             options={meal}
                                             value={meal_lunch[index]}
                                             styles={customStyles}
+                                            menuPortalTarget={document.body}
+                                            closeMenuOnScroll={(e: any) => {
+                                                if (
+                                                    e.target!.className ===
+                                                    "generate_week__container"
+                                                ) {
+                                                    return true;
+                                                } else {
+                                                    return false;
+                                                }
+                                            }}
+                                            onChange={(option: any) =>
+                                                onChange(
+                                                    option,
+                                                    index,
+                                                    setMealLunch
+                                                )
+                                            }
                                         />
                                         <button
                                             className="random__btn"
@@ -205,6 +230,24 @@ export default function Create_week_modal({
                                             options={meal}
                                             value={meal_dinner[index]}
                                             styles={customStyles}
+                                            onChange={(option: any) =>
+                                                onChange(
+                                                    option,
+                                                    index,
+                                                    setMealDinner
+                                                )
+                                            }
+                                            menuPortalTarget={document.body}
+                                            closeMenuOnScroll={(e: any) => {
+                                                if (
+                                                    e.target!.className ===
+                                                    "generate_week__container"
+                                                ) {
+                                                    return true;
+                                                } else {
+                                                    return false;
+                                                }
+                                            }}
                                         />
                                         <button
                                             className="random__btn"
