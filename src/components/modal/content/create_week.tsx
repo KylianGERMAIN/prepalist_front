@@ -301,7 +301,12 @@ export default function Create_week_modal({
                     })}
                 </div>
                 <div className="btn_end__container">
-                    <button className="cancel__button">Annuler</button>
+                    <button
+                        className="cancel__button"
+                        onClick={() => setModal(false)}
+                    >
+                        Annuler
+                    </button>
                     <button
                         className="classic__button"
                         onClick={() =>
