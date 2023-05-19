@@ -125,8 +125,8 @@ export default function Create_week_modal({
     if (meal_serving.length == 0) return <div></div>;
     else
         return (
-            <div className="generate_week__modal">
-                <div className="generate_week__container">
+            <div className="">
+                <div className="generate_week__container vv">
                     {my_week.map((day: IDay, index: number) => {
                         var date = new Date(day.date.split(" ")[0]);
                         var french_date = date.toLocaleDateString(
@@ -258,9 +258,9 @@ export default function Create_week_modal({
                     })}
                 </div>
                 <div className="btn_end__container">
-                    <button className="cancel__button btn__">Annuler</button>
+                    <button className="cancel__button">Annuler</button>
                     <button
-                        className="classic__button btn__"
+                        className="classic__button"
                         onClick={() =>
                             create_my_week(
                                 router,

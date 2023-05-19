@@ -1,88 +1,80 @@
-.generate_week__modal {
-    height: 100%;
+.generate_week__container {
+    max-height: calc(60vh);
+    overflow: auto;
     padding-right: 20px;
-    padding-left: 20px;
-    max-height: 800px;
-    .generate_week__container {
-        max-height: calc(60vh);
-        overflow: auto;
-        padding-right: 10px;
-        padding-left: 10px;
+    padding-left: 10px;
 
-        h2 {
-            font-size: 20px;
-            font-weight: normal;
-            padding-bottom: 10px;
+    h2 {
+        font-size: 20px;
+        font-weight: normal;
+        padding-top: 20px;
+    }
+
+    .day_choose_meal__container {
+        padding-top: 10px;
+
+        .catégories__card {
+            padding-top: 20px;
         }
 
-        .day_choose_meal__container {
-            padding-top: 10px;
+        .modify_day_meal__container {
+            align-items: center;
 
-            .catégories__card {
-                padding-top: 20px;
+            .select_meal__container {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding-top: 10px;
+                padding-bottom: 10px;
             }
 
-            .modify_day_meal__container {
+            .rand_serving__container {
+                display: flex;
                 align-items: center;
+                gap: 10px;
+                padding-left: 0px;
+                margin: 0;
+                padding-bottom: 20px;
+            }
 
-                .select_meal__container {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    padding-top: 10px;
-                    padding-bottom: 10px;
-                }
+            .random__btn {
+                background-color: #3062d4;
+                border: none;
+                border-radius: 10px;
+                padding-left: 10px;
+                padding-right: 10px;
+                padding-bottom: 5px;
+                padding-top: 5px;
+            }
 
-                .rand_serving__container {
-                    display: flex;
-                    align-items: center;
-                    gap: 10px;
-                    padding-left: 0px;
-                    margin: 0;
-                    padding-bottom: 20px;
-                }
+            .select_meal__select {
+                width: 100%;
+                margin-right: 10px;
+            }
 
-                .random__btn {
-                    background-color: #3062d4;
-                    border: none;
-                    border-radius: 10px;
-                    padding-left: 10px;
-                    padding-right: 10px;
-                    padding-bottom: 5px;
-                    padding-top: 5px;
-                }
-
-                .select_meal__select {
-                    width: 100%;
-                    margin-right: 10px;
-                }
-
-                .minus__btn {
-                    background-color: #d9d9d9;
-                    padding-right: 5px;
-                    padding-left: 5px;
-                    display: grid;
-                    place-items: center;
-                    height: 30px;
-                    font-size: 20px;
-                    font-weight: bold;
-                    border: none;
-                    border-radius: 40px;
-                }
+            .minus__btn {
+                background-color: #d9d9d9;
+                padding-right: 5px;
+                padding-left: 5px;
+                display: grid;
+                place-items: center;
+                height: 30px;
+                font-size: 20px;
+                font-weight: bold;
+                border: none;
+                border-radius: 40px;
             }
         }
     }
 }
+// }
 
 .btn_end__container {
     display: flex;
     justify-content: flex-end;
     align-items: flex-end;
     gap: 10px;
-
-    .btn__ {
-        font-weight: bold;
-    }
+    padding-top: 10px;
 }
 
 @media (min-width: 533px) {
