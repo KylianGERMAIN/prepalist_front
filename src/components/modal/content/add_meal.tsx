@@ -50,7 +50,7 @@ export default function Add_meal_content_modal({
     function Ingredient({ index }: Props) {
         return (
             <div className="classic__input  padding__modal">
-                <span className="dark_blue">
+                <span className="color--dark_blue">
                     {"Nom de l'ingrédient"} {index + 1}
                 </span>
                 <input
@@ -65,7 +65,7 @@ export default function Add_meal_content_modal({
     return (
         <>
             <div className="classic__input">
-                <span className="dark_blue">Nom du repas</span>
+                <span className="color--dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
                     value={name}
@@ -77,7 +77,7 @@ export default function Add_meal_content_modal({
                 {listinput.map((element) => element)}
             </div>
             <div>
-                <span className="error_content">{error}</span>
+                <span className="error-content__text">{error}</span>
             </div>
             <div className="flex ingredients-button__box">
                 <button

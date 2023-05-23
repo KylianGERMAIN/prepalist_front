@@ -1,11 +1,15 @@
-.dark_blue {
-    color: rgba(39, 46, 53, 1);
+$dark_blue: rgba(39, 46, 53, 1);
+$grey: rgba(85, 95, 109, 1);
+$blue: rgba(48, 98, 212, 1);
+
+.color--dark_blue {
+    color: $dark_blue;
 }
 
-.basic_grey {
-    color: rgba(85, 95, 109, 1);
+.color--grey {
+    color: $grey;
 }
 
-.blue_opacity {
-    color: rgba(48, 98, 212, 1);
+.color--blue {
+    color: $blue;
 }

@@ -1,4 +1,4 @@
-.header-switch-day__box {
+.header__container {
     background-color: white;
     height: 70px;
     border-bottom: 1px solid rgba(233, 236, 239, 1);
@@ -8,11 +8,12 @@
     padding-left: 20px;
 }
 
-.body-list__box {
-    .add-meal__box {
+.body_container {
+    .header-meal__box {
         background-color: white;
         height: 130px;
         gap: 30px;
+
         h3 {
             padding-left: 40px;
         }
@@ -21,7 +22,7 @@
         }
     }
 
-    .meal-list__box {
+    .meal__box {
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -30,17 +31,16 @@
         background-color: white;
         border-radius: 20px;
 
-        .name-meal__box {
+        .meal__row {
             display: grid;
             gap: 10px;
-
             span {
                 font-size: 15px;
                 font-weight: lighter;
             }
         }
 
-        .meal_icon__box {
+        .icons__row {
             display: flex;
             gap: 5px;
         }
@@ -48,7 +48,7 @@
 }
 
 @media (min-width: 833px) {
-    .header-switch-day__box {
+    .header__container {
         padding-left: 300px;
         margin-top: 0px;
         border-top: none;
@@ -58,11 +58,11 @@
         align-items: center;
     }
 
-    .body-list__box {
+    .body_container {
         padding-left: 300px;
         margin-top: 0px;
 
-        .meal_icon__box {
+        .icons__row {
             display: flex;
             gap: 20px !important;
         }

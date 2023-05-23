@@ -19,113 +19,9 @@ import { get_meals_count } from "@/api/meal/get_meals";
 import Modal from "@/components/modal/modal";
 import View_meal_modal from "@/components/modal/content/view_meal";
 import Create_week_modal from "@/components/modal/content/create_week";
+import { Sidebar } from "@/components/sidebar/sidebar";
 
 export const options = {};
-
-export function Sidebar() {
-    const [burger, setBurger] = useState(false);
-    const [style_dashboard, setStyle_dashboard] = useState(["", "", ""]);
-
-    useEffect(() => {
-        window.addEventListener("resize", () => {
-            if (window.innerWidth > 833) {
-                setBurger(false);
-            }
-        });
-        if (window.location.pathname) {
-            if (window.location.pathname == "/home") {
-                setStyle_dashboard(["selected_li", "", ""]);
-            } else if (window.location.pathname == "/my-meals") {
-                setStyle_dashboard(["", "selected_li", ""]);
-            } else {
-                setStyle_dashboard(["", "", "selected_li"]);
-            }
-        }
-    }, [burger]);
-
-    return (
-        <>
-            <div className="responsive-navbar__box">
-                <li
-                    className="click-zone__burger-menu"
-                    onClick={() => setBurger(!burger)}
-                >
-                    <a>
-                        <span className="span__relative"></span>
-                        <span className="span__relative"></span>
-                    </a>
-                </li>
-            </div>
-
-            <div
-                className={
-                    burger == false
-                        ? "close-panel__container panel__container"
-                        : "open-panel__container panel__container"
-                }
-            >
-                <div className="navbar__box">
-                    <div className="navbar-top__box">
-                        <div className="title__box title-responsive__box">
-                            <h1>Prepalist</h1>
-                            {burger == false ? null : (
-                                <span onClick={() => setBurger(false)}>
-                                    <AiOutlineClose size={25} />
-                                </span>
-                            )}
-                        </div>
-                        <ul>
-                            <Link href="/home">
-                                <li className={style_dashboard[0]}>
-                                    <AiOutlineHome size={25} />
-                                    Tableau de bord
-                                </li>
-                            </Link>
-                            <Link href="/my-meals">
-                                <li className={style_dashboard[1]}>
-                                    <MdOutlineFastfood size={25} />
-                                    Mes repas
-                                </li>
-                            </Link>
-                            <Link href="/my-list">
-                                <li className={style_dashboard[2]}>
-                                    <BsListCheck size={25} />
-                                    Ma liste de courses
-                                </li>
-                            </Link>
-                        </ul>
-                    </div>
-                    <div className="navbar-bottom__box">
-                        <span className="support__text">Support</span>
-                        <div className="support_section">
-                            <ul>
-                                <Link href="/home">
-                                    <li>
-                                        <BsEnvelopePaper size={25} />
-                                        Guide
-                                    </li>
-                                </Link>
-                                <Link href="/home">
-                                    <li>
-                                        <FiHelpCircle size={25} />
-                                        Centre d'aide
-                                    </li>
-                                </Link>
-                                <hr className="separator__hr" />
-                                <Link href="/login">
-                                    <li className="">
-                                        <MdLogout size={25} />
-                                        Se déconnecter
-                                    </li>
-                                </Link>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </>
-    );
-}
 
 export function CardCategorie({ name_category }: { name_category: string }) {
     if (name_category == "Déjeuner")
@@ -159,7 +55,7 @@ export function Card_Day({
     var french_date = date.toLocaleDateString("fr-FR");
     return (
         <div className="card-day__container">
-            <div className="card-day__element">
+            <div className="card-day__col">
                 <h2 className="day_of_week__text">{day_of_week}</h2>
                 <div
                     className="meal__container"
@@ -248,9 +144,9 @@ export default function Home(props: any) {
                                     <div className="header-switch-day__box"></div>
                                 </div>
 
-                                <div className="body-day__box ">
+                                <div className="body-planning__container ">
                                     <div className="no_enought_meal__container">
-                                        <div className="no_enought_meal__window">
+                                        <div className="no_enought_meal__col">
                                             <img src="https://cdn-icons-png.flaticon.com/512/5973/5973349.png" />
                                             <h1>Attention</h1>
                                             <p>
@@ -267,7 +163,7 @@ export default function Home(props: any) {
                             </div>
                         ) : (
                             <div>
-                                <div className="header-home__box">
+                                <div className="header-home__container">
                                     <button
                                         className="add_new_week__button center-midle-screen"
                                         onClick={() => {
@@ -281,7 +177,7 @@ export default function Home(props: any) {
                                 <div className="home__container">
                                     {my_week.length < 6 ? null : (
                                         <div className="home__container__header">
-                                            <div className="body-day__box">
+                                            <div className="body-planning__container">
                                                 {my_week.map(
                                                     (day: IDay, index: any) => (
                                                         <Card_Day

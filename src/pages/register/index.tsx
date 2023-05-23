@@ -25,7 +25,7 @@ export default function Register() {
                         <div className="login__section">
                             <h1>Inscription</h1>
                             <div className="classic__input">
-                                <span className="dark_blue">Nom</span>
+                                <span className="color--dark_blue">Nom</span>
                                 <input
                                     placeholder="Votre nom"
                                     value={username}
@@ -35,7 +35,9 @@ export default function Register() {
                                 />
                             </div>
                             <div className="classic__input">
-                                <span className="dark_blue">Adresse mail</span>
+                                <span className="color--dark_blue">
+                                    Adresse mail
+                                </span>
                                 <input
                                     placeholder="Votre adresse mail"
                                     value={email}
@@ -43,7 +45,9 @@ export default function Register() {
                                 />
                             </div>
                             <div className="classic__input">
-                                <span className="dark_blue">Mot de passe</span>
+                                <span className="color--dark_blue">
+                                    Mot de passe
+                                </span>
                                 <input
                                     placeholder="Votre mot de passe"
                                     type="password"
@@ -67,24 +71,24 @@ export default function Register() {
                                 <button
                                     className={
                                         error.length != 0
-                                            ? "classic__button_without_focus"
+                                            ? "classic__button--without_focus"
                                             : "classic__button"
                                     }
                                 >
                                     Créer un compte
                                 </button>
                                 <div>
-                                    <span className="error_content">
+                                    <span className="error-content__text">
                                         {error}
                                     </span>
                                 </div>
                             </div>
                             <div className="bottom_message_register">
-                                <span className="basic_grey">
+                                <span className="color--grey">
                                     Vous avez déjà un compte ?
                                 </span>
                                 <Link href="/login">
-                                    <span className="blue_opacity">
+                                    <span className="color--blue">
                                         Connexion
                                     </span>
                                 </Link>

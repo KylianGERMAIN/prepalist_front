@@ -55,7 +55,7 @@ export default function Update_meal_content_modal({
     return (
         <>
             <div className="classic__input padding__modal">
-                <span className="dark_blue">Nom du repas</span>
+                <span className="color--dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
                     value={meal.name}
@@ -70,7 +70,7 @@ export default function Update_meal_content_modal({
             <div className="ingredients__box">
                 {meal.ingredients.map((element, key) => (
                     <div key={key} className="classic__input  padding__modal">
-                        <span className="dark_blue">
+                        <span className="color--dark_blue">
                             {"Nom de l'ingrédient"} {key + 1}
                         </span>
                         <input
@@ -84,7 +84,7 @@ export default function Update_meal_content_modal({
                 ))}
             </div>
             <div>
-                <span className="error_content">{error}</span>
+                <span className="error-content__text">{error}</span>
             </div>
             <div className="flex ingredients-button__box">
                 <button

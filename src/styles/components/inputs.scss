@@ -38,7 +38,7 @@
     font-size: 16px;
 }
 
-.classic__button_without_focus {
+.classic__button--without_focus {
     place-items: center;
     display: grid;
     width: 100%;
@@ -68,17 +68,4 @@
     border-radius: 6px;
     font-size: 16px;
     color: black;
-}
-
-.cancel__button_without_focus {
-    place-items: center;
-    display: grid;
-    width: 100%;
-    height: 40px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    background-color: #dddddd;
-    border-style: none;
-    border-radius: 6px;
-    font-size: 16px;
 }

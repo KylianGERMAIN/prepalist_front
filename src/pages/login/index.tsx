@@ -23,7 +23,9 @@ export default function Login() {
                         <div className="login__section">
                             <h1>Connexion</h1>
                             <div className="classic__input">
-                                <span className="dark_blue">Adresse mail</span>
+                                <span className="color--dark_blue">
+                                    Adresse mail
+                                </span>
                                 <input
                                     placeholder="Votre adresse mail"
                                     value={email}
@@ -31,7 +33,9 @@ export default function Login() {
                                 />
                             </div>
                             <div className="classic__input">
-                                <span className="dark_blue">Mot de passe</span>
+                                <span className="color--dark_blue">
+                                    Mot de passe
+                                </span>
                                 <input
                                     placeholder="Votre mot de passe"
                                     type="password"
@@ -49,7 +53,7 @@ export default function Login() {
                                 <button
                                     className={
                                         error.length != 0
-                                            ? "classic__button_without_focus"
+                                            ? "classic__button--without_focus"
                                             : "classic__button"
                                     }
                                 >
@@ -57,14 +61,16 @@ export default function Login() {
                                 </button>
                             </div>
                             <div>
-                                <span className="error_content">{error}</span>
+                                <span className="error-content__text">
+                                    {error}
+                                </span>
                             </div>
                             <div className="bottom_message_login">
-                                <span className="basic_grey">
+                                <span className="color--grey">
                                     {"Vous n'avez pas de compte ?"}
                                 </span>
                                 <Link href="/register">
-                                    <span className="blue_opacity">
+                                    <span className="color--blue">
                                         Inscription
                                     </span>
                                 </Link>

@@ -1,5 +1,5 @@
 import Head from "next/head";
-import { Sidebar, options } from "../home";
+import { options } from "../home";
 import { AiOutlineClose, AiOutlineEdit } from "react-icons/ai";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { IMeal, get_meals } from "@/api/meal/get_meals";
@@ -9,6 +9,7 @@ import Modal from "@/components/modal/modal";
 import Add_meal_content_modal from "@/components/modal/content/add_meal";
 import Update_meal_content_modal from "@/components/modal/content/update_meal";
 import Tiny_Modal from "@/components/modal/tiny_modal";
+import { Sidebar } from "@/components/sidebar/sidebar";
 
 export default function My_meals() {
     const [modal_add_meal, setAddMealModal] = useState(false);
@@ -31,8 +32,8 @@ export default function My_meals() {
 
     function Card_meal({ meal }: { meal: IMeal }) {
         return (
-            <div className="meal-list__box">
-                <div className="name-meal__box">
+            <div className="meal__box">
+                <div className="meal__row">
                     <h4>{meal.name}</h4>
                     <span>
                         Ajouté le{" "}
@@ -43,7 +44,7 @@ export default function My_meals() {
                             : "null"}
                     </span>
                 </div>
-                <div className="meal_icon__box">
+                <div className="icons__row">
                     <AiOutlineEdit
                         size={25}
                         onClick={(e) => {
@@ -129,13 +130,9 @@ export default function My_meals() {
                 </Tiny_Modal>
 
                 <div className="home__container">
-                    <div className="header-switch-day__box">
-                        <div className="date-switch_box basic_grey">
-                            <span className="">Mes repas</span>
-                        </div>
-                    </div>
-                    <div className="body-list__box">
-                        <div className="add-meal__box flex">
+                    <div className="header__container"></div>
+                    <div className="body_container">
+                        <div className="header-meal__box flex">
                             <h3>Total : {listMeal.length}</h3>
                             <button
                                 className="classic__button"

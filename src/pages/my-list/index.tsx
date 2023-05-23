@@ -1,9 +1,10 @@
 import Head from "next/head";
-import { Sidebar, options } from "../home";
+import { options } from "../home";
 import { useEffect, useState } from "react";
 import { IMeal } from "@/api/meal/get_meals";
 import { useRouter } from "next/router";
 import { IIngredient, get_list } from "@/api/list/get_list";
+import { Sidebar } from "@/components/sidebar/sidebar";
 
 export default function My_meals() {
     const [list, setList] = useState<IIngredient[]>([]);
@@ -25,15 +26,15 @@ export default function My_meals() {
             <div className="layout">
                 <Sidebar />
                 <div className="home__container">
-                    <div className="header-switch-day__box">
-                        <div className="date-switch_box basic_grey">
+                    <div className="header__container">
+                        <div className="date-switch_box color--grey">
                             <span className="">Ma liste de courses</span>
                         </div>
                     </div>
-                    <div className="body-list__box">
+                    <div className="body_container">
                         {loading ? null : (
                             <>
-                                <div className="add-meal__box flex">
+                                <div className="header-meal__box flex">
                                     <h3>Total : {list.length}</h3>
                                 </div>
                                 {list.map(
@@ -41,11 +42,8 @@ export default function My_meals() {
                                         ingredient: IIngredient,
                                         index: number
                                     ) => (
-                                        <div
-                                            key={index}
-                                            className="meal-list__box"
-                                        >
-                                            <div className="name-meal__box">
+                                        <div key={index} className="meal__box">
+                                            <div className="meal__row">
                                                 <h4>{ingredient.ingredient}</h4>
                                             </div>
                                         </div>
