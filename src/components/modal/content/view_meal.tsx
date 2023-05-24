@@ -6,18 +6,18 @@ import React, { use, useEffect, useState } from "react";
 interface PropsModal {
     meal: { name: ""; id: "" };
     router: any;
+    listMeal: any;
+    setMeal: any;
 }
 
-export default function View_meal_modal({ meal }: PropsModal) {
-    const [listMeal, setMeal] = useState<IMeal>({
-        id: "",
-        name: "",
-        ingredients: [],
-    });
-
+export default function View_meal_modal({
+    meal,
+    listMeal,
+    setMeal,
+}: PropsModal) {
     useEffect(() => {
         if (meal.id) get_meal(router, setMeal, meal.id);
-    }, [meal.id]);
+    }, [meal.id, setMeal]);
 
     function CreateListIngredients(): any {
         var list = [];

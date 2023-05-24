@@ -101,11 +101,19 @@ export default function My_meals() {
                 <Tiny_Modal
                     setModal={setDeleteMealModal}
                     open_modal={modal_delete_meal}
-                    title="Etes-vous sûr de vouloir supprimer ce repas ?"
+                    title="Voulez-vous supprimer ce repas ?"
                 >
                     <div className="flex ingredients-button__box">
                         <button
-                            className="classic__button yes_modal"
+                            className="cancel__button yes_modal"
+                            onClick={() => {
+                                setDeleteMealModal(!modal_delete_meal);
+                            }}
+                        >
+                            Annulez
+                        </button>
+                        <button
+                            className="classic__button no_modal"
                             onClick={() => {
                                 delete_meal(
                                     listMeal,
@@ -116,15 +124,7 @@ export default function My_meals() {
                                 setDeleteMealModal(!modal_delete_meal);
                             }}
                         >
-                            Oui
-                        </button>
-                        <button
-                            className="classic__button no_modal"
-                            onClick={() => {
-                                setDeleteMealModal(!modal_delete_meal);
-                            }}
-                        >
-                            Non
+                            Supprimer
                         </button>
                     </div>
                 </Tiny_Modal>

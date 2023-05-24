@@ -15,7 +15,7 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import Link from "next/link";
 import { IDay, get_week } from "@/api/week/get_week";
 import { useRouter } from "next/router";
-import { get_meals_count } from "@/api/meal/get_meals";
+import { IMeal, get_meals_count } from "@/api/meal/get_meals";
 import Modal from "@/components/modal/modal";
 import View_meal_modal from "@/components/modal/content/view_meal";
 import Create_week_modal from "@/components/modal/content/create_week";
@@ -110,6 +110,12 @@ export default function Home(props: any) {
         setLoading(false);
     }
 
+    const [listMeal, setMeal] = useState<IMeal>({
+        id: "",
+        name: "",
+        ingredients: [],
+    });
+
     return (
         <>
             <Head>
@@ -121,9 +127,19 @@ export default function Home(props: any) {
                 <Modal
                     setModal={setMealViewModal}
                     open_modal={modal_meal_view}
+                    modalProps={{
+                        style: {
+                            transition: "opacity: 5s",
+                        },
+                    }}
                     title="Informations sur le repas"
                 >
-                    <View_meal_modal meal={select_meal} router={router} />
+                    <View_meal_modal
+                        meal={select_meal}
+                        router={router}
+                        listMeal={listMeal}
+                        setMeal={setMeal}
+                    />
                 </Modal>
                 <Modal
                     setModal={setCreateWeekModal}
