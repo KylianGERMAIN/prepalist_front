@@ -2,7 +2,7 @@ import { useAppSelector } from "@/redux/hook";
 import { selectMeal } from "@/redux/slices/SelectMeal";
 import React from "react";
 
-export default function View_meal_modal() {
+const View_meal_modal: React.FC = (props) => {
     const select_meal = useAppSelector(selectMeal);
 
     return (
@@ -31,4 +31,6 @@ export default function View_meal_modal() {
             ) : null}
         </div>
     );
-}
+};
+
+export default View_meal_modal;

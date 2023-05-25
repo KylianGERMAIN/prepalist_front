@@ -1,9 +1,12 @@
-import Head from "next/head";
 import Router from "next/router";
 import { useEffect } from "react";
 
-export default function Home() {
+const Basic: React.FC = (props) => {
     useEffect(() => {
         Router.push(`/login`);
     }, []);
-}
+
+    return null;
+};
+
+export default Basic;

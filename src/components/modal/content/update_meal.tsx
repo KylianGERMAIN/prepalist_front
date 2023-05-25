@@ -3,12 +3,7 @@ import { NextRouter } from "next/router";
 import { update_meal } from "@/api/meal/update_meal";
 import { IMeal } from "@/redux/slices/SelectMeal";
 
-interface Props {
-    index: number;
-    element: IMeal;
-}
-
-interface PropsModal {
+interface IUpdate_meal_content {
     setModal: Dispatch<SetStateAction<boolean>>;
     setMeal: Dispatch<SetStateAction<IMeal[]>>;
     router: NextRouter;
@@ -17,20 +12,13 @@ interface PropsModal {
     listMeal: IMeal[];
 }
 
-export default function Update_meal_content_modal({
-    setMeal,
-    router,
-    setModal,
-    meal,
-    setNameSelectedMeal,
-    listMeal,
-}: PropsModal) {
+const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
     const [error, setError] = useState<string>("");
 
     const handleIngredientChange = (index: number, newValue: string) => {
-        const updatedIngredients = meal.ingredients;
+        const updatedIngredients = props.meal.ingredients;
         updatedIngredients[index] = { ingredient: newValue };
-        setNameSelectedMeal((new_meals) => ({
+        props.setNameSelectedMeal((new_meals) => ({
             ...new_meals,
             ingredients: updatedIngredients,
         }));
@@ -42,9 +30,9 @@ export default function Update_meal_content_modal({
                 <span className="color--dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
-                    value={meal.name}
+                    value={props.meal.name}
                     onChange={(e) =>
-                        setNameSelectedMeal((new_meals) => ({
+                        props.setNameSelectedMeal((new_meals) => ({
                             ...new_meals,
                             name: e.target.value,
                         }))
@@ -52,7 +40,7 @@ export default function Update_meal_content_modal({
                 />
             </div>
             <div className="ingredients__box">
-                {meal.ingredients.map((element, key) => (
+                {props.meal.ingredients.map((element, key) => (
                     <div key={key} className="classic__input  padding__modal">
                         <span className="color--dark_blue">
                             {"Nom de l'ingrédient"} {key + 1}
@@ -73,8 +61,8 @@ export default function Update_meal_content_modal({
             <div className="flex ingredients-button__box">
                 <button
                     className="classic__button"
-                    onClick={async (e) => {
-                        await setNameSelectedMeal((new_meals) => ({
+                    onClick={() => {
+                        props.setNameSelectedMeal((new_meals) => ({
                             ...new_meals,
                             ingredients: [
                                 ...new_meals.ingredients,
@@ -93,18 +81,22 @@ export default function Update_meal_content_modal({
                 <button
                     className="classic__button"
                     onClick={() => {
-                        for (var i = meal.ingredients.length - 1; i >= 0; i--) {
-                            if (meal.ingredients[i].ingredient == "") {
-                                meal.ingredients.splice(i, 1);
+                        for (
+                            var i = props.meal.ingredients.length - 1;
+                            i >= 0;
+                            i--
+                        ) {
+                            if (props.meal.ingredients[i].ingredient == "") {
+                                props.meal.ingredients.splice(i, 1);
                             }
                         }
                         update_meal(
-                            meal,
-                            setModal,
-                            setMeal,
-                            router,
+                            props.meal,
+                            props.setModal,
+                            props.setMeal,
+                            props.router,
                             setError,
-                            listMeal
+                            props.listMeal
                         );
                     }}
                 >
@@ -113,4 +105,6 @@ export default function Update_meal_content_modal({
             </div>
         </>
     );
-}
+};
+
+export default Update_meal_content_modal;

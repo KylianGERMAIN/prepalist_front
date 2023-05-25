@@ -5,7 +5,7 @@ import { BsListCheck, BsEnvelopePaper } from "react-icons/bs";
 import { FiHelpCircle } from "react-icons/fi";
 import { MdOutlineFastfood, MdLogout } from "react-icons/md";
 
-export function Sidebar() {
+const Sidebar: React.FC = (props) => {
     const [burger, setBurger] = useState(false);
     const [style_dashboard, setStyle_dashboard] = useState(["", "", ""]);
 
@@ -108,4 +108,6 @@ export function Sidebar() {
             </div>
         </>
     );
-}
+};
+
+export default Sidebar;

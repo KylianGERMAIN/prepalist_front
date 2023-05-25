@@ -8,10 +8,10 @@ import Modal from "@/components/modal/modal";
 import Add_meal_content_modal from "@/components/modal/content/add_meal";
 import Update_meal_content_modal from "@/components/modal/content/update_meal";
 import Tiny_Modal from "@/components/modal/tiny_modal";
-import { Sidebar } from "@/components/sidebar/sidebar";
+import Sidebar from "@/components/sidebar/sidebar";
 import { IMeal } from "@/redux/slices/SelectMeal";
 
-export default function My_meals() {
+const My_meals: React.FC = (props) => {
     const [modal_add_meal, setAddMealModal] = useState(false);
     const [modal_update_meal, setUpdateMealModal] = useState(false);
     const [modal_delete_meal, setDeleteMealModal] = useState(false);
@@ -152,4 +152,6 @@ export default function My_meals() {
             </div>
         </>
     );
-}
+};
+
+export default My_meals;
