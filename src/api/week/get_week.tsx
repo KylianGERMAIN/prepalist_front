@@ -2,7 +2,7 @@ import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
 
-export interface IDay {
+export interface Iday {
     date: string;
     lunch: { name: string; id: string; serving?: number };
     dinner: { name: string; id: string; serving?: number };
@@ -10,7 +10,7 @@ export interface IDay {
 
 export function get_week(
     router: NextRouter,
-    set_my_week: Dispatch<SetStateAction<IDay[]>>
+    set_my_week: Dispatch<SetStateAction<Iday[]>>
 ) {
     const access_token = localStorage.getItem("access_token") || "";
     var myHeaders = new Headers();
@@ -27,9 +27,9 @@ export function get_week(
     let custom_fetch = new customFetch(requestOptions, router);
     custom_fetch
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/week`)
-        .then((response: { detail: any; date: IDay[] }) => {
+        .then((response: { detail: any; date: Iday[] }) => {
             if (!response.detail) {
-                var week: IDay[] = response.date;
+                var week: Iday[] = response.date;
                 set_my_week(week);
             }
         })
