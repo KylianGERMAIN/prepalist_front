@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
-import { NextRouter, useRouter } from "next/router";
-import { IMeal } from "./get_meals";
+import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
+import { IMeal } from "@/redux/slices/SelectMeal";
 
 export function delete_meal(
     listMeal: IMeal[],
