@@ -6,10 +6,10 @@ import { customFetch } from "../custom_fetch";
 export function login(
     email: string,
     password: string,
-    setError: Dispatch<SetStateAction<string>>,
+    set_error: Dispatch<SetStateAction<string>>,
     router: NextRouter
 ) {
-    setError("");
+    set_error("");
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Access-Control-Allow-Origin", "http://localhost:8000");
@@ -35,10 +35,13 @@ export function login(
                 localStorage.setItem("refresh_token", response.refresh_token);
                 router.push("/home");
             } else {
-                asignError(response, setError);
+                asignError(response, set_error);
             }
         })
         .catch((error: any) =>
-            asignError({ detail: "Error fill in the form correctly" }, setError)
+            asignError(
+                { detail: "Error fill in the form correctly" },
+                set_error
+            )
         );
 }

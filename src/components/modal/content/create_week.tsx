@@ -14,14 +14,14 @@ import Select from "react-select";
 import { create_my_week } from "@/api/week/create_new_week";
 import CardCategory from "@/components/planner/card_categorie";
 
-interface ICreateWeek {
+interface Icreate_week {
     router: any;
-    setMy_week: Dispatch<SetStateAction<IDay[]>>;
-    setModal: Dispatch<SetStateAction<boolean>>;
+    set_my_week: Dispatch<SetStateAction<IDay[]>>;
+    set_modal: Dispatch<SetStateAction<boolean>>;
 }
 
-const Create_week_modal: React.FC<ICreateWeek> = (props) => {
-    const [my_week, setMyNew_week] = useState<IDay[]>([
+const Create_week_modal: React.FC<Icreate_week> = (props) => {
+    const [my_week, set_my_new_week] = useState<IDay[]>([
         {
             date: "",
             lunch: {
@@ -34,7 +34,7 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
             },
         },
     ]);
-    const [meal, setMeal] = useState<any>();
+    const [meal, set_meal] = useState<any>();
 
     const week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
     const options: Intl.DateTimeFormatOptions = {
@@ -42,19 +42,19 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
         day: "numeric",
     };
 
-    const [meal_lunch, setMealLunch] = useState<any>([]);
-    const [meal_dinner, setMealDinner] = useState<any>([]);
-    const [meal_serving, setMealServing] = useState<any>([]);
+    const [meal_lunch, set_meal_lunch] = useState<any>([]);
+    const [meal_dinner, set_meal_dinner] = useState<any>([]);
+    const [meal_serving, set_meal_serving] = useState<any>([]);
 
     useEffect(() => {
         generate_my_week(
             props.router,
-            setMyNew_week,
-            setMealLunch,
-            setMealDinner,
-            setMealServing
+            set_my_new_week,
+            set_meal_lunch,
+            set_meal_dinner,
+            set_meal_serving
         );
-        get_meals_with_empty_meal(props.router, setMeal);
+        get_meals_with_empty_meal(props.router, set_meal);
     }, [props.router]);
 
     const customStyles = {
@@ -87,12 +87,12 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
         dinner_or_lunch: boolean
     ) => {
         if (dinner_or_lunch)
-            setMealServing((meal_serving: any) => ({
+            set_meal_serving((meal_serving: any) => ({
                 ...meal_serving,
                 [index]: { lunch: lunch_value + 1, dinner: dinner_value },
             }));
         else
-            setMealServing((meal_serving: any) => ({
+            set_meal_serving((meal_serving: any) => ({
                 ...meal_serving,
                 [index]: { lunch: lunch_value, dinner: dinner_value + 1 },
             }));
@@ -105,12 +105,12 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
         dinner_or_lunch: boolean
     ) => {
         if (dinner_or_lunch && lunch_value > 1)
-            setMealServing((meal_serving: any) => ({
+            set_meal_serving((meal_serving: any) => ({
                 ...meal_serving,
                 [index]: { lunch: lunch_value - 1, dinner: dinner_value },
             }));
         else if (!dinner_or_lunch && dinner_value > 1)
-            setMealServing((meal_serving: any) => ({
+            set_meal_serving((meal_serving: any) => ({
                 ...meal_serving,
                 [index]: { lunch: lunch_value, dinner: dinner_value - 1 },
             }));
@@ -168,14 +168,17 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
                                                 onChange(
                                                     option,
                                                     index,
-                                                    setMealLunch
+                                                    set_meal_lunch
                                                 )
                                             }
                                         />
                                         <button
                                             className="random__btn"
                                             onClick={() =>
-                                                random_meal(index, setMealLunch)
+                                                random_meal(
+                                                    index,
+                                                    set_meal_lunch
+                                                )
                                             }
                                         >
                                             <GiPerspectiveDiceSixFacesRandom
@@ -228,7 +231,7 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
                                                 onChange(
                                                     option,
                                                     index,
-                                                    setMealDinner
+                                                    set_meal_dinner
                                                 )
                                             }
                                             menuPortalTarget={document.body}
@@ -248,7 +251,7 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
                                             onClick={() =>
                                                 random_meal(
                                                     index,
-                                                    setMealDinner
+                                                    set_meal_dinner
                                                 )
                                             }
                                         >
@@ -297,7 +300,7 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
                 <div className="btn_end__container">
                     <button
                         className="cancel__button"
-                        onClick={() => props.setModal(false)}
+                        onClick={() => props.set_modal(false)}
                     >
                         Annuler
                     </button>
@@ -306,12 +309,12 @@ const Create_week_modal: React.FC<ICreateWeek> = (props) => {
                         onClick={() =>
                             create_my_week(
                                 props.router,
-                                props.setMy_week,
+                                props.set_my_week,
                                 meal_lunch,
                                 meal_dinner,
                                 meal_serving,
                                 my_week,
-                                props.setModal
+                                props.set_modal
                             )
                         }
                     >

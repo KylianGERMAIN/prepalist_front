@@ -6,22 +6,22 @@ import { FiHelpCircle } from "react-icons/fi";
 import { MdOutlineFastfood, MdLogout } from "react-icons/md";
 
 const Sidebar: React.FC = (props) => {
-    const [burger, setBurger] = useState(false);
-    const [style_dashboard, setStyle_dashboard] = useState(["", "", ""]);
+    const [burger, set_burger] = useState(false);
+    const [style_dashboard, set_style_dashboard] = useState(["", "", ""]);
 
     useEffect(() => {
         window.addEventListener("resize", () => {
             if (window.innerWidth > 833) {
-                setBurger(false);
+                set_burger(false);
             }
         });
         if (window.location.pathname) {
             if (window.location.pathname == "/home") {
-                setStyle_dashboard(["selected_li", "", ""]);
+                set_style_dashboard(["selected_li", "", ""]);
             } else if (window.location.pathname == "/my-meals") {
-                setStyle_dashboard(["", "selected_li", ""]);
+                set_style_dashboard(["", "selected_li", ""]);
             } else {
-                setStyle_dashboard(["", "", "selected_li"]);
+                set_style_dashboard(["", "", "selected_li"]);
             }
         }
     }, [burger]);
@@ -31,7 +31,7 @@ const Sidebar: React.FC = (props) => {
             <div className="responsive-navbar__box">
                 <li
                     className="click-zone__burger-menu"
-                    onClick={() => setBurger(!burger)}
+                    onClick={() => set_burger(!burger)}
                 >
                     <a>
                         <span className="span__relative"></span>
@@ -52,7 +52,7 @@ const Sidebar: React.FC = (props) => {
                         <div className="title__box title-responsive__box">
                             <h1>Prepalist</h1>
                             {burger == false ? null : (
-                                <span onClick={() => setBurger(false)}>
+                                <span onClick={() => set_burger(false)}>
                                     <AiOutlineClose size={25} />
                                 </span>
                             )}

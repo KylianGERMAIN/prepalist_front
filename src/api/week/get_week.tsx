@@ -10,7 +10,7 @@ export interface IDay {
 
 export function get_week(
     router: NextRouter,
-    setMy_week: Dispatch<SetStateAction<IDay[]>>
+    set_my_week: Dispatch<SetStateAction<IDay[]>>
 ) {
     const access_token = localStorage.getItem("access_token") || "";
     var myHeaders = new Headers();
@@ -30,7 +30,7 @@ export function get_week(
         .then((response: { detail: any; date: IDay[] }) => {
             if (!response.detail) {
                 var week: IDay[] = response.date;
-                setMy_week(week);
+                set_my_week(week);
             }
         })
         .catch((error: any) => console.log(error));

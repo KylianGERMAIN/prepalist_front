@@ -5,12 +5,12 @@ import { IDay } from "./get_week";
 
 export async function create_my_week(
     router: NextRouter,
-    setMy_week: Dispatch<SetStateAction<IDay[]>>,
+    set_my_week: Dispatch<SetStateAction<IDay[]>>,
     meal_lunch: any,
     meal_dinner: any,
     meal_serving: any,
     my_week: IDay[],
-    setModal: Dispatch<SetStateAction<boolean>>
+    set_modal: Dispatch<SetStateAction<boolean>>
 ) {
     const access_token = localStorage.getItem("access_token") || "";
     var myHeaders = new Headers();
@@ -38,8 +38,8 @@ export async function create_my_week(
         .then((response) => {
             if (!response.detail) {
                 var week: any = response;
-                setMy_week(week.week);
-                setModal(false);
+                set_my_week(week.week);
+                set_modal(false);
             }
         })
         .catch((error) => console.log(error));

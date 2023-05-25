@@ -3,26 +3,22 @@ import React from "react";
 
 interface IModal {
     children: React.ReactNode;
-    setModal: Dispatch<SetStateAction<boolean>>;
+    set_modal: Dispatch<SetStateAction<boolean>>;
     open_modal: boolean;
     title: string;
-    modalProps?: React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLDivElement>,
-        HTMLDivElement
-    >;
 }
 
 const Modal: React.FC<IModal> = (props) => {
     if (props.open_modal == true)
         return (
             <React.Fragment>
-                <div id="myModal" className="modal" {...props.modalProps}>
+                <div id="myModal" className="modal">
                     <div className="modal-content">
                         <div className="header-modal__box">
                             <h1 className="title_modal">{props.title}</h1>
                             <span
                                 className="close"
-                                onClick={() => props.setModal(false)}
+                                onClick={() => props.set_modal(false)}
                             >
                                 &times;
                             </span>
@@ -33,10 +29,6 @@ const Modal: React.FC<IModal> = (props) => {
             </React.Fragment>
         );
     else return <React.Fragment></React.Fragment>;
-};
-
-Modal.defaultProps = {
-    modalProps: {},
 };
 
 export default Modal;

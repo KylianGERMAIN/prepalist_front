@@ -5,10 +5,14 @@ import { IDay } from "./get_week";
 
 export async function generate_my_week(
     router: NextRouter,
-    setMy_week: Dispatch<SetStateAction<IDay[]>>,
-    setMealLunch: Dispatch<SetStateAction<{ value: string; label: string }[]>>,
-    setMealDinner: Dispatch<SetStateAction<{ value: string; label: string }[]>>,
-    setMealServing: Dispatch<SetStateAction<any>>
+    set_my_week: Dispatch<SetStateAction<IDay[]>>,
+    set_meal_lunch: Dispatch<
+        SetStateAction<{ value: string; label: string }[]>
+    >,
+    set_meal_dinner: Dispatch<
+        SetStateAction<{ value: string; label: string }[]>
+    >,
+    set_meal_serving: Dispatch<SetStateAction<any>>
 ) {
     const access_token = localStorage.getItem("access_token") || "";
     var myHeaders = new Headers();
@@ -26,7 +30,7 @@ export async function generate_my_week(
         .then(async (response) => {
             if (!response.detail) {
                 var week: IDay[] = response;
-                await setMy_week(week);
+                await set_my_week(week);
                 var meal_lunch = [];
                 var meal_dinner = [];
                 var meal_serving = [];
@@ -46,9 +50,9 @@ export async function generate_my_week(
                         dinner: week[i].lunch.serving,
                     });
                 }
-                setMealDinner(meal_dinner);
-                setMealLunch(meal_lunch);
-                setMealServing(meal_serving);
+                set_meal_lunch(meal_dinner);
+                set_meal_dinner(meal_lunch);
+                set_meal_serving(meal_serving);
             }
         })
         .catch((error) => console.log(error));

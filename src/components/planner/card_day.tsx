@@ -5,28 +5,28 @@ import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 import CardCategory from "./card_categorie";
 import {
-    selectMeal,
-    IMeal,
-    setActualMeal,
-    resetSelectMeal,
-} from "@/redux/slices/SelectMeal";
+    Imeal,
+    reset_select_meal,
+    select_meal,
+    set_actual_meal,
+} from "@/redux/slices/select_meal";
 
 interface ICardDay {
     day: IDay;
     day_of_week: string;
-    setMealViewModal: Dispatch<SetStateAction<boolean>>;
+    set_meal_view_modal: Dispatch<SetStateAction<boolean>>;
 }
 
-const Card_Day: React.FC<ICardDay> = (props) => {
+const Card_day: React.FC<ICardDay> = (props) => {
     var date = new Date(props.day.date.split(" ")[0]);
     var french_date = date.toLocaleDateString("fr-FR");
     const dispatch = useAppDispatch();
-    const select_meal = useAppSelector(selectMeal);
+    const _select_meal = useAppSelector(select_meal);
     const router = useRouter();
 
-    const _setActualMeal = (meal: IMeal) => {
+    const _set_actual_meal = (meal: Imeal) => {
         let new_meal = { ...meal, ingredients: [] };
-        dispatch(setActualMeal(new_meal));
+        dispatch(set_actual_meal(new_meal));
     };
     return (
         <div className="card-day__container">
@@ -35,9 +35,9 @@ const Card_Day: React.FC<ICardDay> = (props) => {
                 <div
                     className="meal__container"
                     onClick={() => {
-                        dispatch(resetSelectMeal(select_meal));
-                        _setActualMeal(props.day.lunch as IMeal);
-                        props.setMealViewModal(true);
+                        dispatch(reset_select_meal(_select_meal));
+                        _set_actual_meal(props.day.lunch as Imeal);
+                        props.set_meal_view_modal(true);
                         dispatch(get_meal_perso(router, props.day.lunch.id));
                     }}
                 >
@@ -50,9 +50,9 @@ const Card_Day: React.FC<ICardDay> = (props) => {
                 <div
                     className="meal__container"
                     onClick={() => {
-                        dispatch(resetSelectMeal(select_meal));
-                        _setActualMeal(props.day.dinner as IMeal);
-                        props.setMealViewModal(true);
+                        dispatch(reset_select_meal(_select_meal));
+                        _set_actual_meal(props.day.dinner as Imeal);
+                        props.set_meal_view_modal(true);
                         dispatch(get_meal_perso(router, props.day.dinner.id));
                     }}
                 >
@@ -67,4 +67,4 @@ const Card_Day: React.FC<ICardDay> = (props) => {
     );
 };
 
-export default Card_Day;
+export default Card_day;

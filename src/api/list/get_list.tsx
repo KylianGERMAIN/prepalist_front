@@ -8,7 +8,7 @@ export interface IIngredient {
 
 export function get_list(
     router: NextRouter,
-    setList: Dispatch<SetStateAction<IIngredient[]>>
+    set_list: Dispatch<SetStateAction<IIngredient[]>>
 ) {
     var myHeaders = new Headers();
     const access_token = localStorage.getItem("access_token") || "";
@@ -27,7 +27,7 @@ export function get_list(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/list`)
         .then((response: any) => {
             if (!response.detail) {
-                setList(response.ingredients);
+                set_list(response.ingredients);
             }
         })
         .catch((error: any) => console.log(error));

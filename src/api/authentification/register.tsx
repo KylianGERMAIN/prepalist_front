@@ -4,19 +4,19 @@ import { customFetch } from "../custom_fetch";
 
 export function asignError(
     response: { detail: string },
-    setError: Dispatch<SetStateAction<string>>
+    set_error: Dispatch<SetStateAction<string>>
 ) {
-    if (response.detail) setError(response.detail);
+    if (response.detail) set_error(response.detail);
 }
 
 export function register(
     username: string,
     email: string,
     password: string,
-    setError: Dispatch<SetStateAction<string>>,
+    set_error: Dispatch<SetStateAction<string>>,
     router: NextRouter
 ) {
-    setError("");
+    set_error("");
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     myHeaders.append("Access-Control-Allow-Origin", "http://localhost:8000");
@@ -43,7 +43,7 @@ export function register(
                 localStorage.setItem("refresh_token", response.refresh_token);
                 router.push("/home");
             } else {
-                asignError(response, setError);
+                asignError(response, set_error);
             }
         })
         .catch((error: any) => console.log(error));

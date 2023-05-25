@@ -1,15 +1,14 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { IMeal } from "@/redux/slices/SelectMeal";
+import { Imeal } from "@/redux/slices/select_meal";
 
 export function update_meal(
-    meal: IMeal,
+    meal: Imeal,
     setModal: Dispatch<SetStateAction<boolean>>,
-    setMeal: Dispatch<SetStateAction<IMeal[]>>,
+    setMeal: Dispatch<SetStateAction<Imeal[]>>,
     router: NextRouter,
-    setError: Dispatch<SetStateAction<string>>,
-    listMeal: IMeal[]
+    listMeal: Imeal[]
 ) {
     var myHeaders = new Headers();
     const access_token = localStorage.getItem("access_token") || "";

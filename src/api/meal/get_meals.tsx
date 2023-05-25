@@ -1,11 +1,11 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { IMeal } from "@/redux/slices/SelectMeal";
+import { Imeal } from "@/redux/slices/select_meal";
 
 export function get_meals(
     router: NextRouter,
-    setMeal: Dispatch<SetStateAction<IMeal[]>>
+    set_meal: Dispatch<SetStateAction<Imeal[]>>
 ) {
     var myHeaders = new Headers();
     const access_token = localStorage.getItem("access_token") || "";
@@ -24,7 +24,7 @@ export function get_meals(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meals`)
         .then((response: any) => {
             if (!response.detail) {
-                var meals: IMeal[] = [];
+                var meals: Imeal[] = [];
                 for (let i = 0; i < response.length; i++) {
                     meals.push({
                         id: response[i]._id,
@@ -37,7 +37,7 @@ export function get_meals(
                     });
                 }
 
-                setMeal(meals);
+                set_meal(meals);
             }
         })
         .catch((error: any) => console.log("error"));
@@ -45,7 +45,7 @@ export function get_meals(
 
 export function get_meals_with_empty_meal(
     router: NextRouter,
-    setMeal: Dispatch<SetStateAction<IMeal[]>>
+    set_meal: Dispatch<SetStateAction<Imeal[]>>
 ) {
     var myHeaders = new Headers();
     const access_token = localStorage.getItem("access_token") || "";
@@ -73,7 +73,7 @@ export function get_meals_with_empty_meal(
                     });
                 }
 
-                setMeal(meals);
+                set_meal(meals);
             }
         })
         .catch((error: any) => console.log(error));
@@ -81,7 +81,7 @@ export function get_meals_with_empty_meal(
 
 export function get_meals_count(
     router: NextRouter,
-    setCountMeal: Dispatch<SetStateAction<number>>
+    set_count_meal: Dispatch<SetStateAction<number>>
 ) {
     var myHeaders = new Headers();
     const access_token = localStorage.getItem("access_token") || "";
@@ -100,7 +100,7 @@ export function get_meals_count(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meals`)
         .then((response: { detail: any; length: SetStateAction<number> }) => {
             if (!response.detail) {
-                setCountMeal(response.length);
+                set_count_meal(response.length);
             }
         })
         .catch((error: any) => console.log(error));
