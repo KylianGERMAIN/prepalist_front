@@ -12,19 +12,15 @@ import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
 import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 import Select from "react-select";
 import { create_my_week } from "@/api/week/create_new_week";
-import { CardCategorie } from "@/components/planner/card_categorie";
+import CardCategory from "@/components/planner/card_categorie";
 
-interface PropsModal {
+interface ICreateWeek {
     router: any;
     setMy_week: Dispatch<SetStateAction<IDay[]>>;
     setModal: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function Create_week_modal({
-    router,
-    setMy_week,
-    setModal,
-}: PropsModal) {
+const Create_week_modal: React.FC<ICreateWeek> = (props) => {
     const [my_week, setMyNew_week] = useState<IDay[]>([
         {
             date: "",
@@ -52,14 +48,14 @@ export default function Create_week_modal({
 
     useEffect(() => {
         generate_my_week(
-            router,
+            props.router,
             setMyNew_week,
             setMealLunch,
             setMealDinner,
             setMealServing
         );
-        get_meals_with_empty_meal(router, setMeal);
-    }, [router]);
+        get_meals_with_empty_meal(props.router, setMeal);
+    }, [props.router]);
 
     const customStyles = {
         indicatorSeparator: (base: any) => ({
@@ -148,7 +144,7 @@ export default function Create_week_modal({
                                     {week[index]} {french_date.toUpperCase()}
                                 </h2>
                                 <div className="catégories__card">
-                                    <CardCategorie name_category="Déjeuner" />
+                                    <CardCategory name_category="Déjeuner" />
                                 </div>
                                 <div className="modify_day_meal__container">
                                     <div className="select_meal__container">
@@ -219,7 +215,7 @@ export default function Create_week_modal({
                                     </div>
                                 </div>
                                 <div>
-                                    <CardCategorie name_category="Diner" />
+                                    <CardCategory name_category="Diner" />
                                 </div>
                                 <div className="modify_day_meal__container">
                                     <div className="select_meal__container">
@@ -301,7 +297,7 @@ export default function Create_week_modal({
                 <div className="btn_end__container">
                     <button
                         className="cancel__button"
-                        onClick={() => setModal(false)}
+                        onClick={() => props.setModal(false)}
                     >
                         Annuler
                     </button>
@@ -309,13 +305,13 @@ export default function Create_week_modal({
                         className="classic__button"
                         onClick={() =>
                             create_my_week(
-                                router,
-                                setMy_week,
+                                props.router,
+                                props.setMy_week,
                                 meal_lunch,
                                 meal_dinner,
                                 meal_serving,
                                 my_week,
-                                setModal
+                                props.setModal
                             )
                         }
                     >
@@ -324,4 +320,6 @@ export default function Create_week_modal({
                 </div>
             </div>
         );
-}
+};
+
+export default Create_week_modal;

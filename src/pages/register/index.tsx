@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 
-export default function Register() {
+const Register: React.FC = (props) => {
     const [username, setUsername] = useState<string>("");
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
@@ -99,4 +99,6 @@ export default function Register() {
             </div>
         </>
     );
-}
+};
+
+export default Register;

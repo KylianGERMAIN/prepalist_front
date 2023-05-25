@@ -3,10 +3,12 @@ import { Provider } from "react-redux";
 import "../styles/globals.scss";
 import type { AppProps } from "next/app";
 
-export default function App({ Component, pageProps }: AppProps) {
+const App: React.FC<AppProps> = (props) => {
     return (
         <Provider store={store}>
-            <Component {...pageProps} />
+            <props.Component {...props.pageProps} />
         </Provider>
     );
-}
+};
+
+export default App;

@@ -2,9 +2,10 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { IIngredient, get_list } from "@/api/list/get_list";
-import { Sidebar } from "@/components/sidebar/sidebar";
+import Sidebar from "@/components/sidebar/sidebar";
+import exp from "constants";
 
-export default function My_meals() {
+const My_list: React.FC = (props) => {
     const [list, setList] = useState<IIngredient[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
 
@@ -54,4 +55,6 @@ export default function My_meals() {
             </div>
         </>
     );
-}
+};
+
+export default My_list;

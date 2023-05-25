@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/router";
 
-export default function Login() {
+const Login: React.FC = (props) => {
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
     const [error, setError] = useState<string>("");
@@ -81,4 +81,4 @@ export default function Login() {
             </div>
         </>
     );
-}
+};
