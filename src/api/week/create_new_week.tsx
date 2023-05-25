@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
-import { NextRouter, useRouter } from "next/router";
+import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
 import { IDay } from "./get_week";
 
@@ -26,12 +26,11 @@ export async function create_my_week(
         my_week[i].lunch.serving = meal_serving[i].lunch;
         my_week[i].dinner.serving = meal_serving[i].dinner;
     }
-    var llol = { week: my_week };
-    console.log(llol);
+    var new_week = { week: my_week };
     var requestOptions = {
         method: "POST",
         headers: myHeaders,
-        body: JSON.stringify(llol),
+        body: JSON.stringify(new_week),
     };
     let custom_fetch = new customFetch(requestOptions, router);
     custom_fetch

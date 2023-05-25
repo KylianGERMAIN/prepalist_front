@@ -9,6 +9,7 @@
 }
 
 .modal-content {
+    animation: 0.5s 1 fadeIn;
     background-color: white;
     width: 90%;
     margin: 60px auto;
@@ -77,5 +78,14 @@
         margin: 60px auto;
         border-radius: 20px;
         width: 600px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
     }
 }
