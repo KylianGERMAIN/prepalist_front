@@ -82,3 +82,5 @@ const Login: React.FC = (props) => {
         </>
     );
 };
+
+export default Login;
