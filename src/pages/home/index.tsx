@@ -6,12 +6,12 @@ import { get_meals_count } from "@/api/meal/get_meals";
 import Modal from "@/components/modal/modal";
 import View_meal_modal from "@/components/modal/content/view_meal";
 import Create_week_modal from "@/components/modal/content/create_week";
-import { Sidebar } from "@/components/sidebar/sidebar";
+import Sidebar from "@/components/sidebar/sidebar";
 import { useAppSelector } from "@/redux/hook";
 import { selectMeal } from "@/redux/slices/SelectMeal";
-import { Card_Day } from "@/components/planner/card_categorie";
+import Card_Day from "@/components/planner/card_day";
 
-export default function Home(props: any) {
+const Home: React.FC = (props) => {
     const [my_week, setMy_week] = useState<IDay[]>([]);
     const [count_meal, setCountMeal] = useState<number>(-1);
     const [loading, setLoading] = useState<boolean>(true);
@@ -147,4 +147,6 @@ export default function Home(props: any) {
             </div>
         </>
     );
-}
+};
+
+export default Home;

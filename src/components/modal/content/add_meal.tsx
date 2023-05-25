@@ -3,25 +3,50 @@ import { create_meals } from "@/api/meal/create_meals";
 import { NextRouter } from "next/router";
 import { IMeal } from "@/redux/slices/SelectMeal";
 
-interface Props {
+interface IIngredient {
     index: number;
+    setIngredients: Dispatch<SetStateAction<string[]>>;
+    ingredients: string[];
 }
 
-interface PropsModal {
+const Ingredient: React.FC<IIngredient> = (props) => {
+    const updateIngredient = (index: number) => (e: any) => {
+        props.setIngredients((ingredients) => ({
+            ...ingredients,
+            [index]: e.target.value,
+        }));
+    };
+
+    return (
+        <div className="classic__input  padding__modal">
+            <span className="color--dark_blue">
+                {"Nom de l'ingrédient"} {props.index + 1}
+            </span>
+            <input
+                placeholder="Pasta carbonara"
+                value={props.ingredients[props.index]}
+                onChange={updateIngredient(props.index)}
+            />
+        </div>
+    );
+};
+
+interface IMeal_content {
     setModal: Dispatch<SetStateAction<boolean>>;
     setMeal: Dispatch<SetStateAction<IMeal[]>>;
     router: NextRouter;
 }
 
-export default function Add_meal_content_modal({
-    setMeal,
-    router,
-    setModal,
-}: PropsModal) {
+const Add_meal_content_modal: React.FC<IMeal_content> = (props) => {
     const [name, setName] = useState("");
     const [ingredients, setIngredients] = useState<string[]>([]);
     const [listinput, setlistinput] = useState<JSX.Element[]>([
-        <Ingredient key="0" index={0} />,
+        <Ingredient
+            key="0"
+            index={0}
+            setIngredients={setIngredients}
+            ingredients={ingredients}
+        />,
     ]);
     const [error, setError] = useState<string>("");
 
@@ -30,28 +55,6 @@ export default function Add_meal_content_modal({
         if (!element) return;
         element.scrollTop = element.scrollHeight;
     }, [listinput]);
-
-    const updateIngredient = (index: number) => (e: any) => {
-        setIngredients((ingredients) => ({
-            ...ingredients,
-            [index]: e.target.value,
-        }));
-    };
-
-    function Ingredient({ index }: Props) {
-        return (
-            <div className="classic__input  padding__modal">
-                <span className="color--dark_blue">
-                    {"Nom de l'ingrédient"} {index + 1}
-                </span>
-                <input
-                    placeholder="Pasta carbonara"
-                    value={ingredients[index]}
-                    onChange={updateIngredient(index)}
-                />
-            </div>
-        );
-    }
 
     return (
         <>
@@ -79,6 +82,8 @@ export default function Add_meal_content_modal({
                             <Ingredient
                                 key={listinput.length}
                                 index={listinput.length}
+                                setIngredients={setIngredients}
+                                ingredients={ingredients}
                             />,
                         ]);
                     }}
@@ -101,9 +106,9 @@ export default function Add_meal_content_modal({
                         } as IMeal;
                         create_meals(
                             newMeal,
-                            setModal,
-                            setMeal,
-                            router,
+                            props.setModal,
+                            props.setMeal,
+                            props.router,
                             setError
                         );
                     }}
@@ -113,4 +118,6 @@ export default function Add_meal_content_modal({
             </div>
         </>
     );
-}
+};
+
+export default Add_meal_content_modal;
