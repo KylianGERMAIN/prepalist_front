@@ -3,17 +3,16 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { IIngredient, get_list } from "@/api/list/get_list";
 import Sidebar from "@/components/sidebar/sidebar";
-import exp from "constants";
 
 const My_list: React.FC = (props) => {
-    const [list, setList] = useState<IIngredient[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
+    const [list, set_list] = useState<IIngredient[]>([]);
+    const [loading, set_loading] = useState<boolean>(true);
 
     const router = useRouter();
 
     useEffect(() => {
-        get_list(router, setList);
-        setLoading(false);
+        get_list(router, set_list);
+        set_loading(false);
     }, [router]);
 
     return (

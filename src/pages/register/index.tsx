@@ -5,10 +5,10 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 
 const Register: React.FC = (props) => {
-    const [username, setUsername] = useState<string>("");
-    const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [error, setError] = useState<string>("");
+    const [username, set_username] = useState<string>("");
+    const [email, set_email] = useState<string>("");
+    const [password, set_password] = useState<string>("");
+    const [error, set_error] = useState<string>("");
 
     const router = useRouter();
 
@@ -30,7 +30,7 @@ const Register: React.FC = (props) => {
                                     placeholder="Votre nom"
                                     value={username}
                                     onChange={(e) =>
-                                        setUsername(e.target.value)
+                                        set_username(e.target.value)
                                     }
                                 />
                             </div>
@@ -41,7 +41,7 @@ const Register: React.FC = (props) => {
                                 <input
                                     placeholder="Votre adresse mail"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => set_email(e.target.value)}
                                 />
                             </div>
                             <div className="classic__input">
@@ -53,7 +53,7 @@ const Register: React.FC = (props) => {
                                     type="password"
                                     value={password}
                                     onChange={(e) =>
-                                        setPassword(e.target.value)
+                                        set_password(e.target.value)
                                     }
                                 />
                             </div>
@@ -63,7 +63,7 @@ const Register: React.FC = (props) => {
                                         username,
                                         email,
                                         password,
-                                        setError,
+                                        set_error,
                                         router
                                     )
                                 }

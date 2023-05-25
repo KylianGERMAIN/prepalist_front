@@ -1,11 +1,11 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { IMeal, setActualMeal } from "@/redux/slices/SelectMeal";
+import { Imeal, set_actual_meal } from "@/redux/slices/select_meal";
 
 export function get_meal(
     router: NextRouter,
-    setMeal: Dispatch<SetStateAction<IMeal>>,
+    set_meal: Dispatch<SetStateAction<Imeal>>,
     id: string
 ) {
     var myHeaders = new Headers();
@@ -25,7 +25,7 @@ export function get_meal(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal/${id}`)
         .then((response: any) => {
             if (!response.detail) {
-                setMeal(response);
+                set_meal(response);
             }
         })
         .catch((error: any) => console.log(error));
@@ -34,8 +34,8 @@ export function get_meal(
 export const get_meal_perso = (router: NextRouter, id: string) => {
     return (
         dispatch: (arg0: {
-            payload: IMeal;
-            type: "select_meal/setActualMeal";
+            payload: Imeal;
+            type: "select_meal/set_actual_meal";
         }) => void
     ) => {
         var myHeaders = new Headers();
@@ -58,7 +58,7 @@ export const get_meal_perso = (router: NextRouter, id: string) => {
             .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal/${id}`)
             .then((response: any) => {
                 if (!response.detail) {
-                    dispatch(setActualMeal(response));
+                    dispatch(set_actual_meal(response));
                 }
             })
             .catch((error: any) => console.log(error));

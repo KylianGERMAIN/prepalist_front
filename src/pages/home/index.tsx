@@ -8,31 +8,31 @@ import View_meal_modal from "@/components/modal/content/view_meal";
 import Create_week_modal from "@/components/modal/content/create_week";
 import Sidebar from "@/components/sidebar/sidebar";
 import { useAppSelector } from "@/redux/hook";
-import { selectMeal } from "@/redux/slices/SelectMeal";
 import Card_Day from "@/components/planner/card_day";
+import { selectMeal } from "@/redux/slices/week";
 
 const Home: React.FC = (props) => {
-    const [my_week, setMy_week] = useState<IDay[]>([]);
-    const [count_meal, setCountMeal] = useState<number>(-1);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [modal_meal_view, setMealViewModal] = useState(false);
-    const [modal_create_week, setCreateWeekModal] = useState(false);
+    const [my_week, set_my_week] = useState<IDay[]>([]);
+    const [count_meal, set_count_meal] = useState<number>(-1);
+    const [loading, set_loading] = useState<boolean>(true);
+    const [modal_meal_view, set_meal_view_modal] = useState(false);
+    const [modal_create_week, set_create_week_modal] = useState(false);
 
-    const select_meal = useAppSelector(selectMeal);
+    const _select_meal = useAppSelector(selectMeal);
 
     const router = useRouter();
     const week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
 
     useEffect(() => {
-        get_meals_count(router, setCountMeal);
+        get_meals_count(router, set_count_meal);
         if (count_meal >= 10) {
-            get_week(router, setMy_week);
-            setLoading(false);
+            get_week(router, set_my_week);
+            set_loading(false);
         }
     }, [count_meal, router]);
 
     if (count_meal != -1 && loading) {
-        setLoading(false);
+        set_loading(false);
     }
 
     return (
@@ -44,9 +44,9 @@ const Home: React.FC = (props) => {
             <div className="layout">
                 <Sidebar />
                 <Modal
-                    setModal={setMealViewModal}
+                    set_modal={set_meal_view_modal}
                     open_modal={
-                        select_meal.ingredients.length <= 0
+                        _select_meal.ingredients.length <= 0
                             ? false
                             : modal_meal_view
                     }
@@ -55,14 +55,14 @@ const Home: React.FC = (props) => {
                     <View_meal_modal />
                 </Modal>
                 <Modal
-                    setModal={setCreateWeekModal}
+                    set_modal={set_create_week_modal}
                     open_modal={modal_create_week}
                     title="Créer une semaine de repas"
                 >
                     <Create_week_modal
                         router={router}
-                        setMy_week={setMy_week}
-                        setModal={setCreateWeekModal}
+                        set_my_week={set_my_week}
+                        set_modal={set_create_week_modal}
                     />
                 </Modal>
                 {loading == false ? (
@@ -96,7 +96,7 @@ const Home: React.FC = (props) => {
                                     <button
                                         className="add_new_week__button center-midle-screen"
                                         onClick={() => {
-                                            setCreateWeekModal(true);
+                                            set_create_week_modal(true);
                                         }}
                                     >
                                         Plannifier ma semaine
@@ -115,8 +115,8 @@ const Home: React.FC = (props) => {
                                                                 week[index]
                                                             }
                                                             day={day}
-                                                            setMealViewModal={
-                                                                setMealViewModal
+                                                            set_meal_view_modal={
+                                                                set_meal_view_modal
                                                             }
                                                         />
                                                     )
@@ -125,7 +125,7 @@ const Home: React.FC = (props) => {
                                                 <button
                                                     className="add_new_week__button"
                                                     onClick={() => {
-                                                        setCreateWeekModal(
+                                                        set_create_week_modal(
                                                             true
                                                         );
                                                     }}

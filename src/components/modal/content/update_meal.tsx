@@ -1,26 +1,26 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import { NextRouter } from "next/router";
 import { update_meal } from "@/api/meal/update_meal";
-import { IMeal } from "@/redux/slices/SelectMeal";
+import { Imeal } from "@/redux/slices/select_meal";
 
 interface IUpdate_meal_content {
-    setModal: Dispatch<SetStateAction<boolean>>;
-    setMeal: Dispatch<SetStateAction<IMeal[]>>;
+    set_modal: Dispatch<SetStateAction<boolean>>;
+    set_meal: Dispatch<SetStateAction<Imeal[]>>;
     router: NextRouter;
-    meal: IMeal;
-    setNameSelectedMeal: Dispatch<SetStateAction<IMeal>>;
-    listMeal: IMeal[];
+    meal: Imeal;
+    set_name_selected_meal: Dispatch<SetStateAction<Imeal>>;
+    listMeal: Imeal[];
 }
 
 const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
-    const [error, setError] = useState<string>("");
+    const [error, set_error] = useState<string>("");
 
-    const handleIngredientChange = (index: number, newValue: string) => {
-        const updatedIngredients = props.meal.ingredients;
-        updatedIngredients[index] = { ingredient: newValue };
-        props.setNameSelectedMeal((new_meals) => ({
+    const handle_ingredient_change = (index: number, new_value: string) => {
+        const updated_ingredients = props.meal.ingredients;
+        updated_ingredients[index] = { ingredient: new_value };
+        props.set_name_selected_meal((new_meals) => ({
             ...new_meals,
-            ingredients: updatedIngredients,
+            ingredients: updated_ingredients,
         }));
     };
 
@@ -32,7 +32,7 @@ const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
                     placeholder="Pasta carbonara"
                     value={props.meal.name}
                     onChange={(e) =>
-                        props.setNameSelectedMeal((new_meals) => ({
+                        props.set_name_selected_meal((new_meals) => ({
                             ...new_meals,
                             name: e.target.value,
                         }))
@@ -49,7 +49,7 @@ const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
                             placeholder="Pasta carbonara"
                             value={element.ingredient}
                             onChange={(e) =>
-                                handleIngredientChange(key, e.target.value)
+                                handle_ingredient_change(key, e.target.value)
                             }
                         />
                     </div>
@@ -62,7 +62,7 @@ const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
                 <button
                     className="classic__button"
                     onClick={() => {
-                        props.setNameSelectedMeal((new_meals) => ({
+                        props.set_name_selected_meal((new_meals) => ({
                             ...new_meals,
                             ingredients: [
                                 ...new_meals.ingredients,
@@ -92,10 +92,9 @@ const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
                         }
                         update_meal(
                             props.meal,
-                            props.setModal,
-                            props.setMeal,
+                            props.set_modal,
+                            props.set_meal,
                             props.router,
-                            setError,
                             props.listMeal
                         );
                     }}

@@ -3,7 +3,7 @@ import React from "react";
 
 interface IUpdate_meal_content {
     children: React.ReactNode;
-    setModal: Dispatch<SetStateAction<boolean>>;
+    set_modal: Dispatch<SetStateAction<boolean>>;
     open_modal: boolean;
     title: string;
 }
@@ -18,7 +18,7 @@ const Tiny_Modal: React.FC<IUpdate_meal_content> = (props) => {
                             <h1 className="title_modal">{props.title}</h1>
                             <span
                                 className="close"
-                                onClick={() => props.setModal(false)}
+                                onClick={() => props.set_modal(false)}
                             >
                                 &times;
                             </span>

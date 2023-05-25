@@ -9,16 +9,16 @@ import Add_meal_content_modal from "@/components/modal/content/add_meal";
 import Update_meal_content_modal from "@/components/modal/content/update_meal";
 import Tiny_Modal from "@/components/modal/tiny_modal";
 import Sidebar from "@/components/sidebar/sidebar";
-import { IMeal } from "@/redux/slices/SelectMeal";
+import { Imeal } from "@/redux/slices/select_meal";
 
 const My_meals: React.FC = (props) => {
-    const [modal_add_meal, setAddMealModal] = useState(false);
-    const [modal_update_meal, setUpdateMealModal] = useState(false);
-    const [modal_delete_meal, setDeleteMealModal] = useState(false);
-    const [listMeal, setMeal] = useState<IMeal[]>([]);
-    const [delete_meal_id, setDeleteMealID] = useState<string>("");
+    const [modal_add_meal, set_add_meal_modal] = useState(false);
+    const [modal_update_meal, set_update_meal_modal] = useState(false);
+    const [modal_delete_meal, set_delete_meal_modal] = useState(false);
+    const [listMeal, set_meal] = useState<Imeal[]>([]);
+    const [delete_meal_id, set_delete_meal_id] = useState<string>("");
 
-    const [select_meal, setNameSelectedMeal] = useState<IMeal>({
+    const [select_meal, set_name_selected_meal] = useState<Imeal>({
         name: "",
         id: "",
         ingredients: [],
@@ -28,10 +28,10 @@ const My_meals: React.FC = (props) => {
     const router = useRouter();
 
     useEffect(() => {
-        get_meals(router, setMeal);
+        get_meals(router, set_meal);
     }, [router]);
 
-    function Card_meal({ meal }: { meal: IMeal }) {
+    function Card_meal({ meal }: { meal: Imeal }) {
         return (
             <div className="meal__box">
                 <div className="meal__row">
@@ -49,15 +49,15 @@ const My_meals: React.FC = (props) => {
                     <AiOutlineEdit
                         size={25}
                         onClick={(e) => {
-                            setNameSelectedMeal(meal);
-                            setUpdateMealModal(!modal_update_meal);
+                            set_name_selected_meal(meal);
+                            set_update_meal_modal(!modal_update_meal);
                         }}
                     />
                     <AiOutlineClose
                         size={25}
                         onClick={(e) => {
-                            setDeleteMealID(meal.id);
-                            setDeleteMealModal(true);
+                            set_delete_meal_id(meal.id);
+                            set_delete_meal_modal(true);
                         }}
                     />
                 </div>
@@ -74,33 +74,33 @@ const My_meals: React.FC = (props) => {
             <div className="layout">
                 <Sidebar />
                 <Modal
-                    setModal={setAddMealModal}
+                    set_modal={set_add_meal_modal}
                     open_modal={modal_add_meal}
                     title="Ajouter un repas"
                 >
                     <Add_meal_content_modal
-                        setModal={setAddMealModal}
-                        setMeal={setMeal}
+                        set_modal={set_add_meal_modal}
+                        set_meal={set_meal}
                         router={router}
                     />
                 </Modal>
                 <Modal
-                    setModal={setUpdateMealModal}
+                    set_modal={set_update_meal_modal}
                     open_modal={modal_update_meal}
                     title="Mettre à jour le repas"
                 >
                     <Update_meal_content_modal
-                        setModal={setUpdateMealModal}
-                        setMeal={setMeal}
+                        set_modal={set_update_meal_modal}
+                        set_meal={set_meal}
                         router={router}
                         meal={select_meal}
-                        setNameSelectedMeal={setNameSelectedMeal}
+                        set_name_selected_meal={set_name_selected_meal}
                         listMeal={listMeal}
                     />
                 </Modal>
 
                 <Tiny_Modal
-                    setModal={setDeleteMealModal}
+                    set_modal={set_delete_meal_modal}
                     open_modal={modal_delete_meal}
                     title="Voulez-vous supprimer ce repas ?"
                 >
@@ -108,7 +108,7 @@ const My_meals: React.FC = (props) => {
                         <button
                             className="cancel__button yes_modal"
                             onClick={() => {
-                                setDeleteMealModal(!modal_delete_meal);
+                                set_delete_meal_modal(!modal_delete_meal);
                             }}
                         >
                             Annulez
@@ -120,9 +120,9 @@ const My_meals: React.FC = (props) => {
                                     listMeal,
                                     delete_meal_id,
                                     router,
-                                    setMeal
+                                    set_meal
                                 );
-                                setDeleteMealModal(!modal_delete_meal);
+                                set_delete_meal_modal(!modal_delete_meal);
                             }}
                         >
                             Supprimer
@@ -138,13 +138,13 @@ const My_meals: React.FC = (props) => {
                             <button
                                 className="classic__button"
                                 onClick={() => {
-                                    setAddMealModal(!modal_add_meal);
+                                    set_add_meal_modal(!modal_add_meal);
                                 }}
                             >
                                 Créer
                             </button>
                         </div>
-                        {listMeal.map((meal: IMeal, index: number) => (
+                        {listMeal.map((meal: Imeal, index: number) => (
                             <Card_meal key={index} meal={meal} />
                         ))}
                     </div>

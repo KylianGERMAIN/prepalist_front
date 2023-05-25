@@ -4,7 +4,7 @@ interface Icard_category {
     name_category: string;
 }
 
-const CardCategory: React.FC<Icard_category> = (props) => {
+const Card_category: React.FC<Icard_category> = (props) => {
     if (props.name_category == "Déjeuner")
         return (
             <div className="card_categorie_lunch__container">
@@ -21,4 +21,4 @@ const CardCategory: React.FC<Icard_category> = (props) => {
         );
 };
 
-export default CardCategory;
+export default Card_category;

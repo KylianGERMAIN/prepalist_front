@@ -1,14 +1,13 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { IMeal } from "@/redux/slices/SelectMeal";
+import { Imeal } from "@/redux/slices/select_meal";
 
 export function create_meals(
-    meal: IMeal,
-    setModal: Dispatch<SetStateAction<boolean>>,
-    setMeal: Dispatch<SetStateAction<IMeal[]>>,
-    router: NextRouter,
-    setError: Dispatch<SetStateAction<string>>
+    meal: Imeal,
+    set_modal: Dispatch<SetStateAction<boolean>>,
+    set_meal: Dispatch<SetStateAction<Imeal[]>>,
+    router: NextRouter
 ) {
     var myHeaders = new Headers();
     const access_token = localStorage.getItem("access_token") || "";
@@ -28,8 +27,8 @@ export function create_meals(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal`)
         .then((response: any) => {
             if (!response.detail) {
-                setMeal((meal) => [...meal, response]);
-                setModal(false);
+                set_meal((meal) => [...meal, response]);
+                set_modal(false);
             }
         })
         .catch((error: any) => console.log(error));

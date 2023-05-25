@@ -5,9 +5,9 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 const Login: React.FC = (props) => {
-    const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [error, setError] = useState<string>("");
+    const [email, set_email] = useState<string>("");
+    const [password, set_password] = useState<string>("");
+    const [error, set_error] = useState<string>("");
     const router = useRouter();
 
     return (
@@ -28,7 +28,7 @@ const Login: React.FC = (props) => {
                                 <input
                                     placeholder="Votre adresse mail"
                                     value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
+                                    onChange={(e) => set_email(e.target.value)}
                                 />
                             </div>
                             <div className="classic__input">
@@ -40,13 +40,13 @@ const Login: React.FC = (props) => {
                                     type="password"
                                     value={password}
                                     onChange={(e) =>
-                                        setPassword(e.target.value)
+                                        set_password(e.target.value)
                                     }
                                 />
                             </div>
                             <div
                                 onClick={() =>
-                                    login(email, password, setError, router)
+                                    login(email, password, set_error, router)
                                 }
                             >
                                 <button
