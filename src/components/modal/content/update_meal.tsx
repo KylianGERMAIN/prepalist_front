@@ -1,23 +1,7 @@
-import Head from "next/head";
-import { AiOutlineHome, AiOutlineClose } from "react-icons/ai";
-import { MdOutlineFastfood, MdLogout } from "react-icons/md";
-import { BsEnvelopePaper } from "react-icons/bs";
-import { FiHelpCircle } from "react-icons/fi";
-import { IoIosArrowForward, IoIosArrowBack } from "react-icons/io";
-import { GiWheat } from "react-icons/gi";
-
-import {
-    Dispatch,
-    SetStateAction,
-    useEffect,
-    useState,
-    useCallback,
-} from "react";
-import Link from "next/link";
-import { IMeal } from "@/api/meal/get_meals";
-import { create_meals } from "@/api/meal/create_meals";
+import { Dispatch, SetStateAction, useState } from "react";
 import { NextRouter } from "next/router";
 import { update_meal } from "@/api/meal/update_meal";
+import { IMeal } from "@/redux/slices/SelectMeal";
 
 interface Props {
     index: number;

@@ -1,5 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
-import { NextRouter, useRouter } from "next/router";
+import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
 import { IDay } from "./get_week";
 

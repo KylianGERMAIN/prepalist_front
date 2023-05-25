@@ -1,13 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
-import { NextRouter, useRouter } from "next/router";
+import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-
-export interface IMeal {
-    id: string;
-    name: string;
-    ingredients: { ingredient: string }[];
-    created_at?: string;
-}
+import { IMeal } from "@/redux/slices/SelectMeal";
 
 export function get_meals(
     router: NextRouter,
@@ -39,6 +33,7 @@ export function get_meals(
                         created_at: response[i].created_at
                             ? response[i].created_at
                             : "none",
+                        servings: 0,
                     });
                 }
 

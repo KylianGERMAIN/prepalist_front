@@ -1,8 +1,7 @@
 import Head from "next/head";
-import { options } from "../home";
 import { AiOutlineClose, AiOutlineEdit } from "react-icons/ai";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { IMeal, get_meals } from "@/api/meal/get_meals";
+import { useEffect, useState } from "react";
+import { get_meals } from "@/api/meal/get_meals";
 import { useRouter } from "next/router";
 import { delete_meal } from "@/api/meal/delete_meals";
 import Modal from "@/components/modal/modal";
@@ -10,6 +9,7 @@ import Add_meal_content_modal from "@/components/modal/content/add_meal";
 import Update_meal_content_modal from "@/components/modal/content/update_meal";
 import Tiny_Modal from "@/components/modal/tiny_modal";
 import { Sidebar } from "@/components/sidebar/sidebar";
+import { IMeal } from "@/redux/slices/SelectMeal";
 
 export default function My_meals() {
     const [modal_add_meal, setAddMealModal] = useState(false);
@@ -22,6 +22,7 @@ export default function My_meals() {
         name: "",
         id: "",
         ingredients: [],
+        servings: 0,
     });
 
     const router = useRouter();
@@ -40,7 +41,7 @@ export default function My_meals() {
                         {meal.created_at
                             ? new Date(
                                   meal.created_at.split(" ")[0]
-                              ).toLocaleDateString("fr-FR", options)
+                              ).toLocaleDateString("fr-FR", {})
                             : "null"}
                     </span>
                 </div>
@@ -101,11 +102,19 @@ export default function My_meals() {
                 <Tiny_Modal
                     setModal={setDeleteMealModal}
                     open_modal={modal_delete_meal}
-                    title="Etes-vous sûr de vouloir supprimer ce repas ?"
+                    title="Voulez-vous supprimer ce repas ?"
                 >
                     <div className="flex ingredients-button__box">
                         <button
-                            className="classic__button yes_modal"
+                            className="cancel__button yes_modal"
+                            onClick={() => {
+                                setDeleteMealModal(!modal_delete_meal);
+                            }}
+                        >
+                            Annulez
+                        </button>
+                        <button
+                            className="classic__button no_modal"
                             onClick={() => {
                                 delete_meal(
                                     listMeal,
@@ -116,15 +125,7 @@ export default function My_meals() {
                                 setDeleteMealModal(!modal_delete_meal);
                             }}
                         >
-                            Oui
-                        </button>
-                        <button
-                            className="classic__button no_modal"
-                            onClick={() => {
-                                setDeleteMealModal(!modal_delete_meal);
-                            }}
-                        >
-                            Non
+                            Supprimer
                         </button>
                     </div>
                 </Tiny_Modal>

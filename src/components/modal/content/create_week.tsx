@@ -1,9 +1,6 @@
-import { get_meal } from "@/api/meal/get_meal";
-import { IMeal, get_meals_with_empty_meal } from "@/api/meal/get_meals";
+import { get_meals_with_empty_meal } from "@/api/meal/get_meals";
 import { generate_my_week } from "@/api/week/generate_new_week";
 import { IDay } from "@/api/week/get_week";
-import { CardCategorie } from "@/pages/home";
-import router from "next/router";
 import React, {
     Dispatch,
     SetStateAction,
@@ -15,6 +12,7 @@ import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
 import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 import Select from "react-select";
 import { create_my_week } from "@/api/week/create_new_week";
+import { CardCategorie } from "@/components/planner/card_categorie";
 
 interface PropsModal {
     router: any;

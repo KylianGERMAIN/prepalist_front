@@ -1,7 +1,5 @@
 import Head from "next/head";
-import { options } from "../home";
 import { useEffect, useState } from "react";
-import { IMeal } from "@/api/meal/get_meals";
 import { useRouter } from "next/router";
 import { IIngredient, get_list } from "@/api/list/get_list";
 import { Sidebar } from "@/components/sidebar/sidebar";
