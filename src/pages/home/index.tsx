@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { IDay, get_week } from "@/api/week/get_week";
+import { Iday, get_week } from "@/api/week/get_week";
 import { useRouter } from "next/router";
 import { get_meals_count } from "@/api/meal/get_meals";
 import Modal from "@/components/modal/modal";
@@ -9,16 +9,16 @@ import Create_week_modal from "@/components/modal/content/create_week";
 import Sidebar from "@/components/sidebar/sidebar";
 import { useAppSelector } from "@/redux/hook";
 import Card_Day from "@/components/planner/card_day";
-import { selectMeal } from "@/redux/slices/week";
+import { select_meal } from "@/redux/slices/select_meal";
 
 const Home: React.FC = (props) => {
-    const [my_week, set_my_week] = useState<IDay[]>([]);
+    const [my_week, set_my_week] = useState<Iday[]>([]);
     const [count_meal, set_count_meal] = useState<number>(-1);
     const [loading, set_loading] = useState<boolean>(true);
     const [modal_meal_view, set_meal_view_modal] = useState(false);
     const [modal_create_week, set_create_week_modal] = useState(false);
 
-    const _select_meal = useAppSelector(selectMeal);
+    const _select_meal = useAppSelector(select_meal);
 
     const router = useRouter();
     const week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
@@ -108,7 +108,7 @@ const Home: React.FC = (props) => {
                                         <div className="home__container__header">
                                             <div className="body-planning__container">
                                                 {my_week.map(
-                                                    (day: IDay, index: any) => (
+                                                    (day: Iday, index: any) => (
                                                         <Card_Day
                                                             key={index}
                                                             day_of_week={

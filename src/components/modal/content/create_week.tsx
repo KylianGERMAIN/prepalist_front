@@ -1,6 +1,6 @@
 import { get_meals_with_empty_meal } from "@/api/meal/get_meals";
 import { generate_my_week } from "@/api/week/generate_new_week";
-import { IDay } from "@/api/week/get_week";
+import { Iday } from "@/api/week/get_week";
 import React, {
     Dispatch,
     SetStateAction,
@@ -16,12 +16,12 @@ import CardCategory from "@/components/planner/card_categorie";
 
 interface Icreate_week {
     router: any;
-    set_my_week: Dispatch<SetStateAction<IDay[]>>;
+    set_my_week: Dispatch<SetStateAction<Iday[]>>;
     set_modal: Dispatch<SetStateAction<boolean>>;
 }
 
 const Create_week_modal: React.FC<Icreate_week> = (props) => {
-    const [my_week, set_my_new_week] = useState<IDay[]>([
+    const [my_week, set_my_new_week] = useState<Iday[]>([
         {
             date: "",
             lunch: {
@@ -128,7 +128,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
         return (
             <div className="">
                 <div className="generate_week__container">
-                    {my_week.map((day: IDay, index: number) => {
+                    {my_week.map((day: Iday, index: number) => {
                         var date = new Date(day.date.split(" ")[0]);
                         var french_date = date.toLocaleDateString(
                             "fr-FR",

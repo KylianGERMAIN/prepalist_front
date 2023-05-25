@@ -1,11 +1,11 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { IDay } from "./get_week";
+import { Iday } from "./get_week";
 
 export async function generate_my_week(
     router: NextRouter,
-    set_my_week: Dispatch<SetStateAction<IDay[]>>,
+    set_my_week: Dispatch<SetStateAction<Iday[]>>,
     set_meal_lunch: Dispatch<
         SetStateAction<{ value: string; label: string }[]>
     >,
@@ -29,7 +29,7 @@ export async function generate_my_week(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/week/generate`)
         .then(async (response) => {
             if (!response.detail) {
-                var week: IDay[] = response;
+                var week: Iday[] = response;
                 await set_my_week(week);
                 var meal_lunch = [];
                 var meal_dinner = [];

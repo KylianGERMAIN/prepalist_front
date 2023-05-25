@@ -1,5 +1,5 @@
 import { get_meal_perso } from "@/api/meal/get_meal";
-import { IDay } from "@/api/week/get_week";
+import { Iday } from "@/api/week/get_week";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
@@ -12,7 +12,7 @@ import {
 } from "@/redux/slices/select_meal";
 
 interface ICardDay {
-    day: IDay;
+    day: Iday;
     day_of_week: string;
     set_meal_view_modal: Dispatch<SetStateAction<boolean>>;
 }

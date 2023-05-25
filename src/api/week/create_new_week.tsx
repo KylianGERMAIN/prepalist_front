@@ -1,15 +1,15 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { IDay } from "./get_week";
+import { Iday } from "./get_week";
 
 export async function create_my_week(
     router: NextRouter,
-    set_my_week: Dispatch<SetStateAction<IDay[]>>,
+    set_my_week: Dispatch<SetStateAction<Iday[]>>,
     meal_lunch: any,
     meal_dinner: any,
     meal_serving: any,
-    my_week: IDay[],
+    my_week: Iday[],
     set_modal: Dispatch<SetStateAction<boolean>>
 ) {
     const access_token = localStorage.getItem("access_token") || "";
