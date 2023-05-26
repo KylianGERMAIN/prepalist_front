@@ -9,7 +9,6 @@ import {
     set_one_ingredient,
 } from "@/redux/slices/select_meal";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
-import { forEachChild } from "typescript";
 
 interface Iingredient {
     index: number;

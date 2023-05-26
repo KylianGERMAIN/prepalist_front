@@ -33,7 +33,7 @@ export function get_meals(
                         created_at: response[i].created_at
                             ? response[i].created_at
                             : "none",
-                        servings: 0,
+                        serving: 0,
                     });
                 }
 
