@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { Iday } from "./get_week";
+import { Iday } from "@/redux/slices/week";
 
 export async function generate_my_week(
     router: NextRouter,
@@ -29,12 +29,14 @@ export async function generate_my_week(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/week/generate`)
         .then(async (response) => {
             if (!response.detail) {
+                console.log(response);
                 var week: Iday[] = response;
                 await set_my_week(week);
                 var meal_lunch = [];
                 var meal_dinner = [];
                 var meal_serving = [];
                 for (let i = 0; i < week.length; i++) {
+                    week[i].lunch;
                     meal_lunch.push({
                         value: week[i].lunch.name,
                         label: week[i].lunch.name,
@@ -46,12 +48,12 @@ export async function generate_my_week(
                         id: week[i].dinner.id,
                     });
                     meal_serving.push({
-                        lunch: week[i].lunch.serving,
-                        dinner: week[i].lunch.serving,
+                        lunch: week[i].lunch.servings,
+                        dinner: week[i].lunch.servings,
                     });
                 }
-                set_meal_lunch(meal_dinner);
-                set_meal_dinner(meal_lunch);
+                set_meal_lunch(meal_lunch);
+                set_meal_dinner(meal_dinner);
                 set_meal_serving(meal_serving);
             }
         })

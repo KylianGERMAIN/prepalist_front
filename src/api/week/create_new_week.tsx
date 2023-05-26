@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { Iday } from "./get_week";
+import { Iday } from "@/redux/slices/week";
 
 export async function create_my_week(
     router: NextRouter,
@@ -23,8 +23,8 @@ export async function create_my_week(
         my_week[i].dinner.name = meal_dinner[i].value;
         my_week[i].lunch.id = meal_lunch[i].id;
         my_week[i].dinner.id = meal_dinner[i].id;
-        my_week[i].lunch.serving = meal_serving[i].lunch;
-        my_week[i].dinner.serving = meal_serving[i].dinner;
+        my_week[i].lunch.servings = meal_serving[i].lunch;
+        my_week[i].dinner.servings = meal_serving[i].dinner;
     }
     var new_week = { week: my_week };
     var requestOptions = {
