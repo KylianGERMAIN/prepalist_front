@@ -35,7 +35,7 @@ const Card_day: React.FC<ICardDay> = (props) => {
                 <div
                     className="meal__container"
                     onClick={() => {
-                        dispatch(reset_select_meal(_select_meal));
+                        dispatch(reset_select_meal());
                         _set_actual_meal(props.day.lunch as Imeal);
                         props.set_meal_view_modal(true);
                         dispatch(get_meal_perso(router, props.day.lunch.id));
@@ -50,7 +50,7 @@ const Card_day: React.FC<ICardDay> = (props) => {
                 <div
                     className="meal__container"
                     onClick={() => {
-                        dispatch(reset_select_meal(_select_meal));
+                        dispatch(reset_select_meal());
                         _set_actual_meal(props.day.dinner as Imeal);
                         props.set_meal_view_modal(true);
                         dispatch(get_meal_perso(router, props.day.dinner.id));
