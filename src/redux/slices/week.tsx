@@ -22,7 +22,6 @@ export const week_slice = createSlice({
             return (state = initial_state);
         },
         set_week: (state: Iweek, action: PayloadAction<Iweek>) => {
-            console.log(action.payload.week);
             state.week = action.payload.week;
         },
         set_lunch_name: (

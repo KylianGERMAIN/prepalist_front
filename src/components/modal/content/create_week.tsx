@@ -113,7 +113,6 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                                         Math.random() * props.list_meal.length -
                                             1
                                     ) + 1;
-                                console.log(props.list_meal[rndInt]);
                                 if (props.islunch)
                                     dispatch(
                                         set_lunch_name([
