@@ -2,27 +2,32 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 import { get_week } from "@/api/week/get_week";
 import { useRouter } from "next/router";
-import { get_meals_count } from "@/api/meal/get_meals";
+import {
+    get_meals_count,
+    get_meals_with_empty_meal,
+} from "@/api/meal/get_meals";
 import Modal from "@/components/modal/modal";
 import View_meal_modal from "@/components/modal/content/view_meal";
 import Create_week_modal from "@/components/modal/content/create_week";
 import Sidebar from "@/components/sidebar/sidebar";
-import { useAppSelector } from "@/redux/hook";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import Card_Day from "@/components/planner/card_day";
 import { select_meal } from "@/redux/slices/select_meal";
-import { Iday } from "@/redux/slices/week";
+import { Iday, reset_week, week } from "@/redux/slices/week";
+import { generate_my_week } from "@/api/week/generate_new_week";
 
 const Home: React.FC = (props) => {
     const [my_week, set_my_week] = useState<Iday[]>([]);
     const [count_meal, set_count_meal] = useState<number>(-1);
     const [loading, set_loading] = useState<boolean>(true);
+    const [list_meal, set_list_meal] = useState<any>();
     const [modal_meal_view, set_meal_view_modal] = useState(false);
     const [modal_create_week, set_create_week_modal] = useState(false);
-
     const _select_meal = useAppSelector(select_meal);
-
+    const dispatch = useAppDispatch();
+    const _week = useAppSelector(week);
     const router = useRouter();
-    const week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
+    const __week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
 
     useEffect(() => {
         get_meals_count(router, set_count_meal);
@@ -31,6 +36,11 @@ const Home: React.FC = (props) => {
             set_loading(false);
         }
     }, [count_meal, router]);
+
+    useEffect(() => {
+        dispatch(generate_my_week(router));
+        get_meals_with_empty_meal(router, set_list_meal);
+    }, [dispatch, router, modal_create_week]);
 
     if (count_meal != -1 && loading) {
         set_loading(false);
@@ -57,13 +67,17 @@ const Home: React.FC = (props) => {
                 </Modal>
                 <Modal
                     set_modal={set_create_week_modal}
-                    open_modal={modal_create_week}
+                    open_modal={
+                        _week.week.length <= 0 ? false : modal_create_week
+                    }
                     title="Créer une semaine de repas"
                 >
                     <Create_week_modal
                         router={router}
                         set_my_week={set_my_week}
                         set_modal={set_create_week_modal}
+                        list_meal={list_meal}
+                        set_list_meal={set_list_meal}
                     />
                 </Modal>
                 {loading == false ? (
@@ -113,7 +127,7 @@ const Home: React.FC = (props) => {
                                                         <Card_Day
                                                             key={index}
                                                             day_of_week={
-                                                                week[index]
+                                                                __week[index]
                                                             }
                                                             day={day}
                                                             set_meal_view_modal={
@@ -126,6 +140,7 @@ const Home: React.FC = (props) => {
                                                 <button
                                                     className="add_new_week__button"
                                                     onClick={() => {
+                                                        dispatch(reset_week());
                                                         set_create_week_modal(
                                                             true
                                                         );

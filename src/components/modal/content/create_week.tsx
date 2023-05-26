@@ -1,66 +1,45 @@
 import { get_meals_with_empty_meal } from "@/api/meal/get_meals";
 import { generate_my_week } from "@/api/week/generate_new_week";
-import React, {
-    Dispatch,
-    SetStateAction,
-    use,
-    useEffect,
-    useState,
-} from "react";
+import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
 import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 import Select from "react-select";
 import { create_my_week } from "@/api/week/create_new_week";
 import CardCategory from "@/components/planner/card_categorie";
 import { NextRouter } from "next/router";
-import { Iday } from "@/redux/slices/week";
+import {
+    Iday,
+    set_dinner_name,
+    set_lunch_name,
+    week,
+} from "@/redux/slices/week";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { Imeal } from "@/redux/slices/select_meal";
 
 interface Icreate_week {
     router: NextRouter;
     set_my_week: Dispatch<SetStateAction<Iday[]>>;
     set_modal: Dispatch<SetStateAction<boolean>>;
+    list_meal: any;
+    set_list_meal: Dispatch<SetStateAction<any>>;
+}
+
+interface Iselect_meal {
+    meal: Imeal;
+    index: number;
+    islunch: boolean;
+    list_meal: any;
 }
 
 const Create_week_modal: React.FC<Icreate_week> = (props) => {
-    const [my_week, set_my_new_week] = useState<Iday[]>([
-        {
-            date: "",
-            lunch: {
-                name: "",
-                id: "",
-                servings: 0,
-                ingredients: [],
-            },
-            dinner: {
-                name: "",
-                id: "",
-                servings: 0,
-                ingredients: [],
-            },
-        },
-    ]);
-    const [meal, set_meal] = useState<any>();
-
-    const week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
+    const __week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
     const options: Intl.DateTimeFormatOptions = {
         month: "long",
         day: "numeric",
     };
 
-    const [meal_lunch, set_meal_lunch] = useState<any>([]);
-    const [meal_dinner, set_meal_dinner] = useState<any>([]);
-    const [meal_serving, set_meal_serving] = useState<any>([]);
-
-    useEffect(() => {
-        generate_my_week(
-            props.router,
-            set_my_new_week,
-            set_meal_lunch,
-            set_meal_dinner,
-            set_meal_serving
-        );
-        get_meals_with_empty_meal(props.router, set_meal);
-    }, [props.router]);
+    const dispatch = useAppDispatch();
+    const _week = useAppSelector(week);
 
     const customStyles = {
         indicatorSeparator: (base: any) => ({
@@ -73,231 +52,186 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
         }),
     };
 
-    const random_meal = (index: number, setmeal: any) => {
-        const rndInt = Math.floor(Math.random() * meal.length - 1) + 1;
-        setmeal((meals: any) => ({
-            ...meals,
-            [index]: {
-                value: meal[rndInt].value,
-                label: meal[rndInt].label,
-                id: meal[rndInt].id,
-            },
-        }));
+    const Meal: React.FC<Iselect_meal> = (props) => {
+        return (
+            <>
+                <div className="catégories__card">
+                    {props.islunch ? (
+                        <CardCategory name_category="Déjeuner" />
+                    ) : (
+                        <CardCategory name_category="Diner" />
+                    )}
+                </div>
+                <div className="modify_day_meal__container">
+                    <div className="select_meal__container">
+                        <Select
+                            className="select_meal__select"
+                            options={props.list_meal}
+                            value={{
+                                value: props.meal.name,
+                                label: props.meal.name,
+                                id: props.meal.id,
+                            }}
+                            styles={customStyles}
+                            menuPortalTarget={document.body}
+                            closeMenuOnScroll={(e: any) => {
+                                if (
+                                    e.target!.className ===
+                                    "generate_week__container"
+                                ) {
+                                    return true;
+                                } else {
+                                    return false;
+                                }
+                            }}
+                            onChange={(option: any) => {
+                                if (props.islunch)
+                                    dispatch(
+                                        set_lunch_name([
+                                            props.index,
+                                            option.value,
+                                            option.id,
+                                            props.meal.serving,
+                                        ])
+                                    );
+                                else
+                                    dispatch(
+                                        set_dinner_name([
+                                            props.index,
+                                            option.value,
+                                            option.id,
+                                            props.meal.serving,
+                                        ])
+                                    );
+                            }}
+                        />
+                        <button
+                            className="random__btn"
+                            onClick={() => {
+                                var rndInt =
+                                    Math.floor(
+                                        Math.random() * props.list_meal.length -
+                                            1
+                                    ) + 1;
+                                console.log(props.list_meal[rndInt]);
+                                if (props.islunch)
+                                    dispatch(
+                                        set_lunch_name([
+                                            props.index,
+                                            props.list_meal[rndInt].value,
+                                            props.list_meal[rndInt].id,
+                                            props.meal.serving,
+                                        ])
+                                    );
+                                else
+                                    dispatch(
+                                        set_dinner_name([
+                                            props.index,
+                                            props.list_meal[rndInt].value,
+                                            props.list_meal[rndInt].id,
+                                            props.meal.serving,
+                                        ])
+                                    );
+                            }}
+                        >
+                            <GiPerspectiveDiceSixFacesRandom
+                                size={30}
+                                color="white"
+                            />
+                        </button>
+                    </div>
+                    <div className="rand_serving__container">
+                        <button
+                            className="minus__btn"
+                            onClick={() => {
+                                if (props.meal.serving > 1)
+                                    if (props.islunch)
+                                        dispatch(
+                                            set_lunch_name([
+                                                props.index,
+                                                props.meal.name,
+                                                props.meal.id,
+                                                (props.meal.serving as number) -
+                                                    1,
+                                            ])
+                                        );
+                                    else
+                                        dispatch(
+                                            set_dinner_name([
+                                                props.index,
+                                                props.meal.name,
+                                                props.meal.id,
+                                                (props.meal.serving as number) -
+                                                    1,
+                                            ])
+                                        );
+                            }}
+                        >
+                            <AiOutlineMinus />
+                        </button>
+                        <span>{props.meal.serving}</span>
+                        <button
+                            className="minus__btn"
+                            onClick={() => {
+                                if (props.islunch)
+                                    dispatch(
+                                        set_lunch_name([
+                                            props.index,
+                                            props.meal.name,
+                                            props.meal.id,
+                                            (props.meal.serving as number) + 1,
+                                        ])
+                                    );
+                                else
+                                    dispatch(
+                                        set_dinner_name([
+                                            props.index,
+                                            props.meal.name,
+                                            props.meal.id,
+                                            (props.meal.serving as number) + 1,
+                                        ])
+                                    );
+                            }}
+                        >
+                            <AiOutlinePlus />
+                        </button>
+                    </div>
+                </div>
+            </>
+        );
     };
 
-    const increase_serving = (
-        index: number,
-        lunch_value: number,
-        dinner_value: number,
-        dinner_or_lunch: boolean
-    ) => {
-        if (dinner_or_lunch)
-            set_meal_serving((meal_serving: any) => ({
-                ...meal_serving,
-                [index]: { lunch: lunch_value + 1, dinner: dinner_value },
-            }));
-        else
-            set_meal_serving((meal_serving: any) => ({
-                ...meal_serving,
-                [index]: { lunch: lunch_value, dinner: dinner_value + 1 },
-            }));
-    };
-
-    const decrease_serving = (
-        index: number,
-        lunch_value: number,
-        dinner_value: number,
-        dinner_or_lunch: boolean
-    ) => {
-        if (dinner_or_lunch && lunch_value > 1)
-            set_meal_serving((meal_serving: any) => ({
-                ...meal_serving,
-                [index]: { lunch: lunch_value - 1, dinner: dinner_value },
-            }));
-        else if (!dinner_or_lunch && dinner_value > 1)
-            set_meal_serving((meal_serving: any) => ({
-                ...meal_serving,
-                [index]: { lunch: lunch_value, dinner: dinner_value - 1 },
-            }));
-    };
-
-    const onChange = (option: any, index: number, setmeal: any) => {
-        setmeal((meals: any) => ({
-            ...meals,
-            [index]: option,
-        }));
-    };
-
-    if (meal_serving.length == 0) return <div></div>;
+    if (_week.week.length <= 0) return <div></div>;
     else
         return (
             <div className="">
                 <div className="generate_week__container">
-                    {my_week.map((day: Iday, index: number) => {
+                    {_week.week.map((day: Iday, index: number) => {
                         var date = new Date(day.date.split(" ")[0]);
                         var french_date = date.toLocaleDateString(
                             "fr-FR",
                             options
                         );
-
                         return (
                             <div
                                 key={index}
                                 className="day_choose_meal__container"
                             >
                                 <h2>
-                                    {week[index]} {french_date.toUpperCase()}
+                                    {__week[index]} {french_date.toUpperCase()}
                                 </h2>
-                                <div className="catégories__card">
-                                    <CardCategory name_category="Déjeuner" />
-                                </div>
-                                <div className="modify_day_meal__container">
-                                    <div className="select_meal__container">
-                                        <Select
-                                            className="select_meal__select"
-                                            options={meal}
-                                            value={meal_lunch[index]}
-                                            styles={customStyles}
-                                            menuPortalTarget={document.body}
-                                            closeMenuOnScroll={(e: any) => {
-                                                if (
-                                                    e.target!.className ===
-                                                    "generate_week__container"
-                                                ) {
-                                                    return true;
-                                                } else {
-                                                    return false;
-                                                }
-                                            }}
-                                            onChange={(option: any) =>
-                                                onChange(
-                                                    option,
-                                                    index,
-                                                    set_meal_lunch
-                                                )
-                                            }
-                                        />
-                                        <button
-                                            className="random__btn"
-                                            onClick={() =>
-                                                random_meal(
-                                                    index,
-                                                    set_meal_lunch
-                                                )
-                                            }
-                                        >
-                                            <GiPerspectiveDiceSixFacesRandom
-                                                size={30}
-                                                color="white"
-                                            />
-                                        </button>
-                                    </div>
-                                    <div className="rand_serving__container">
-                                        <button
-                                            className="minus__btn"
-                                            onClick={() =>
-                                                decrease_serving(
-                                                    index,
-                                                    meal_serving[index].lunch,
-                                                    meal_serving[index].dinner,
-                                                    true
-                                                )
-                                            }
-                                        >
-                                            <AiOutlineMinus />
-                                        </button>
-                                        <span>{meal_serving[index].lunch}</span>
-                                        <button
-                                            className="minus__btn"
-                                            onClick={() =>
-                                                increase_serving(
-                                                    index,
-                                                    meal_serving[index].lunch,
-                                                    meal_serving[index].dinner,
-                                                    true
-                                                )
-                                            }
-                                        >
-                                            <AiOutlinePlus />
-                                        </button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <CardCategory name_category="Diner" />
-                                </div>
-                                <div className="modify_day_meal__container">
-                                    <div className="select_meal__container">
-                                        <Select
-                                            className="select_meal__select"
-                                            options={meal}
-                                            value={meal_dinner[index]}
-                                            styles={customStyles}
-                                            onChange={(option: any) =>
-                                                onChange(
-                                                    option,
-                                                    index,
-                                                    set_meal_dinner
-                                                )
-                                            }
-                                            menuPortalTarget={document.body}
-                                            closeMenuOnScroll={(e: any) => {
-                                                if (
-                                                    e.target!.className ===
-                                                    "generate_week__container"
-                                                ) {
-                                                    return true;
-                                                } else {
-                                                    return false;
-                                                }
-                                            }}
-                                        />
-                                        <button
-                                            className="random__btn"
-                                            onClick={() =>
-                                                random_meal(
-                                                    index,
-                                                    set_meal_dinner
-                                                )
-                                            }
-                                        >
-                                            <GiPerspectiveDiceSixFacesRandom
-                                                size={30}
-                                                color="white"
-                                            />
-                                        </button>
-                                    </div>
-                                    <div className="rand_serving__container">
-                                        <button
-                                            className="minus__btn"
-                                            onClick={() =>
-                                                decrease_serving(
-                                                    index,
-                                                    meal_serving[index].lunch,
-                                                    meal_serving[index].dinner,
-                                                    false
-                                                )
-                                            }
-                                        >
-                                            <AiOutlineMinus />
-                                        </button>
-                                        <span>
-                                            {meal_serving[index].dinner}
-                                        </span>
-                                        <button
-                                            className="minus__btn"
-                                            onClick={() =>
-                                                increase_serving(
-                                                    index,
-                                                    meal_serving[index].lunch,
-                                                    meal_serving[index].dinner,
-                                                    false
-                                                )
-                                            }
-                                        >
-                                            <AiOutlinePlus />
-                                        </button>
-                                    </div>
-                                </div>
+                                <Meal
+                                    meal={day.lunch}
+                                    index={index}
+                                    islunch={true}
+                                    list_meal={props.list_meal}
+                                />
+                                <Meal
+                                    meal={day.dinner}
+                                    index={index}
+                                    islunch={false}
+                                    list_meal={props.list_meal}
+                                />
                             </div>
                         );
                     })}
@@ -315,10 +249,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                             create_my_week(
                                 props.router,
                                 props.set_my_week,
-                                meal_lunch,
-                                meal_dinner,
-                                meal_serving,
-                                my_week,
+                                _week,
                                 props.set_modal
                             )
                         }

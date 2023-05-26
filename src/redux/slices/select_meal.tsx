@@ -4,7 +4,7 @@ import { RootState } from "../store";
 export interface Imeal {
     name: string;
     id: string;
-    servings: number;
+    serving: number;
     ingredients: { ingredient: string }[];
     created_at?: string;
 }
@@ -12,7 +12,7 @@ export interface Imeal {
 const initial_state: Imeal = {
     name: "",
     id: "",
-    servings: 0,
+    serving: 0,
     ingredients: [{ ingredient: "" }],
 };
 
@@ -63,6 +63,6 @@ export const {
 } = select_meal_slice.actions;
 
 // selectors
-export const select_meal = (state: RootState) => state.noteReducer;
+export const select_meal = (state: RootState) => state.select_meal_reducer;
 
 export default select_meal_slice.reducer;

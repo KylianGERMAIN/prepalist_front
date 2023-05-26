@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
-import noteReducer from "./slices/select_meal";
+import select_meal_reducer from "./slices/select_meal";
+import week_reducer from "./slices/week";
 
 export const store = configureStore({
     reducer: {
-        noteReducer,
+        select_meal_reducer,
+        week_reducer,
     },
 });
 
