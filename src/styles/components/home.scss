@@ -1,8 +1,10 @@
 .header-home__container {
+    position: fixed;
+    margin-top: 45px;
+    width: 100%;
     background-color: white;
     height: 70px;
     border-bottom: 1px solid rgba(233, 236, 239, 1);
-    margin-top: 45px;
     display: grid;
     justify-content: center;
     place-items: center;
@@ -64,6 +66,7 @@
 }
 
 .body-planning__container {
+    padding-top: 120px;
     width: 100%;
     display: grid;
     justify-content: center;
@@ -250,6 +253,7 @@
     }
 
     .body-planning__container {
+        margin-top: 70px;
         padding-top: 20px;
         height: calc(100vh - 70px);
         width: 100vw;
