@@ -18,19 +18,17 @@ const initial_state: Imeal = {
 
 export const select_meal_slice = createSlice({
     reducers: {
-        reset_select_meal: (state: Imeal, action: PayloadAction<Imeal>) => {
+        reset_select_meal: (state: Imeal) => {
             return (state = initial_state);
         },
         set_actual_meal: (state: Imeal, action: PayloadAction<Imeal>) => {
             return (state = action.payload);
         },
         set_name: (state: Imeal, action: PayloadAction<string>) => {
-            console.log(state.ingredients);
             return (state = { ...state, name: action.payload });
         },
-        set_one_meal: (state: Imeal) => {
+        set_one_ingredient: (state: Imeal) => {
             state.ingredients.push({ ingredient: "" });
-            console.log(state.ingredients);
             return state;
         },
         set_ingredient: (
@@ -60,7 +58,7 @@ export const {
     reset_select_meal,
     set_actual_meal,
     set_name,
-    set_one_meal,
+    set_one_ingredient,
     set_ingredient,
 } = select_meal_slice.actions;
 

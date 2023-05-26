@@ -24,17 +24,13 @@ const My_list: React.FC = (props) => {
             <div className="layout">
                 <Sidebar />
                 <div className="home__container">
-                    <div className="header__container">
-                        <div className="date-switch_box color--grey">
-                            <span className="">Ma liste de courses</span>
-                        </div>
+                    <div className="header__container"></div>
+                    <div className="header-meal__box flex">
+                        <h3>Total : {list.length}</h3>
                     </div>
                     <div className="body_container">
                         {loading ? null : (
                             <>
-                                <div className="header-meal__box flex">
-                                    <h3>Total : {list.length}</h3>
-                                </div>
                                 {list.map(
                                     (
                                         ingredient: IIngredient,

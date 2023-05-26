@@ -1,7 +1,6 @@
 import Head from "next/head";
 import { AiOutlineClose, AiOutlineEdit } from "react-icons/ai";
 import { useEffect, useState } from "react";
-import { get_meals } from "@/api/meal/get_meals";
 import { useRouter } from "next/router";
 import { delete_meal } from "@/api/meal/delete_meals";
 import Modal from "@/components/modal/modal";
@@ -13,32 +12,26 @@ import {
     Imeal,
     reset_select_meal,
     select_meal,
-    set_one_meal,
+    set_actual_meal,
+    set_one_ingredient,
 } from "@/redux/slices/select_meal";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { get_meals } from "@/api/meal/get_meals";
 
 const My_meals: React.FC = (props) => {
     const [modal_add_meal, set_add_meal_modal] = useState(false);
     const [modal_update_meal, set_update_meal_modal] = useState(false);
     const [modal_delete_meal, set_delete_meal_modal] = useState(false);
-    const [listMeal, set_meal] = useState<Imeal[]>([]);
+    const [list_meal, set_list_meal] = useState<Imeal[]>([]);
     const [delete_meal_id, set_delete_meal_id] = useState<string>("");
 
-    const [__select_meal, set_name_selected_meal] = useState<Imeal>({
-        name: "",
-        id: "",
-        ingredients: [],
-        servings: 0,
-    });
-
     const router = useRouter();
-
-    useEffect(() => {
-        get_meals(router, set_meal);
-    }, [router]);
-
     const _select_meal = useAppSelector(select_meal);
     const dispatch = useAppDispatch();
+
+    useEffect(() => {
+        get_meals(router, set_list_meal);
+    }, [dispatch, router]);
 
     function Card_meal({ meal }: { meal: Imeal }) {
         return (
@@ -58,7 +51,7 @@ const My_meals: React.FC = (props) => {
                     <AiOutlineEdit
                         size={25}
                         onClick={(e) => {
-                            set_name_selected_meal(meal);
+                            dispatch(set_actual_meal(meal));
                             set_update_meal_modal(!modal_update_meal);
                         }}
                     />
@@ -89,7 +82,7 @@ const My_meals: React.FC = (props) => {
                 >
                     <Add_meal_content_modal
                         set_modal={set_add_meal_modal}
-                        set_meal={set_meal}
+                        set_list_meal={set_list_meal}
                         router={router}
                     />
                 </Modal>
@@ -100,11 +93,9 @@ const My_meals: React.FC = (props) => {
                 >
                     <Update_meal_content_modal
                         set_modal={set_update_meal_modal}
-                        set_meal={set_meal}
+                        set_list_meal={set_list_meal}
                         router={router}
-                        meal={__select_meal}
-                        set_name_selected_meal={set_name_selected_meal}
-                        listMeal={listMeal}
+                        list_meal={list_meal}
                     />
                 </Modal>
 
@@ -126,10 +117,10 @@ const My_meals: React.FC = (props) => {
                             className="classic__button no_modal"
                             onClick={() => {
                                 delete_meal(
-                                    listMeal,
+                                    list_meal,
                                     delete_meal_id,
                                     router,
-                                    set_meal
+                                    set_list_meal
                                 );
                                 set_delete_meal_modal(!modal_delete_meal);
                             }}
@@ -141,24 +132,21 @@ const My_meals: React.FC = (props) => {
 
                 <div className="home__container">
                     <div className="header__container"></div>
+                    <div className="header-meal__box flex">
+                        <h3>Total : {list_meal.length}</h3>
+                        <button
+                            className="classic__button"
+                            onClick={async () => {
+                                dispatch(reset_select_meal());
+                                dispatch(set_one_ingredient());
+                                set_add_meal_modal(!modal_add_meal);
+                            }}
+                        >
+                            Créer
+                        </button>
+                    </div>
                     <div className="body_container">
-                        <div className="header-meal__box flex">
-                            <h3>Total : {listMeal.length}</h3>
-                            <button
-                                className="classic__button"
-                                onClick={async () => {
-                                    await dispatch(
-                                        reset_select_meal(_select_meal)
-                                    );
-                                    dispatch(set_one_meal());
-                                    console.log(_select_meal);
-                                    set_add_meal_modal(!modal_add_meal);
-                                }}
-                            >
-                                Créer
-                            </button>
-                        </div>
-                        {listMeal.map((meal: Imeal, index: number) => (
+                        {list_meal.map((meal: Imeal, index: number) => (
                             <Card_meal key={index} meal={meal} />
                         ))}
                     </div>

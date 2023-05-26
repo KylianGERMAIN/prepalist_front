@@ -6,7 +6,7 @@ import { Imeal } from "@/redux/slices/select_meal";
 export function create_meals(
     meal: Imeal,
     set_modal: Dispatch<SetStateAction<boolean>>,
-    set_meal: Dispatch<SetStateAction<Imeal[]>>,
+    set_list_meal: Dispatch<SetStateAction<Imeal[]>>,
     router: NextRouter
 ) {
     var myHeaders = new Headers();
@@ -38,7 +38,7 @@ export function create_meals(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal`)
         .then((response: any) => {
             if (!response.detail) {
-                set_meal((meal) => [...meal, response]);
+                set_list_meal((meal) => [...meal, response]);
                 set_modal(false);
             }
         })

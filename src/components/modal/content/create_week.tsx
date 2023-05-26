@@ -13,9 +13,10 @@ import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
 import Select from "react-select";
 import { create_my_week } from "@/api/week/create_new_week";
 import CardCategory from "@/components/planner/card_categorie";
+import { NextRouter } from "next/router";
 
 interface Icreate_week {
-    router: any;
+    router: NextRouter;
     set_my_week: Dispatch<SetStateAction<Iday[]>>;
     set_modal: Dispatch<SetStateAction<boolean>>;
 }

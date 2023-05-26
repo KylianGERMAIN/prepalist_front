@@ -7,7 +7,7 @@ export function delete_meal(
     listMeal: Imeal[],
     id: string,
     router: NextRouter,
-    set_meal: Dispatch<SetStateAction<Imeal[]>>
+    set_list_meal: Dispatch<SetStateAction<Imeal[]>>
 ) {
     var myHeaders = new Headers();
     const access_token = localStorage.getItem("access_token") || "";
@@ -26,7 +26,7 @@ export function delete_meal(
         .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal/${id}`)
         .then((response: any) => {
             if (!response.detail) {
-                set_meal(listMeal.filter((item) => item.id !== id));
+                set_list_meal(listMeal.filter((item) => item.id !== id));
             }
         })
         .catch((error: any) => console.log(error));
