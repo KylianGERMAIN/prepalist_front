@@ -1,21 +1,30 @@
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { create_meals } from "@/api/meal/create_meals";
 import { NextRouter } from "next/router";
-import { Imeal } from "@/redux/slices/select_meal";
+import {
+    Imeal,
+    select_meal,
+    set_ingredient,
+    set_name,
+    set_one_meal,
+} from "@/redux/slices/select_meal";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { forEachChild } from "typescript";
 
 interface Iingredient {
     index: number;
-    set_ingredients: Dispatch<SetStateAction<string[]>>;
-    ingredients: string[];
 }
 
 const Ingredient: React.FC<Iingredient> = (props) => {
-    const update_ingredient = (index: number) => (e: any) => {
-        props.set_ingredients((ingredients) => ({
-            ...ingredients,
-            [index]: e.target.value,
-        }));
-    };
+    const _select_meal = useAppSelector(select_meal);
+    const dispatch = useAppDispatch();
+
+    // const update_ingredient = (index: number) => (e: any) => {
+    //     props.set_ingredients((ingredients) => ({
+    //         ...ingredients,
+    //         [index]: e.target.value,
+    //     }));
+    // };
 
     return (
         <div className="classic__input  padding__modal">
@@ -24,8 +33,11 @@ const Ingredient: React.FC<Iingredient> = (props) => {
             </span>
             <input
                 placeholder="Pasta carbonara"
-                value={props.ingredients[props.index]}
-                onChange={update_ingredient(props.index)}
+                value={_select_meal.ingredients[props.index].ingredient}
+                onChange={(e) => {
+                    dispatch(set_ingredient([props.index, e.target.value]));
+                    console.log(_select_meal);
+                }}
             />
         </div>
     );
@@ -38,17 +50,13 @@ interface Imeal_content {
 }
 
 const Add_meal_content_modal: React.FC<Imeal_content> = (props) => {
-    const [name, set_name] = useState("");
-    const [ingredients, set_ingredients] = useState<string[]>([]);
     const [list_input, set_list_input] = useState<JSX.Element[]>([
-        <Ingredient
-            key="0"
-            index={0}
-            set_ingredients={set_ingredients}
-            ingredients={ingredients}
-        />,
+        <Ingredient key="0" index={0} />,
     ]);
     const [error, setError] = useState<string>("");
+
+    const _select_meal = useAppSelector(select_meal);
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
         const element = document.querySelector(".ingredients__box");
@@ -62,14 +70,12 @@ const Add_meal_content_modal: React.FC<Imeal_content> = (props) => {
                 <span className="color--dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
-                    value={name}
-                    onChange={(e) => set_name(e.target.value)}
+                    value={_select_meal.name}
+                    onChange={(e) => dispatch(set_name(e.target.value))}
                 />
             </div>
 
-            <div className="ingredients__box">
-                {list_input.map((element) => element)}
-            </div>
+            <div className="ingredients__box">{list_input}</div>
             <div>
                 <span className="error-content__text">{error}</span>
             </div>
@@ -77,15 +83,15 @@ const Add_meal_content_modal: React.FC<Imeal_content> = (props) => {
                 <button
                     className="classic__button"
                     onClick={(e) => {
+                        dispatch(set_one_meal());
                         set_list_input((element: any) => [
                             ...element,
                             <Ingredient
                                 key={list_input.length}
                                 index={list_input.length}
-                                set_ingredients={set_ingredients}
-                                ingredients={ingredients}
                             />,
                         ]);
+                        console.log(_select_meal);
                     }}
                 >
                     Ajouter 1 ingrédient
@@ -93,19 +99,9 @@ const Add_meal_content_modal: React.FC<Imeal_content> = (props) => {
                 <button
                     className="classic__button"
                     onClick={() => {
-                        var newar = [];
-                        for (var key in ingredients) {
-                            if (ingredients[key] != "")
-                                newar.push({
-                                    ingredient: ingredients[key],
-                                });
-                        }
-                        var newMeal = {
-                            name: name,
-                            ingredients: newar,
-                        } as Imeal;
+                        console.log(_select_meal);
                         create_meals(
-                            newMeal,
+                            _select_meal,
                             props.set_modal,
                             props.set_meal,
                             props.router

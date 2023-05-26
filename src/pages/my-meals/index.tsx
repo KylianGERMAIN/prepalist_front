@@ -9,7 +9,13 @@ import Add_meal_content_modal from "@/components/modal/content/add_meal";
 import Update_meal_content_modal from "@/components/modal/content/update_meal";
 import Tiny_Modal from "@/components/modal/tiny_modal";
 import Sidebar from "@/components/sidebar/sidebar";
-import { Imeal } from "@/redux/slices/select_meal";
+import {
+    Imeal,
+    reset_select_meal,
+    select_meal,
+    set_one_meal,
+} from "@/redux/slices/select_meal";
+import { useAppDispatch, useAppSelector } from "@/redux/hook";
 
 const My_meals: React.FC = (props) => {
     const [modal_add_meal, set_add_meal_modal] = useState(false);
@@ -18,7 +24,7 @@ const My_meals: React.FC = (props) => {
     const [listMeal, set_meal] = useState<Imeal[]>([]);
     const [delete_meal_id, set_delete_meal_id] = useState<string>("");
 
-    const [select_meal, set_name_selected_meal] = useState<Imeal>({
+    const [__select_meal, set_name_selected_meal] = useState<Imeal>({
         name: "",
         id: "",
         ingredients: [],
@@ -30,6 +36,9 @@ const My_meals: React.FC = (props) => {
     useEffect(() => {
         get_meals(router, set_meal);
     }, [router]);
+
+    const _select_meal = useAppSelector(select_meal);
+    const dispatch = useAppDispatch();
 
     function Card_meal({ meal }: { meal: Imeal }) {
         return (
@@ -93,7 +102,7 @@ const My_meals: React.FC = (props) => {
                         set_modal={set_update_meal_modal}
                         set_meal={set_meal}
                         router={router}
-                        meal={select_meal}
+                        meal={__select_meal}
                         set_name_selected_meal={set_name_selected_meal}
                         listMeal={listMeal}
                     />
@@ -137,7 +146,12 @@ const My_meals: React.FC = (props) => {
                             <h3>Total : {listMeal.length}</h3>
                             <button
                                 className="classic__button"
-                                onClick={() => {
+                                onClick={async () => {
+                                    await dispatch(
+                                        reset_select_meal(_select_meal)
+                                    );
+                                    dispatch(set_one_meal());
+                                    console.log(_select_meal);
                                     set_add_meal_modal(!modal_add_meal);
                                 }}
                             >

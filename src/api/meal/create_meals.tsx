@@ -16,6 +16,17 @@ export function create_meals(
     myHeaders.append("Access-Control-Allow-Credentials", "true");
     myHeaders.append("Authorization", "Bearer " + access_token);
 
+    var new_ingredients = [];
+    for (var key in meal.ingredients) {
+        if (meal.ingredients[key].ingredient != "")
+            new_ingredients.push({
+                ingredient: meal.ingredients[key].ingredient,
+            });
+    }
+    meal = {
+        ...meal,
+        ingredients: new_ingredients,
+    };
     var requestOptions = {
         method: "POST",
         headers: myHeaders,
