@@ -1,6 +1,6 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
-import { Iday, get_week } from "@/api/week/get_week";
+import { get_week } from "@/api/week/get_week";
 import { useRouter } from "next/router";
 import { get_meals_count } from "@/api/meal/get_meals";
 import Modal from "@/components/modal/modal";
@@ -10,6 +10,7 @@ import Sidebar from "@/components/sidebar/sidebar";
 import { useAppSelector } from "@/redux/hook";
 import Card_Day from "@/components/planner/card_day";
 import { select_meal } from "@/redux/slices/select_meal";
+import { Iday } from "@/redux/slices/week";
 
 const Home: React.FC = (props) => {
     const [my_week, set_my_week] = useState<Iday[]>([]);

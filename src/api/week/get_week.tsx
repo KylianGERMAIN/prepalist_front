@@ -1,12 +1,7 @@
 import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-
-export interface Iday {
-    date: string;
-    lunch: { name: string; id: string; serving?: number };
-    dinner: { name: string; id: string; serving?: number };
-}
+import { Iday } from "@/redux/slices/week";
 
 export function get_week(
     router: NextRouter,

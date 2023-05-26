@@ -1,5 +1,4 @@
 import { get_meal_perso } from "@/api/meal/get_meal";
-import { Iday } from "@/api/week/get_week";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
@@ -10,6 +9,7 @@ import {
     select_meal,
     set_actual_meal,
 } from "@/redux/slices/select_meal";
+import { Iday } from "@/redux/slices/week";
 
 interface ICardDay {
     day: Iday;
@@ -21,7 +21,6 @@ const Card_day: React.FC<ICardDay> = (props) => {
     var date = new Date(props.day.date.split(" ")[0]);
     var french_date = date.toLocaleDateString("fr-FR");
     const dispatch = useAppDispatch();
-    const _select_meal = useAppSelector(select_meal);
     const router = useRouter();
 
     const _set_actual_meal = (meal: Imeal) => {

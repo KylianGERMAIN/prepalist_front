@@ -1,6 +1,5 @@
 import { get_meals_with_empty_meal } from "@/api/meal/get_meals";
 import { generate_my_week } from "@/api/week/generate_new_week";
-import { Iday } from "@/api/week/get_week";
 import React, {
     Dispatch,
     SetStateAction,
@@ -14,6 +13,7 @@ import Select from "react-select";
 import { create_my_week } from "@/api/week/create_new_week";
 import CardCategory from "@/components/planner/card_categorie";
 import { NextRouter } from "next/router";
+import { Iday } from "@/redux/slices/week";
 
 interface Icreate_week {
     router: NextRouter;
@@ -28,10 +28,14 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
             lunch: {
                 name: "",
                 id: "",
+                servings: 0,
+                ingredients: [],
             },
             dinner: {
                 name: "",
                 id: "",
+                servings: 0,
+                ingredients: [],
             },
         },
     ]);
