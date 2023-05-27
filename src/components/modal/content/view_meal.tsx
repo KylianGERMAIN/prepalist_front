@@ -13,14 +13,6 @@ const View_meal_modal: React.FC = (props) => {
                         <span className="view_meal_title__span">
                             {_select_meal.name}
                         </span>
-                        {/* <button
-                            className="classic__button edit_meal__button"
-                            onClick={() => {
-                                null;
-                            }}
-                        >
-                            Éditer
-                        </button> */}
                     </div>
                     <div className="view_meal_ingredient__title">
                         <span>{_select_meal.serving} Portions</span>

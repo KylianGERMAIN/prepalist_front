@@ -57,7 +57,7 @@ const Add_meal_content_modal: React.FC<Imeal_content> = (props) => {
 
     return (
         <>
-            <div className="classic__input">
+            <div className="classic__input add__input">
                 <span className="color--dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
