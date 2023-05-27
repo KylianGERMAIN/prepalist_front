@@ -1,11 +1,14 @@
-import { Dispatch, SetStateAction } from "react";
 import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
-import { Iday, Iweek, set_week } from "@/redux/slices/week";
+import { set_generate_week } from "@/redux/slices/generate_week";
+import { Iweek } from "@/redux/slices/week";
 
 export const generate_my_week = (router: NextRouter) => {
     return (
-        dispatch: (arg0: { payload: Iweek; type: "week/set_week" }) => void
+        dispatch: (arg0: {
+            payload: Iweek;
+            type: "generate_week/set_generate_week";
+        }) => void
     ) => {
         const access_token = localStorage.getItem("access_token") || "";
         var myHeaders = new Headers();
@@ -26,7 +29,7 @@ export const generate_my_week = (router: NextRouter) => {
             .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/week/generate`)
             .then(async (response) => {
                 if (!response.detail) {
-                    dispatch(set_week({ week: response }));
+                    dispatch(set_generate_week({ week: response }));
                 }
             })
             .catch((error) => console.log(error));
