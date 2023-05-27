@@ -1,41 +1,34 @@
 .view_meal__container {
-    padding-right: 20px;
-    padding-left: 20px;
-
+    padding-bottom: 20px;
     .view_meal__title {
+        padding-right: 20px;
+        padding-left: 20px;
         font-size: 1.2rem;
         padding-bottom: 20px;
         padding-top: 20px;
         border-bottom: 1px solid rgba(233, 236, 239, 1);
-
-        .view_meal_title__span {
-            display: grid;
-            font-size: 1.2rem;
-            // margin-bottom: 30px;
-        }
     }
 
     .view_meal_ingredient__title {
+        padding-right: 20px;
+        padding-left: 20px;
         font-size: 1.2rem;
         padding-bottom: 20px;
         padding-top: 20px;
         border-bottom: 1px solid rgba(233, 236, 239, 1);
     }
 
-    .edit_meal__button {
-        margin-top: 10px;
-        display: grid;
-        width: auto;
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-
     .view_meal_ingredients__title {
+        padding-right: 20px;
+        padding-left: 20px;
         font-size: 1.2rem;
         padding-bottom: 20px;
         padding-top: 20px;
     }
-
+    ul {
+        padding-right: 20px;
+        padding-left: 20px;
+    }
     ul > li {
         padding-bottom: 10px;
         padding-top: 10px;

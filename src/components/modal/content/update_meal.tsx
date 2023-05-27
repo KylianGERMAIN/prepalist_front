@@ -25,7 +25,7 @@ const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
 
     return (
         <>
-            <div className="classic__input padding__modal">
+            <div className="classic__input add__input">
                 <span className="color--dark_blue">Nom du repas</span>
                 <input
                     placeholder="Pasta carbonara"
@@ -33,7 +33,7 @@ const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
                     onChange={(e) => dispatch(set_name(e.target.value))}
                 />
             </div>
-            <div className="ingredients__box">
+            <div className="ingredients__box ">
                 {_select_meal.ingredients.map((element, key) => (
                     <div key={key} className="classic__input  padding__modal">
                         <span className="color--dark_blue">
