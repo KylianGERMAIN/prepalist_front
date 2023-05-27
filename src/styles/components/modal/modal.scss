@@ -64,7 +64,7 @@
             max-height: 30vh;
         }
         .ingredients-button__box {
-            width: 100;
+            width: 100%;
             display: flex;
             justify-content: flex-end;
             align-items: flex-end;
@@ -73,7 +73,7 @@
             gap: 5px;
 
             button {
-                width: 160px;
+                width: 130px;
             }
         }
     }
