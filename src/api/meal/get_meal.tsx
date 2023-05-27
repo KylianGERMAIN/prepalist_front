@@ -3,7 +3,7 @@ import { NextRouter } from "next/router";
 import { customFetch } from "../custom_fetch";
 import { Imeal, set_actual_meal } from "@/redux/slices/select_meal";
 
-export const get_meal = (router: NextRouter, id: string) => {
+export const get_meal = (router: NextRouter, id: string, serving: number) => {
     return (
         dispatch: (arg0: {
             payload: Imeal;
@@ -30,6 +30,7 @@ export const get_meal = (router: NextRouter, id: string) => {
             .fetch(`${process.env.NEXT_PUBLIC_URL_API}/api/v1/meal/${id}`)
             .then((response: any) => {
                 if (!response.detail) {
+                    response.serving = serving;
                     dispatch(set_actual_meal(response));
                 }
             })

@@ -10,7 +10,20 @@ const View_meal_modal: React.FC = (props) => {
             {_select_meal.ingredients.length >= 1 ? (
                 <>
                     <div className="view_meal__title">
-                        <span>{_select_meal.name} </span>
+                        <span className="view_meal_title__span">
+                            {_select_meal.name}
+                        </span>
+                        {/* <button
+                            className="classic__button edit_meal__button"
+                            onClick={() => {
+                                null;
+                            }}
+                        >
+                            Éditer
+                        </button> */}
+                    </div>
+                    <div className="view_meal_ingredient__title">
+                        <span>{_select_meal.serving} Portions</span>
                     </div>
                     <div>
                         <div className="view_meal_ingredients__title">
