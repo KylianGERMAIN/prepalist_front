@@ -36,7 +36,13 @@ const Card_day: React.FC<ICardDay> = (props) => {
                         dispatch(reset_select_meal());
                         _set_actual_meal(props.day.lunch as Imeal);
                         props.set_meal_view_modal(true);
-                        dispatch(get_meal(router, props.day.lunch.id));
+                        dispatch(
+                            get_meal(
+                                router,
+                                props.day.lunch.id,
+                                props.day.lunch.serving
+                            )
+                        );
                     }}
                 >
                     <span className="date__text">{french_date}</span>
@@ -51,7 +57,13 @@ const Card_day: React.FC<ICardDay> = (props) => {
                         dispatch(reset_select_meal());
                         _set_actual_meal(props.day.dinner as Imeal);
                         props.set_meal_view_modal(true);
-                        dispatch(get_meal(router, props.day.dinner.id));
+                        dispatch(
+                            get_meal(
+                                router,
+                                props.day.dinner.id,
+                                props.day.lunch.serving
+                            )
+                        );
                     }}
                 >
                     <span className="date__text">{french_date}</span>
