@@ -1,5 +1,3 @@
-import { get_meals_with_empty_meal } from "@/api/meal/get_meals";
-import { generate_my_week } from "@/api/week/generate_new_week";
 import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { GiPerspectiveDiceSixFacesRandom } from "react-icons/gi";
 import { AiOutlineMinus, AiOutlinePlus } from "react-icons/ai";
@@ -8,17 +6,17 @@ import { create_my_week } from "@/api/week/create_new_week";
 import CardCategory from "@/components/planner/card_categorie";
 import { NextRouter } from "next/router";
 import {
-    Iday,
-    set_dinner_name,
-    set_lunch_name,
-    week,
-} from "@/redux/slices/week";
+    set_generate_dinner_name,
+    set_generate_lunch_name,
+    generate_week,
+} from "@/redux/slices/generate_week";
 import { useAppDispatch, useAppSelector } from "@/redux/hook";
 import { Imeal } from "@/redux/slices/select_meal";
+import { __week } from "@/pages/home";
+import { Iday } from "@/redux/slices/week";
 
 interface Icreate_week {
     router: NextRouter;
-    set_my_week: Dispatch<SetStateAction<Iday[]>>;
     set_modal: Dispatch<SetStateAction<boolean>>;
     list_meal: any;
     set_list_meal: Dispatch<SetStateAction<any>>;
@@ -32,14 +30,13 @@ interface Iselect_meal {
 }
 
 const Create_week_modal: React.FC<Icreate_week> = (props) => {
-    const __week = ["LUN", "MAR", "MER", "JEU", "VEN", "SAM", "DIM"];
     const options: Intl.DateTimeFormatOptions = {
         month: "long",
         day: "numeric",
     };
 
     const dispatch = useAppDispatch();
-    const _week = useAppSelector(week);
+    const _generate_week = useAppSelector(generate_week);
 
     const customStyles = {
         indicatorSeparator: (base: any) => ({
@@ -87,7 +84,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                             onChange={(option: any) => {
                                 if (props.islunch)
                                     dispatch(
-                                        set_lunch_name([
+                                        set_generate_lunch_name([
                                             props.index,
                                             option.value,
                                             option.id,
@@ -96,7 +93,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                                     );
                                 else
                                     dispatch(
-                                        set_dinner_name([
+                                        set_generate_dinner_name([
                                             props.index,
                                             option.value,
                                             option.id,
@@ -115,7 +112,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                                     ) + 1;
                                 if (props.islunch)
                                     dispatch(
-                                        set_lunch_name([
+                                        set_generate_lunch_name([
                                             props.index,
                                             props.list_meal[rndInt].value,
                                             props.list_meal[rndInt].id,
@@ -124,7 +121,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                                     );
                                 else
                                     dispatch(
-                                        set_dinner_name([
+                                        set_generate_dinner_name([
                                             props.index,
                                             props.list_meal[rndInt].value,
                                             props.list_meal[rndInt].id,
@@ -146,7 +143,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                                 if (props.meal.serving > 1)
                                     if (props.islunch)
                                         dispatch(
-                                            set_lunch_name([
+                                            set_generate_lunch_name([
                                                 props.index,
                                                 props.meal.name,
                                                 props.meal.id,
@@ -156,7 +153,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                                         );
                                     else
                                         dispatch(
-                                            set_dinner_name([
+                                            set_generate_dinner_name([
                                                 props.index,
                                                 props.meal.name,
                                                 props.meal.id,
@@ -174,7 +171,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                             onClick={() => {
                                 if (props.islunch)
                                     dispatch(
-                                        set_lunch_name([
+                                        set_generate_lunch_name([
                                             props.index,
                                             props.meal.name,
                                             props.meal.id,
@@ -183,7 +180,7 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                                     );
                                 else
                                     dispatch(
-                                        set_dinner_name([
+                                        set_generate_dinner_name([
                                             props.index,
                                             props.meal.name,
                                             props.meal.id,
@@ -200,12 +197,12 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
         );
     };
 
-    if (_week.week.length <= 0) return <div></div>;
+    if (_generate_week.week.length <= 0) return <div></div>;
     else
         return (
             <div className="">
                 <div className="generate_week__container">
-                    {_week.week.map((day: Iday, index: number) => {
+                    {_generate_week.week.map((day: Iday, index: number) => {
                         var date = new Date(day.date.split(" ")[0]);
                         var french_date = date.toLocaleDateString(
                             "fr-FR",
@@ -244,14 +241,15 @@ const Create_week_modal: React.FC<Icreate_week> = (props) => {
                     </button>
                     <button
                         className="classic__button"
-                        onClick={() =>
-                            create_my_week(
-                                props.router,
-                                props.set_my_week,
-                                _week,
-                                props.set_modal
-                            )
-                        }
+                        onClick={async () => {
+                            dispatch(
+                                await create_my_week(
+                                    props.router,
+                                    _generate_week,
+                                    props.set_modal
+                                )
+                            );
+                        }}
                     >
                         Sauvegarder
                     </button>

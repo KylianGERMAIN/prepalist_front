@@ -1,12 +1,11 @@
-import { get_meal_perso } from "@/api/meal/get_meal";
-import { useAppDispatch, useAppSelector } from "@/redux/hook";
+import { get_meal } from "@/api/meal/get_meal";
+import { useAppDispatch } from "@/redux/hook";
 import { useRouter } from "next/router";
 import { Dispatch, SetStateAction } from "react";
 import CardCategory from "./card_categorie";
 import {
     Imeal,
     reset_select_meal,
-    select_meal,
     set_actual_meal,
 } from "@/redux/slices/select_meal";
 import { Iday } from "@/redux/slices/week";
@@ -37,7 +36,7 @@ const Card_day: React.FC<ICardDay> = (props) => {
                         dispatch(reset_select_meal());
                         _set_actual_meal(props.day.lunch as Imeal);
                         props.set_meal_view_modal(true);
-                        dispatch(get_meal_perso(router, props.day.lunch.id));
+                        dispatch(get_meal(router, props.day.lunch.id));
                     }}
                 >
                     <span className="date__text">{french_date}</span>
@@ -52,7 +51,7 @@ const Card_day: React.FC<ICardDay> = (props) => {
                         dispatch(reset_select_meal());
                         _set_actual_meal(props.day.dinner as Imeal);
                         props.set_meal_view_modal(true);
-                        dispatch(get_meal_perso(router, props.day.dinner.id));
+                        dispatch(get_meal(router, props.day.dinner.id));
                     }}
                 >
                     <span className="date__text">{french_date}</span>
