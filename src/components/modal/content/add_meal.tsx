@@ -84,7 +84,7 @@ const Add_meal_content_modal: React.FC<Imeal_content> = (props) => {
                         ]);
                     }}
                 >
-                    Ajouter 1 ingrédient
+                    + 1 Ingrédients
                 </button>
                 <button
                     className="classic__button"

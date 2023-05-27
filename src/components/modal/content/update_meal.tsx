@@ -63,7 +63,7 @@ const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
                         element.scrollTop = element.scrollHeight;
                     }}
                 >
-                    Ajouter 1 ingrédient
+                    + 1 Ingrédients
                 </button>
                 <button
                     className="classic__button"
@@ -77,7 +77,7 @@ const Update_meal_content_modal: React.FC<IUpdate_meal_content> = (props) => {
                         );
                     }}
                 >
-                    Mettre à jour le repas
+                    Modifer
                 </button>
             </div>
         </>
