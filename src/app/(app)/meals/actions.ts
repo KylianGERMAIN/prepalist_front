@@ -2,17 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
+import { type ActionResult, errorText } from "@/lib/action-result";
 import type { CreateMealInput, Ingredient, Meal, UpdateMealInput } from "@/lib/models";
-
-export type ActionResult = { ok: true } | { ok: false; error: string };
-
-/** Normalise un corps d'erreur NestJS (`message` string ou string[]) en texte affichable. */
-function errorText(error: unknown): string {
-  const msg = (error as { message?: unknown } | null)?.message;
-  if (Array.isArray(msg)) return msg.join(", ");
-  if (typeof msg === "string") return msg;
-  return "Erreur inattendue.";
-}
 
 /** Détail d'un repas (avec ses ingrédients) — pour préremplir le dialog d'édition. */
 export async function getMeal(id: string): Promise<Meal | null> {
