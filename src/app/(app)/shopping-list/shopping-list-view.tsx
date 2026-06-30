@@ -20,11 +20,21 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
     });
   }
 
+  const progress = items.length === 0 ? 0 : Math.round((checked.size / items.length) * 100);
+
   return (
     <div className="space-y-3">
-      <p className="text-sm text-muted-foreground">
-        {checked.size} / {items.length} cochés
-      </p>
+      <div className="space-y-1.5">
+        <p className="text-sm text-muted-foreground">
+          <span className="tnum">{checked.size}</span> / <span className="tnum">{items.length}</span> achetés
+        </p>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      </div>
       <ul className="divide-y rounded-md border">
         {sorted.map((item) => {
           const key = itemKey(item);
@@ -36,7 +46,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
                   type="checkbox"
                   checked={done}
                   onChange={() => toggle(key)}
-                  className="size-4"
+                  className="size-4 accent-accent"
                 />
                 <span className={cn("flex-1", done && "text-muted-foreground line-through")}>
                   {item.name}

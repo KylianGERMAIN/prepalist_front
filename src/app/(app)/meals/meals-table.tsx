@@ -31,10 +31,10 @@ export function MealsTable({ meals }: { meals: MealSummary[] }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Nom</TableHead>
-          <TableHead>Tags</TableHead>
-          <TableHead className="text-center">Cuisiné</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Nom</TableHead>
+          <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Tags</TableHead>
+          <TableHead className="text-center text-xs uppercase tracking-wider text-muted-foreground">Cuisiné</TableHead>
+          <TableHead className="text-right text-xs uppercase tracking-wider text-muted-foreground">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -61,7 +61,7 @@ function MealRow({ meal }: { meal: MealSummary }) {
     <TableRow>
       <TableCell className="font-medium">
         <span className="flex items-center gap-2">
-          {meal.isFavorite ? <Star className="size-4 fill-current text-yellow-500" /> : null}
+          {meal.isFavorite ? <Star className="size-4 fill-current text-accent" /> : null}
           {meal.name}
         </span>
       </TableCell>
