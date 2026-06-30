@@ -11,6 +11,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               PrepaList
             </Link>
             <nav className="flex items-center gap-4 text-sm">
+              <Link href="/" className="text-muted-foreground hover:text-foreground">
+                Planning
+              </Link>
               <Link href="/meals" className="text-muted-foreground hover:text-foreground">
                 Repas
               </Link>
