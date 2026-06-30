@@ -14,6 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import type { WeekSlot } from "@/lib/models";
 import { assignSlot } from "./planner-actions";
 import { MealCombobox } from "./meal-combobox";
@@ -57,15 +58,22 @@ export function SlotCell({ weekId, slot }: { weekId: string; slot: WeekSlot }) {
         render={
           <button
             type="button"
-            className="flex min-h-16 w-full flex-col items-start justify-center gap-0.5 rounded-md border border-dashed p-2 text-left text-sm transition-colors hover:border-solid hover:bg-muted/50"
+            className={cn(
+              "flex min-h-16 w-full flex-col items-start justify-center gap-0.5 rounded-md p-2 text-left text-sm transition-colors",
+              slot.meal
+                ? "border border-l-4 border-border border-l-accent bg-card shadow-sm hover:bg-muted/40"
+                : "border border-dashed border-border text-muted-foreground hover:border-l-4 hover:border-l-accent hover:bg-muted/40",
+            )}
           >
             {slot.meal ? (
               <>
-                <span className="font-medium">{slot.meal.name}</span>
-                <span className="text-xs text-muted-foreground">{slot.servings} portion(s)</span>
+                <span className="font-medium text-foreground">{slot.meal.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  <span className="tnum">{slot.servings}</span> portion(s)
+                </span>
               </>
             ) : (
-              <span className="flex items-center gap-1 text-muted-foreground">
+              <span className="flex items-center gap-1">
                 <Plus className="size-3.5" />
                 Ajouter
               </span>
