@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
-import type { CreateMealInput, Ingredient, UpdateMealInput } from "@/lib/models";
+import type { CreateMealInput, Ingredient, Meal, UpdateMealInput } from "@/lib/models";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -12,6 +12,13 @@ function errorText(error: unknown): string {
   if (Array.isArray(msg)) return msg.join(", ");
   if (typeof msg === "string") return msg;
   return "Erreur inattendue.";
+}
+
+/** Détail d'un repas (avec ses ingrédients) — pour préremplir le dialog d'édition. */
+export async function getMeal(id: string): Promise<Meal | null> {
+  const api = await serverApi();
+  const { data } = await api.GET("/meals/{id}", { params: { path: { id } } });
+  return data ?? null;
 }
 
 export async function createMeal(input: CreateMealInput): Promise<ActionResult> {

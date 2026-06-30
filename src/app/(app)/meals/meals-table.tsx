@@ -14,11 +14,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
-import type { Meal } from "@/lib/models";
+import type { MealSummary } from "@/lib/models";
 import { deleteMeal, markCooked } from "./actions";
 import { MealDialog } from "./meal-dialog";
 
-export function MealsTable({ meals }: { meals: Meal[] }) {
+export function MealsTable({ meals }: { meals: MealSummary[] }) {
   if (meals.length === 0) {
     return (
       <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
@@ -33,7 +33,6 @@ export function MealsTable({ meals }: { meals: Meal[] }) {
         <TableRow>
           <TableHead>Nom</TableHead>
           <TableHead>Tags</TableHead>
-          <TableHead className="text-center">Ingrédients</TableHead>
           <TableHead className="text-center">Cuisiné</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -47,7 +46,7 @@ export function MealsTable({ meals }: { meals: Meal[] }) {
   );
 }
 
-function MealRow({ meal }: { meal: Meal }) {
+function MealRow({ meal }: { meal: MealSummary }) {
   const [pending, startTransition] = useTransition();
 
   function cook() {
@@ -75,7 +74,6 @@ function MealRow({ meal }: { meal: Meal }) {
           ))}
         </span>
       </TableCell>
-      <TableCell className="text-center">{meal.ingredients.length}</TableCell>
       <TableCell className="text-center">{meal.timesCooked}×</TableCell>
       <TableCell className="text-right">
         <span className="flex justify-end gap-1">
@@ -84,7 +82,7 @@ function MealRow({ meal }: { meal: Meal }) {
           </Button>
           <MealDialog
             mode="edit"
-            meal={meal}
+            mealId={meal.id}
             trigger={
               <Button variant="ghost" size="sm" title="Modifier">
                 <Pencil className="size-4" />
