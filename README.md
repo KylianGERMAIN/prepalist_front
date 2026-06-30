@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# PrepaList — Front
 
-## Getting Started
+Front web de PrepaList (meal-prep : planifier ses repas de la semaine + liste de courses).
 
-First, run the development server:
+## Stack
+
+Next.js 16 (App Router) · TypeScript strict · Tailwind v4 + shadcn/ui (variante base-ui) ·
+react-hook-form + zod · openapi-fetch (client typé généré depuis le Swagger du back) ·
+next-themes (dark mode). pnpm.
+
+## Architecture
+
+- **Auth par cookies httpOnly.** Le navigateur ne tape jamais le back en direct : il passe
+  par les Route Handlers `src/app/api/auth/*` qui posent les tokens (`pl_access` / `pl_refresh`)
+  en cookies httpOnly.
+- **`src/proxy.ts`** (ex-middleware Next 16) garde les routes et rafraîchit le token de façon
+  transparente (l'access expire à 15 min → refresh via le cookie refresh).
+- **Server Components + Server Actions** pour les données et les mutations : `serverApi()`
+  (`src/lib/api.ts`) lit le cookie access et le relaie en `Authorization: Bearer` au back.
+- **Types API** générés depuis le Swagger du back (`pnpm gen:api`).
+
+## Prérequis
+
+- Node 22, pnpm.
+- Le **back NestJS** (`prepalist_api`) lancé et accessible (Swagger sur `/docs-json` pour la
+  génération de types).
+
+## Variables d'environnement
+
+| Variable  | Description                               | Requis                       |
+|-----------|-------------------------------------------|------------------------------|
+| `API_URL` | URL du back NestJS (lue **côté serveur**) | en prod (fail-fast au boot)  |
+
+Copier `.env.example` → `.env.local` pour le dev (défaut `http://localhost:3000`).
+
+## Développement
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
+pnpm gen:api        # génère src/lib/api-types.ts depuis http://localhost:3000/docs-json (back lancé)
+pnpm dev            # http://localhost:3001 (3000 étant pris par le back)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Qualité
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm lint
+pnpm test           # vitest
+pnpm build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Déploiement
 
-## Learn More
+Build autonome activé (`output: "standalone"` dans `next.config.ts`).
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Vercel** : connecter le repo, définir `API_URL`. Rien d'autre.
+- **Docker** :
+  ```bash
+  docker build -t prepalist-front .
+  docker run -p 3000:3000 -e API_URL=https://api.exemple.com prepalist-front
+  ```
+  `API_URL` est un besoin **runtime** (injecté au `run`, pas au build).

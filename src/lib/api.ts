@@ -1,10 +1,27 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import createClient, { type Middleware } from "openapi-fetch";
 import type { paths } from "./api-types";
 import { ACCESS_COOKIE } from "./cookies";
+import { API_URL } from "./env";
 
-const baseUrl = process.env.API_URL ?? "http://localhost:3000";
+const baseUrl = API_URL;
+
+/**
+ * Si le back rejette le token (401) alors que le cookie access est présent et non expiré
+ * (clé JWT tournée, compte supprimé...), le proxy ne peut pas le détecter. On renvoie vers
+ * le Route Handler de logout (GET) qui purge les cookies et redirige vers /login — évite
+ * que l'utilisateur reste coincé sur un écran d'erreur avec une session morte.
+ */
+const handle401: Middleware = {
+  onResponse({ response }) {
+    if (response.status === 401) {
+      redirect("/api/auth/logout");
+    }
+    return response;
+  },
+};
 
 /**
  * Client API typé (openapi-fetch) pour Server Components et Server Actions.
@@ -25,5 +42,6 @@ export async function serverApi() {
     };
     client.use(auth);
   }
+  client.use(handle401);
   return client;
 }
