@@ -17,6 +17,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               <Link href="/meals" className="text-muted-foreground hover:text-foreground">
                 Repas
               </Link>
+              <Link href="/shopping-list" className="text-muted-foreground hover:text-foreground">
+                Courses
+              </Link>
             </nav>
           </div>
           <LogoutButton />
