@@ -6,8 +6,8 @@ import {
   REFRESH_MAX_AGE,
   cookieBase,
 } from "@/lib/cookies";
+import { API_URL } from "@/lib/env";
 
-const API_URL = process.env.API_URL ?? "http://localhost:3000";
 const PUBLIC_PATHS = ["/login", "/register"];
 
 /**

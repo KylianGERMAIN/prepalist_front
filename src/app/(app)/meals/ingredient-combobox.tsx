@@ -38,15 +38,11 @@ export function IngredientCombobox({
   useEffect(() => {
     if (!open) return;
     const term = query.trim();
-    if (term.length < 1) {
-      setItems([]);
-      return;
-    }
     // `stale` ignore une réponse périmée arrivant après une frappe plus récente (race last-write-wins).
     let stale = false;
     const timer = setTimeout(() => {
       startTransition(async () => {
-        const results = await searchIngredients(term);
+        const results = term.length < 1 ? [] : await searchIngredients(term);
         if (!stale) setItems(results);
       });
     }, 200);
