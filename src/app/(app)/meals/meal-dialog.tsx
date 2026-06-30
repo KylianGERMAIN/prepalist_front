@@ -5,7 +5,7 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
+import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import type { CreateMealInput, Meal } from "@/lib/models";
 import { IngredientCombobox } from "./ingredient-combobox";
-import { createMeal, updateMeal } from "./actions";
+import { createMeal, getMeal, updateMeal } from "./actions";
 
 const schema = z.object({
   name: z.string().min(1, "Nom requis."),
@@ -37,8 +37,9 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-function toDefaults(meal?: Meal): FormValues {
-  if (!meal) return { name: "", isFavorite: false, tags: "", ingredients: [] };
+const EMPTY: FormValues = { name: "", isFavorite: false, tags: "", ingredients: [] };
+
+function toDefaults(meal: Meal): FormValues {
   return {
     name: meal.name,
     isFavorite: meal.isFavorite,
@@ -59,14 +60,15 @@ function FieldError({ message }: { message?: string }) {
 
 export function MealDialog({
   mode,
-  meal,
+  mealId,
   trigger,
 }: {
   mode: "create" | "edit";
-  meal?: Meal;
+  mealId?: string;
   trigger?: ReactElement;
 }) {
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -77,9 +79,29 @@ export function MealDialog({
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: standardSchemaResolver(schema),
-    defaultValues: toDefaults(meal),
+    defaultValues: EMPTY,
   });
   const lines = useFieldArray({ control, name: "ingredients" });
+
+  // À l'ouverture : create → form vide ; edit → fetch du détail (la ligne n'a que le résumé,
+  // sans ingredients) puis préremplissage. Pattern summary/detail : on charge le lourd au besoin.
+  async function handleOpenChange(next: boolean) {
+    setOpen(next);
+    if (!next) return;
+    if (mode === "edit" && mealId) {
+      setLoading(true);
+      const full = await getMeal(mealId);
+      setLoading(false);
+      if (full) {
+        reset(toDefaults(full));
+      } else {
+        toast.error("Repas introuvable.");
+        setOpen(false);
+      }
+    } else {
+      reset(EMPTY);
+    }
+  }
 
   async function onSubmit(values: FormValues) {
     const payload: CreateMealInput = {
@@ -97,30 +119,18 @@ export function MealDialog({
     };
 
     const res =
-      mode === "edit" && meal ? await updateMeal(meal.id, payload) : await createMeal(payload);
+      mode === "edit" && mealId ? await updateMeal(mealId, payload) : await createMeal(payload);
 
     if (res.ok) {
       toast.success(mode === "edit" ? "Repas mis à jour" : "Repas créé");
       setOpen(false);
-      // En edit, la valeur fraîche (post-revalidate) sera réinjectée au prochain open ; on remet
-      // simplement l'état au snapshot courant du `meal` plutôt que de figer la saisie brute.
-      reset(toDefaults(meal));
     } else {
       toast.error(res.error);
     }
   }
 
   return (
-    <Dialog
-      open={open}
-      // Resync du form à l'ouverture : `defaultValues` n'est lu qu'au montage, or chaque ligne monte
-      // un dialog edit en permanence. Le reset on-open garantit des valeurs fraîches. À conserver si
-      // ce pattern est repris en F2/F3.
-      onOpenChange={(o) => {
-        setOpen(o);
-        if (o) reset(toDefaults(meal));
-      }}
-    >
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger
         render={
           trigger ?? (
@@ -136,91 +146,98 @@ export function MealDialog({
           <DialogTitle>{mode === "edit" ? "Modifier le repas" : "Nouveau repas"}</DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="meal-name">Nom</Label>
-            <Input id="meal-name" placeholder="Ex. Poulet curry" {...register("name")} />
-            <FieldError message={errors.name?.message} />
+        {loading ? (
+          <div className="flex items-center justify-center gap-2 py-10 text-muted-foreground">
+            <Loader2 className="size-4 animate-spin" />
+            Chargement…
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="meal-tags">Tags</Label>
-            <Input
-              id="meal-tags"
-              placeholder="rapide, batch, végé (séparés par des virgules)"
-              {...register("tags")}
-            />
-          </div>
-
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" className="size-4" {...register("isFavorite")} />
-            Favori
-          </label>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Ingrédients</Label>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() =>
-                  lines.append({ ingredientId: "", ingredientName: "", quantity: 1, unit: "" })
-                }
-              >
-                <Plus className="mr-2 size-4" />
-                Ligne
-              </Button>
+        ) : (
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="meal-name">Nom</Label>
+              <Input id="meal-name" placeholder="Ex. Poulet curry" {...register("name")} />
+              <FieldError message={errors.name?.message} />
             </div>
 
-            {lines.fields.map((row, index) => (
-              <div key={row.id} className="flex items-start gap-2">
-                <div className="flex-1">
-                  <IngredientCombobox
-                    value={watch(`ingredients.${index}.ingredientId`)}
-                    label={watch(`ingredients.${index}.ingredientName`) || undefined}
-                    onSelect={(ing) => {
-                      setValue(`ingredients.${index}.ingredientId`, ing.id, {
-                        shouldValidate: true,
-                      });
-                      setValue(`ingredients.${index}.ingredientName`, ing.name);
-                    }}
-                  />
-                  <FieldError message={errors.ingredients?.[index]?.ingredientId?.message} />
-                </div>
-                <div className="w-20">
-                  <Input
-                    type="number"
-                    step="any"
-                    min="0"
-                    placeholder="Qté"
-                    {...register(`ingredients.${index}.quantity`, { valueAsNumber: true })}
-                  />
-                  <FieldError message={errors.ingredients?.[index]?.quantity?.message} />
-                </div>
-                <div className="w-24">
-                  <Input placeholder="Unité" {...register(`ingredients.${index}.unit`)} />
-                  <FieldError message={errors.ingredients?.[index]?.unit?.message} />
-                </div>
+            <div className="space-y-2">
+              <Label htmlFor="meal-tags">Tags</Label>
+              <Input
+                id="meal-tags"
+                placeholder="rapide, batch, végé (séparés par des virgules)"
+                {...register("tags")}
+              />
+            </div>
+
+            <label className="flex items-center gap-2 text-sm">
+              <input type="checkbox" className="size-4" {...register("isFavorite")} />
+              Favori
+            </label>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Ingrédients</Label>
                 <Button
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                   size="sm"
-                  onClick={() => lines.remove(index)}
-                  title="Retirer la ligne"
+                  onClick={() =>
+                    lines.append({ ingredientId: "", ingredientName: "", quantity: 1, unit: "" })
+                  }
                 >
-                  <Trash2 className="size-4" />
+                  <Plus className="mr-2 size-4" />
+                  Ligne
                 </Button>
               </div>
-            ))}
-          </div>
 
-          <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Enregistrement…" : "Enregistrer"}
-            </Button>
-          </DialogFooter>
-        </form>
+              {lines.fields.map((row, index) => (
+                <div key={row.id} className="flex items-start gap-2">
+                  <div className="flex-1">
+                    <IngredientCombobox
+                      value={watch(`ingredients.${index}.ingredientId`)}
+                      label={watch(`ingredients.${index}.ingredientName`) || undefined}
+                      onSelect={(ing) => {
+                        setValue(`ingredients.${index}.ingredientId`, ing.id, {
+                          shouldValidate: true,
+                        });
+                        setValue(`ingredients.${index}.ingredientName`, ing.name);
+                      }}
+                    />
+                    <FieldError message={errors.ingredients?.[index]?.ingredientId?.message} />
+                  </div>
+                  <div className="w-20">
+                    <Input
+                      type="number"
+                      step="any"
+                      min="0"
+                      placeholder="Qté"
+                      {...register(`ingredients.${index}.quantity`, { valueAsNumber: true })}
+                    />
+                    <FieldError message={errors.ingredients?.[index]?.quantity?.message} />
+                  </div>
+                  <div className="w-24">
+                    <Input placeholder="Unité" {...register(`ingredients.${index}.unit`)} />
+                    <FieldError message={errors.ingredients?.[index]?.unit?.message} />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => lines.remove(index)}
+                    title="Retirer la ligne"
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            <DialogFooter>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Enregistrement…" : "Enregistrer"}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

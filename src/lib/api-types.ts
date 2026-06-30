@@ -253,33 +253,27 @@ export interface components {
         Ingredient: {
             id: string;
             name: string;
-            defaultUnit: Record<string, never> | null;
+            defaultUnit: string | null;
         };
         CreateIngredientDto: {
             name: string;
             defaultUnit?: string | null;
         };
-        MealIngredient: {
+        MealSummaryDto: {
             id: string;
-            ingredient: components["schemas"]["Ingredient"];
-            ingredientId: string;
-            quantity: number;
-            unit: string;
-        };
-        Meal: {
-            id: string;
+            userId: string;
             name: string;
-            rating: Record<string, never> | null;
+            rating: number | null;
             isFavorite: boolean;
-            lastCookedAt: Record<string, never> | null;
+            /** Format: date-time */
+            lastCookedAt: string | null;
             timesCooked: number;
             tags: string[];
             /** Format: date-time */
             createdAt: string;
-            ingredients: components["schemas"]["MealIngredient"][];
         };
         PaginatedMealsDto: {
-            items: components["schemas"]["Meal"][];
+            items: components["schemas"]["MealSummaryDto"][];
             total: number;
             page: number;
             limit: number;
@@ -296,6 +290,26 @@ export interface components {
             tags?: string[];
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
+        MealIngredient: {
+            id: string;
+            ingredient: components["schemas"]["Ingredient"];
+            ingredientId: string;
+            quantity: number;
+            unit: string;
+        };
+        Meal: {
+            id: string;
+            name: string;
+            rating: number | null;
+            isFavorite: boolean;
+            /** Format: date-time */
+            lastCookedAt: string | null;
+            timesCooked: number;
+            tags: string[];
+            /** Format: date-time */
+            createdAt: string;
+            ingredients: components["schemas"]["MealIngredient"][];
+        };
         UpdateMealDto: {
             name?: string;
             rating?: number;
@@ -308,7 +322,7 @@ export interface components {
             date: string;
             /** @enum {string} */
             slot: "LUNCH" | "DINNER";
-            mealId: Record<string, never> | null;
+            mealId: string | null;
             meal: components["schemas"]["Meal"] | null;
             servings: number;
         };
@@ -326,7 +340,7 @@ export interface components {
         };
         UpdateSlotDto: {
             /** @description Repas à assigner, ou null pour vider le créneau */
-            mealId?: Record<string, never> | null;
+            mealId?: string | null;
             servings?: number;
         };
         ShoppingListItemDto: {
