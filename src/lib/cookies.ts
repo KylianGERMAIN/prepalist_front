@@ -1,7 +1,7 @@
 /**
- * Constantes et options des cookies d'auth, partagées entre le middleware (Edge runtime)
+ * Constantes et options des cookies d'auth, partagées entre le proxy (`proxy.ts`, ex-middleware)
  * et les helpers serveur (`lib/auth`). Ce module ne dépend PAS de `next/headers` pour rester
- * importable depuis le middleware Edge.
+ * importable depuis le proxy (qui manipule les cookies via `req`/`res`, pas via `next/headers`).
  *
  * Les `maxAge` sont alignés sur les durées de vie JWT du back (access 15m, refresh 7j) :
  * quand le navigateur drope le cookie access à 15m, le middleware refresh via le cookie refresh.
