@@ -18,3 +18,8 @@ export type MealIngredientInput = components["schemas"]["MealIngredientDto"];
 export type Week = components["schemas"]["Week"];
 /** Créneau d'un jour : midi (LUNCH) ou soir (DINNER), repas assigné (ou null) + portions. */
 export type WeekSlot = components["schemas"]["WeekSlot"];
+
+/** Liste de courses agrégée d'une semaine. */
+export type ShoppingList = components["schemas"]["ShoppingListDto"];
+/** Ligne agrégée : un ingrédient, quantité cumulée sur la semaine + unité. */
+export type ShoppingListItem = components["schemas"]["ShoppingListItemDto"];
