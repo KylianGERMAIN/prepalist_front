@@ -56,7 +56,15 @@ async function tryRefresh(refreshToken: string) {
       body: JSON.stringify({ refreshToken }),
     });
     if (!res.ok) return null;
-    return (await res.json()) as { accessToken: string; refreshToken: string };
+    const data = (await res.json().catch(() => null)) as {
+      accessToken?: unknown;
+      refreshToken?: unknown;
+    } | null;
+    // Ne poser des cookies que sur une paire bien formée, sinon on laisse la redirection /login jouer.
+    if (typeof data?.accessToken !== "string" || typeof data?.refreshToken !== "string") {
+      return null;
+    }
+    return { accessToken: data.accessToken, refreshToken: data.refreshToken };
   } catch {
     return null;
   }
