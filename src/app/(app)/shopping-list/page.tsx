@@ -40,7 +40,7 @@ export default async function ShoppingListPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-2xl font-bold tracking-tight">Liste de courses</h1>
+      <h1 className="font-heading text-2xl font-medium tracking-tight">Liste de courses</h1>
       {list.items.length === 0 ? (
         <Card className="max-w-md">
           <CardHeader>

@@ -169,7 +169,7 @@ export function MealDialog({
             </div>
 
             <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="size-4" {...register("isFavorite")} />
+              <input type="checkbox" className="size-4 accent-accent" {...register("isFavorite")} />
               Favori
             </label>
 
