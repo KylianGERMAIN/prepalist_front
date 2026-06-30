@@ -7,8 +7,7 @@ import {
   REFRESH_MAX_AGE,
   cookieBase,
 } from "./cookies";
-
-const API_URL = process.env.API_URL ?? "http://localhost:3000";
+import { API_URL } from "./env";
 
 /** Paire de tokens renvoyée par le back (cf. TokenPair côté API). */
 export type TokenPair = { accessToken: string; refreshToken: string };
