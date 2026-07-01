@@ -1,0 +1,17 @@
+name: deploy
+
+# Sur tag vX.Y.Z (via `npm version` + `git push --follow-tags`), déclenche un déploiement
+# Vercel via son Deploy Hook. On ne déploie QUE sur bump de version : les déploiements
+# automatiques sur push Git sont désactivés par `vercel.json` (git.deploymentEnabled:false),
+# le Deploy Hook reste le seul déclencheur. Vercel rebuild le front côté plateforme.
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Vercel deploy
+        run: curl -fsSL -X POST "${{ secrets.VERCEL_DEPLOY_HOOK }}"
