@@ -5,6 +5,12 @@ Toutes les évolutions notables du front PrepaList sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.2.0] - 2026-07-02
+
+### Modifié
+
+- **Actions repas réservées aux admins** : les boutons créer / éditer / supprimer un repas sont masqués pour les utilisateurs non-administrateurs, en cohérence avec le RBAC de l'API.
+
 ## [0.1.0] - 2026-07-01
 
 Refonte v2 du front PrepaList (Next.js App Router + shadcn/ui). Remplace la v1 (préservée sous le tag `legacy-v1`).
@@ -19,4 +25,5 @@ Refonte v2 du front PrepaList (Next.js App Router + shadcn/ui). Remplace la v1 (
 - **Design** : design system Graphite.
 - **Déploiement** : cible Vercel, déclenché sur tag de version (auto-deploy Git désactivé via `vercel.json`).
 
+[0.2.0]: https://github.com/KylianGERMAIN/prepalist_front/releases/tag/v0.2.0
 [0.1.0]: https://github.com/KylianGERMAIN/prepalist_front/releases/tag/v0.1.0
