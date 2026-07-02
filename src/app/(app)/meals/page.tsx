@@ -45,7 +45,7 @@ export default async function MealsPage({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-medium tracking-tight">Mes repas</h1>
-        {isAdmin ? <MealDialog mode="create" /> : null}
+        {isAdmin && <MealDialog mode="create" />}
       </div>
 
       <MealsFilters />

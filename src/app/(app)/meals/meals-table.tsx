@@ -80,34 +80,34 @@ function MealRow({ meal, isAdmin }: { meal: MealSummary; isAdmin: boolean }) {
           <Button variant="ghost" size="sm" onClick={cook} disabled={pending} title="Marquer cuisiné">
             <ChefHat className="size-4" />
           </Button>
-          {isAdmin ? (
-            <MealDialog
-              mode="edit"
-              mealId={meal.id}
-              trigger={
-                <Button variant="ghost" size="sm" title="Modifier">
-                  <Pencil className="size-4" />
-                </Button>
-              }
-            />
-          ) : null}
-          {isAdmin ? (
-            <ConfirmDialog
-              title="Supprimer ce repas ?"
-              description={`« ${meal.name} » sera définitivement supprimé.`}
-              confirmLabel="Supprimer"
-              onConfirm={async () => {
-                const res = await deleteMeal(meal.id);
-                if (res.ok) toast.success("Repas supprimé");
-                else toast.error(res.error);
-              }}
-              trigger={
-                <Button variant="ghost" size="sm" title="Supprimer">
-                  <Trash2 className="size-4" />
-                </Button>
-              }
-            />
-          ) : null}
+          {isAdmin && (
+            <>
+              <MealDialog
+                mode="edit"
+                mealId={meal.id}
+                trigger={
+                  <Button variant="ghost" size="sm" title="Modifier">
+                    <Pencil className="size-4" />
+                  </Button>
+                }
+              />
+              <ConfirmDialog
+                title="Supprimer ce repas ?"
+                description={`« ${meal.name} » sera définitivement supprimé.`}
+                confirmLabel="Supprimer"
+                onConfirm={async () => {
+                  const res = await deleteMeal(meal.id);
+                  if (res.ok) toast.success("Repas supprimé");
+                  else toast.error(res.error);
+                }}
+                trigger={
+                  <Button variant="ghost" size="sm" title="Supprimer">
+                    <Trash2 className="size-4" />
+                  </Button>
+                }
+              />
+            </>
+          )}
         </span>
       </TableCell>
     </TableRow>
