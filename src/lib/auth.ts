@@ -70,3 +70,25 @@ export async function clearTokens(): Promise<void> {
 export async function getAccessToken(): Promise<string | undefined> {
   return (await cookies()).get(ACCESS_COOKIE)?.value;
 }
+
+/** Utilisateur courant, tel qu'encodé dans le JWT access (id/email/role). */
+export type CurrentUser = { id: string; email: string; role: string };
+
+/**
+ * Décode le rôle depuis le payload du JWT access, sans vérifier la signature :
+ * le cookie httpOnly est posé par nos propres route handlers `/api/auth/*`,
+ * donc son contenu est de confiance côté serveur.
+ */
+export async function getCurrentUser(): Promise<CurrentUser | null> {
+  const token = await getAccessToken();
+  const payload = token?.split(".")[1];
+  if (!payload) return null;
+  try {
+    const { sub, email, role } = JSON.parse(
+      Buffer.from(payload, "base64url").toString("utf8"),
+    );
+    return { id: sub, email, role };
+  } catch {
+    return null;
+  }
+}

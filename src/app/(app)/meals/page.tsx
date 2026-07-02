@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getCurrentUser } from "@/lib/auth";
 import { serverApi } from "@/lib/api";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { MealsFilters } from "./meals-filters";
@@ -16,6 +17,9 @@ export default async function MealsPage({
 }) {
   const sp = await searchParams;
   const page = Math.max(1, Number(sp.page) || 1);
+
+  const user = await getCurrentUser();
+  const isAdmin = user?.role === "ADMIN";
 
   const api = await serverApi();
   const { data, error } = await api.GET("/meals", {
@@ -41,11 +45,11 @@ export default async function MealsPage({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="font-heading text-2xl font-medium tracking-tight">Mes repas</h1>
-        <MealDialog mode="create" />
+        {isAdmin ? <MealDialog mode="create" /> : null}
       </div>
 
       <MealsFilters />
-      <MealsTable meals={meals} />
+      <MealsTable meals={meals} isAdmin={isAdmin} />
 
       {totalPages > 1 ? (
         <div className="flex items-center justify-center gap-4">

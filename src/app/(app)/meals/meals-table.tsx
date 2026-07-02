@@ -18,7 +18,7 @@ import type { MealSummary } from "@/lib/models";
 import { deleteMeal, markCooked } from "./actions";
 import { MealDialog } from "./meal-dialog";
 
-export function MealsTable({ meals }: { meals: MealSummary[] }) {
+export function MealsTable({ meals, isAdmin }: { meals: MealSummary[]; isAdmin: boolean }) {
   if (meals.length === 0) {
     return (
       <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
@@ -39,14 +39,14 @@ export function MealsTable({ meals }: { meals: MealSummary[] }) {
       </TableHeader>
       <TableBody>
         {meals.map((meal) => (
-          <MealRow key={meal.id} meal={meal} />
+          <MealRow key={meal.id} meal={meal} isAdmin={isAdmin} />
         ))}
       </TableBody>
     </Table>
   );
 }
 
-function MealRow({ meal }: { meal: MealSummary }) {
+function MealRow({ meal, isAdmin }: { meal: MealSummary; isAdmin: boolean }) {
   const [pending, startTransition] = useTransition();
 
   function cook() {
@@ -80,30 +80,34 @@ function MealRow({ meal }: { meal: MealSummary }) {
           <Button variant="ghost" size="sm" onClick={cook} disabled={pending} title="Marquer cuisiné">
             <ChefHat className="size-4" />
           </Button>
-          <MealDialog
-            mode="edit"
-            mealId={meal.id}
-            trigger={
-              <Button variant="ghost" size="sm" title="Modifier">
-                <Pencil className="size-4" />
-              </Button>
-            }
-          />
-          <ConfirmDialog
-            title="Supprimer ce repas ?"
-            description={`« ${meal.name} » sera définitivement supprimé.`}
-            confirmLabel="Supprimer"
-            onConfirm={async () => {
-              const res = await deleteMeal(meal.id);
-              if (res.ok) toast.success("Repas supprimé");
-              else toast.error(res.error);
-            }}
-            trigger={
-              <Button variant="ghost" size="sm" title="Supprimer">
-                <Trash2 className="size-4" />
-              </Button>
-            }
-          />
+          {isAdmin ? (
+            <MealDialog
+              mode="edit"
+              mealId={meal.id}
+              trigger={
+                <Button variant="ghost" size="sm" title="Modifier">
+                  <Pencil className="size-4" />
+                </Button>
+              }
+            />
+          ) : null}
+          {isAdmin ? (
+            <ConfirmDialog
+              title="Supprimer ce repas ?"
+              description={`« ${meal.name} » sera définitivement supprimé.`}
+              confirmLabel="Supprimer"
+              onConfirm={async () => {
+                const res = await deleteMeal(meal.id);
+                if (res.ok) toast.success("Repas supprimé");
+                else toast.error(res.error);
+              }}
+              trigger={
+                <Button variant="ghost" size="sm" title="Supprimer">
+                  <Trash2 className="size-4" />
+                </Button>
+              }
+            />
+          ) : null}
         </span>
       </TableCell>
     </TableRow>
