@@ -10,7 +10,9 @@ import { SlotCell } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
 import { slotsReducer } from "./planner-utils";
 
-const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+// Indexé par getDay() (0 = dimanche), pas par la position dans la semaine :
+// la semaine démarre au jour de courses, pas forcément lundi.
+const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
 
 /** Ajoute n jours à une date ISO (YYYY-MM-DD) et renvoie la nouvelle date ISO, sans dérive de fuseau. */
 function addDays(iso: string, n: number): string {
@@ -114,12 +116,12 @@ export function WeekGrid({ week }: { week: Week }) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
-        {days.map((iso, i) => {
+        {days.map((iso) => {
           const isToday = iso === today;
           const lunch = byKey.get(`${iso}_LUNCH`);
           const dinner = byKey.get(`${iso}_DINNER`);
           // Report proposé seulement vers un midi de lendemain qui existe ET est libre
-          // (pas d'écrasement silencieux, et rien le dimanche puisque le lundi est hors semaine).
+          // (pas d'écrasement silencieux, et rien le dernier jour dont le lendemain est hors semaine).
           const nextLunch = byKey.get(`${addDays(iso, 1)}_LUNCH`);
           const canDuplicate = !!nextLunch && !nextLunch.meal;
           return (
@@ -136,7 +138,7 @@ export function WeekGrid({ week }: { week: Week }) {
                   isToday ? "font-medium text-primary" : "text-foreground",
                 )}
               >
-                {DAYS[i]}{" "}
+                {DAY_LABELS[new Date(`${iso}T00:00:00`).getDay()]}{" "}
                 <span
                   className={cn("tnum", !isToday && "text-muted-foreground")}
                 >
