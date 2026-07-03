@@ -296,7 +296,7 @@ export interface paths {
         delete: operations["ShoppingListController_removeItem"];
         options?: never;
         head?: never;
-        /** Met à jour un item (checked ; contenu si MANUAL) */
+        /** Met à jour un item (checked, nom, quantité, unité) */
         patch: operations["ShoppingListController_updateItem"];
         trace?: never;
     };
@@ -447,11 +447,8 @@ export interface components {
         };
         UpdateShoppingListItemDto: {
             checked?: boolean;
-            /** @description Item MANUAL uniquement */
             name?: string;
-            /** @description Item MANUAL uniquement */
             quantity?: number;
-            /** @description Item MANUAL uniquement */
             unit?: string;
         };
     };
