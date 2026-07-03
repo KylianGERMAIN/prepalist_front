@@ -19,8 +19,9 @@ export async function Footer() {
   const apiVersion = await fetchApiVersion();
   return (
     <footer className="mx-auto w-full max-w-5xl px-4 pb-20 pt-2 text-center text-xs text-muted-foreground sm:px-6 md:pb-4">
-      front v{FRONT_VERSION}
-      {apiVersion ? ` · api v${apiVersion}` : null}
+      <span title={apiVersion ? `API v${apiVersion}` : undefined}>
+        PrepaList v{FRONT_VERSION}
+      </span>
     </footer>
   );
 }
