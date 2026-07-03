@@ -238,7 +238,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste de courses agrégée d’une semaine */
+        /** Liste de courses matérialisée d’une semaine (init paresseuse) */
         get: operations["ShoppingListController_forWeek"];
         put?: never;
         post?: never;
@@ -246,6 +246,58 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/weeks/{id}/shopping-list/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resynchronise les items dérivés depuis les plats */
+        post: operations["ShoppingListController_sync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{id}/shopping-list/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ajoute un item manuel à la liste */
+        post: operations["ShoppingListController_addItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{id}/shopping-list/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Supprime un item de la liste */
+        delete: operations["ShoppingListController_removeItem"];
+        options?: never;
+        head?: never;
+        /** Met à jour un item (checked ; contenu si MANUAL) */
+        patch: operations["ShoppingListController_updateItem"];
         trace?: never;
     };
 }
@@ -373,16 +425,34 @@ export interface components {
             servings?: number;
         };
         ShoppingListItemDto: {
-            ingredientId: string;
+            id: string;
+            /** @enum {string} */
+            source: "DERIVED" | "MANUAL";
+            ingredientId: string | null;
             name: string;
-            unit: string;
-            quantity: number;
+            unit: string | null;
+            quantity: number | null;
+            checked: boolean;
         };
         ShoppingListDto: {
             weekId: string;
             /** @description Début de semaine = jour de courses (YYYY-MM-DD) */
             startDate: string;
             items: components["schemas"]["ShoppingListItemDto"][];
+        };
+        CreateShoppingListItemDto: {
+            name: string;
+            quantity?: number;
+            unit?: string;
+        };
+        UpdateShoppingListItemDto: {
+            checked?: boolean;
+            /** @description Item MANUAL uniquement */
+            name?: string;
+            /** @description Item MANUAL uniquement */
+            quantity?: number;
+            /** @description Item MANUAL uniquement */
+            unit?: string;
         };
     };
     responses: never;
@@ -832,6 +902,98 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShoppingListDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_sync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_addItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateShoppingListItemDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListItemDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_removeItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ShoppingListController_updateItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShoppingListItemDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListItemDto"];
                 };
             };
         };
