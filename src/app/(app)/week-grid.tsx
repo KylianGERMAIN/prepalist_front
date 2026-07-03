@@ -8,28 +8,11 @@ import type { Meal, Week, WeekSlot } from "@/lib/models";
 import { GenerateWeekButton } from "./week-actions";
 import { SlotCell } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
-import { slotsReducer } from "./planner-utils";
+import { addDays, slotsReducer, todayIso } from "./planner-utils";
 
 // Indexé par getDay() (0 = dimanche), pas par la position dans la semaine :
 // la semaine démarre au jour de courses, pas forcément lundi.
 const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-
-/** Ajoute n jours à une date ISO (YYYY-MM-DD) et renvoie la nouvelle date ISO, sans dérive de fuseau. */
-function addDays(iso: string, n: number): string {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() + n);
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mm}-${dd}`;
-}
-
-/** Date du jour au format ISO local (YYYY-MM-DD), pour marquer le jour courant. */
-function todayIso(): string {
-  const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mm}-${dd}`;
-}
 
 /** Créneau non généré (semaine sans slots) : placeholder passif, juste le moment. */
 function EmptySlot({ moment }: { moment: WeekSlot["slot"] }) {

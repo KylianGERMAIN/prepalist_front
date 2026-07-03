@@ -1,31 +1,45 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { serverApi } from "@/lib/api";
 import { WeekGrid } from "./week-grid";
+import { WeekNav } from "./week-nav";
 import { CreateWeekButton } from "./week-actions";
+import { resolveWeek } from "./week-resolver";
+import { todayIso } from "./planner-utils";
 
-export default async function PlannerPage() {
-  const api = await serverApi();
-  const { data: week, response } = await api.GET("/weeks/current");
+export default async function PlannerPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ week?: string }>;
+}) {
+  const { week: selected } = await searchParams;
+  const { week, status } = await resolveWeek(selected);
 
   // On ne bascule en « état vide » que sur un vrai 404 (le back ne crée pas la semaine).
   // Toute autre erreur (500, etc.) doit se voir, pas se déguiser en « aucune semaine ».
-  if (!week && response.status !== 404) {
+  if (!week && status !== 404) {
     return <p className="text-destructive">Impossible de charger la semaine.</p>;
   }
 
   if (!week) {
     return (
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle>Aucune semaine en cours</CardTitle>
-          <CardDescription>Crée la semaine courante pour planifier tes repas.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <CreateWeekButton />
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <WeekNav startDate={selected ?? todayIso()} basePath="/" />
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Aucune semaine planifiée</CardTitle>
+            <CardDescription>Crée cette semaine pour planifier tes repas.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <CreateWeekButton startDate={selected} />
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
-  return <WeekGrid week={week} />;
+  return (
+    <div className="space-y-4">
+      <WeekNav startDate={week.startDate} basePath="/" />
+      <WeekGrid week={week} />
+    </div>
+  );
 }

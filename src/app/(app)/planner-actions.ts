@@ -5,10 +5,12 @@ import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
 import type { MealSummary } from "@/lib/models";
 
-/** Crée la semaine courante (POST /weeks, startDate par défaut = semaine en cours côté back). */
-export async function createWeek(): Promise<ActionResult> {
+/** Crée une semaine (POST /weeks) ; sans startDate le back prend la semaine courante. */
+export async function createWeek(startDate?: string): Promise<ActionResult> {
   const api = await serverApi();
-  const { error } = await api.POST("/weeks", { body: {} });
+  const { error } = await api.POST("/weeks", {
+    body: startDate ? { startDate } : {},
+  });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/");
   return { ok: true };
