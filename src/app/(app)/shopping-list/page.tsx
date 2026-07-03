@@ -6,6 +6,7 @@ import { WeekNav } from "../week-nav";
 import { resolveWeek } from "../week-resolver";
 import { todayIso } from "../planner-utils";
 import { ShoppingListView } from "./shopping-list-view";
+import { SyncButton } from "./sync-button";
 
 export default async function ShoppingListPage({
   searchParams,
@@ -54,24 +55,11 @@ export default async function ShoppingListPage({
   return (
     <div className="space-y-4">
       <WeekNav startDate={week.startDate} basePath="/shopping-list" />
-      <h1 className="font-heading text-2xl font-medium tracking-tight">Liste de courses</h1>
-      {list.items.length === 0 ? (
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Liste vide</CardTitle>
-            <CardDescription>
-              Assigne des repas aux créneaux du planning pour remplir ta liste.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href={plannerHref} className={buttonVariants({ variant: "outline" })}>
-              Aller au planning
-            </Link>
-          </CardContent>
-        </Card>
-      ) : (
-        <ShoppingListView items={list.items} />
-      )}
+      <div className="flex items-center justify-between">
+        <h1 className="font-heading text-2xl font-medium tracking-tight">Liste de courses</h1>
+        <SyncButton weekId={week.id} />
+      </div>
+      <ShoppingListView weekId={week.id} items={list.items} />
     </div>
   );
 }
