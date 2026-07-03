@@ -13,6 +13,7 @@ export async function createWeek(startDate?: string): Promise<ActionResult> {
   });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/");
+  revalidatePath("/shopping-list");
   return { ok: true };
 }
 
@@ -24,6 +25,7 @@ export async function generateWeek(weekId: string): Promise<ActionResult> {
   });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/");
+  revalidatePath("/shopping-list");
   return { ok: true };
 }
 
@@ -43,6 +45,7 @@ export async function assignSlot(
   });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/");
+  revalidatePath("/shopping-list");
   return { ok: true };
 }
 

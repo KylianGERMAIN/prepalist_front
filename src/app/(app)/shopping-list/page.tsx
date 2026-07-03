@@ -12,7 +12,8 @@ export default async function ShoppingListPage({
 }: {
   searchParams: Promise<{ week?: string }>;
 }) {
-  const { week: selected } = await searchParams;
+  const { week: selectedRaw } = await searchParams;
+  const selected = selectedRaw || undefined; // un ?week= vide n'est pas une date : on retombe sur la courante
   const plannerHref = selected ? `/?week=${selected}` : "/";
   const { week, status } = await resolveWeek(selected);
 

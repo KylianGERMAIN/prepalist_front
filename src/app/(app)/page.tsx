@@ -10,7 +10,8 @@ export default async function PlannerPage({
 }: {
   searchParams: Promise<{ week?: string }>;
 }) {
-  const { week: selected } = await searchParams;
+  const { week: selectedRaw } = await searchParams;
+  const selected = selectedRaw || undefined; // un ?week= vide n'est pas une date : on retombe sur la courante
   const { week, status } = await resolveWeek(selected);
 
   // On ne bascule en « état vide » que sur un vrai 404 (le back ne crée pas la semaine).
