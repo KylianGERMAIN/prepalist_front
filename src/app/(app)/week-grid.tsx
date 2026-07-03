@@ -8,6 +8,7 @@ import type { Meal, Week, WeekSlot } from "@/lib/models";
 import { GenerateWeekButton } from "./week-actions";
 import { SlotCell } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
+import { slotsReducer } from "./planner-utils";
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
@@ -26,23 +27,6 @@ function todayIso(): string {
   const mm = String(d.getMonth() + 1).padStart(2, "0");
   const dd = String(d.getDate()).padStart(2, "0");
   return `${d.getFullYear()}-${mm}-${dd}`;
-}
-
-type SlotAction =
-  | { type: "clear"; slotId: string }
-  | { type: "assign"; slotId: string; meal: Meal; servings: number };
-
-function slotsReducer(state: WeekSlot[], action: SlotAction): WeekSlot[] {
-  return state.map((s) => {
-    if (s.id !== action.slotId) return s;
-    if (action.type === "clear") return { ...s, meal: null, mealId: null };
-    return {
-      ...s,
-      meal: action.meal,
-      mealId: action.meal.id,
-      servings: action.servings,
-    };
-  });
 }
 
 /** Créneau non généré (semaine sans slots) : placeholder passif, juste le moment. */
@@ -134,7 +118,10 @@ export function WeekGrid({ week }: { week: Week }) {
           const isToday = iso === today;
           const lunch = byKey.get(`${iso}_LUNCH`);
           const dinner = byKey.get(`${iso}_DINNER`);
-          const canDuplicate = byKey.has(`${addDays(iso, 1)}_LUNCH`);
+          // Report proposé seulement vers un midi de lendemain qui existe ET est libre
+          // (pas d'écrasement silencieux, et rien le dimanche puisque le lundi est hors semaine).
+          const nextLunch = byKey.get(`${addDays(iso, 1)}_LUNCH`);
+          const canDuplicate = !!nextLunch && !nextLunch.meal;
           return (
             <div
               key={iso}

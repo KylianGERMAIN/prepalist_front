@@ -18,17 +18,10 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { WeekSlot } from "@/lib/models";
 import { assignSlot } from "./planner-actions";
+import { cookedRecently } from "./planner-utils";
 import { MealCombobox } from "./meal-combobox";
 
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
-const RECENT_DAYS = 7;
-
-/** Vrai si le repas a été cuisiné dans les RECENT_DAYS derniers jours (signal "à varier"). */
-function cookedRecently(iso: string | null): boolean {
-  if (!iso) return false;
-  const days = (Date.now() - new Date(iso).getTime()) / 86_400_000;
-  return days >= 0 && days < RECENT_DAYS;
-}
 
 export function SlotCell({
   weekId,
@@ -73,7 +66,7 @@ export function SlotCell({
   return (
     <div className="group relative flex-1">
       {meal && (
-        <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-md bg-card/95 p-0.5 opacity-0 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-70">
+        <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-md bg-card/95 p-0.5 opacity-0 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-70">
           {onDuplicate && (
             <button
               type="button"
@@ -135,7 +128,7 @@ export function SlotCell({
                     <span>
                       <span className="tnum">{slot.servings}</span> portion(s)
                     </span>
-                    {typeof meal.rating === "number" && (
+                    {meal.rating != null && meal.rating > 0 && (
                       <span className="flex items-center gap-0.5">
                         <Star className="size-3 fill-current" />
                         <span className="tnum">{meal.rating}</span>
@@ -143,6 +136,7 @@ export function SlotCell({
                     )}
                     {recent && (
                       <span
+                        role="img"
                         aria-label="Cuisiné récemment"
                         title="Cuisiné récemment"
                         className="size-1.5 rounded-full bg-accent"
