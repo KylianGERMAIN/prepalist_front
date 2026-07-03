@@ -88,21 +88,23 @@ export function ShoppingListView({
                     </Badge>
                   ) : null}
                 </span>
-                <span
-                  className={cn(
-                    "text-sm tabular-nums text-muted-foreground",
-                    item.checked && "line-through",
-                  )}
-                >
-                  {item.quantity ?? ""} {item.unit ?? ""}
-                </span>
+                {item.quantity != null || item.unit ? (
+                  <span
+                    className={cn(
+                      "text-sm tabular-nums text-muted-foreground",
+                      item.checked && "line-through",
+                    )}
+                  >
+                    {[item.quantity, item.unit].filter(Boolean).join(" ")}
+                  </span>
+                ) : null}
               </label>
               <div className="flex items-center gap-0.5">
                 <EditItemDialog
                   weekId={weekId}
                   item={item}
                   trigger={
-                    <Button variant="ghost" size="sm" title="Modifier">
+                    <Button variant="ghost" size="sm" title="Modifier" aria-label="Modifier l'article">
                       <Pencil className="size-4" />
                     </Button>
                   }
@@ -113,7 +115,7 @@ export function ShoppingListView({
                   confirmLabel="Supprimer"
                   onConfirm={() => handleDelete(item)}
                   trigger={
-                    <Button variant="ghost" size="sm" title="Supprimer">
+                    <Button variant="ghost" size="sm" title="Supprimer" aria-label="Supprimer l'article">
                       <Trash2 className="size-4" />
                     </Button>
                   }

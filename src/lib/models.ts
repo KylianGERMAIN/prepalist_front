@@ -24,9 +24,9 @@ export type WeekSlot = components["schemas"]["WeekSlot"];
 
 /** Liste de courses agrégée d'une semaine. */
 export type ShoppingList = components["schemas"]["ShoppingListDto"];
-/** Ligne agrégée : un ingrédient, quantité cumulée sur la semaine + unité. */
+/** Ligne de la liste : nom, quantité, unité, état coché ; éditable et supprimable. */
 export type ShoppingListItem = components["schemas"]["ShoppingListItemDto"];
-/** Origine d'un item : DERIVED (agrégé des plats, verrouillé) ou MANUAL (ajouté à la main). */
+/** Origine d'un item (indicateur seul) : DERIVED (issu d'un plat) ou MANUAL (ajouté à la main). */
 export type ShoppingItemSource = ShoppingListItem["source"];
 export type AddShoppingItemInput = components["schemas"]["CreateShoppingListItemDto"];
 export type UpdateShoppingItemInput = components["schemas"]["UpdateShoppingListItemDto"];
