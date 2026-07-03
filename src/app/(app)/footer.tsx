@@ -1,16 +1,22 @@
 import { API_URL } from "@/lib/env";
 
-const FRONT_VERSION = process.env.NEXT_PUBLIC_APP_VERSION;
+const FRONT_VERSION = process.env.APP_VERSION ?? "?";
 
 async function fetchApiVersion(): Promise<string | null> {
   try {
-    // Revalidation 5 min : la version de l'API ne bouge qu'au déploiement,
-    // inutile de taper /health à chaque rendu de page.
-    const res = await fetch(`${API_URL}/health`, { next: { revalidate: 300 } });
+    // Revalidation 5 min : la version de l'API ne bouge qu'au déploiement, inutile
+    // de taper /health à chaque rendu. Timeout court : /health ne doit pas bloquer
+    // le rendu des pages si l'API répond lentement.
+    // fetch brut (pas serverApi()) : endpoint public, on évite le middleware 401.
+    const res = await fetch(`${API_URL}/health`, {
+      signal: AbortSignal.timeout(2000),
+      next: { revalidate: 300 },
+    });
     if (!res.ok) return null;
     const data = (await res.json()) as { version?: string };
     return data.version ?? null;
-  } catch {
+  } catch (err) {
+    console.warn("Footer: version API introuvable", err);
     return null;
   }
 }
@@ -19,6 +25,7 @@ export async function Footer() {
   const apiVersion = await fetchApiVersion();
   return (
     <footer className="mx-auto w-full max-w-5xl px-4 pb-20 pt-2 text-center text-xs text-muted-foreground sm:px-6 md:pb-4">
+      {/* Version API en infobulle : bonus desktop (title natif, pas de survol sur mobile). */}
       <span title={apiVersion ? `API v${apiVersion}` : undefined}>
         PrepaList v{FRONT_VERSION}
       </span>
