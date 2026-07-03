@@ -2,34 +2,47 @@ import Link from "next/link";
 import { serverApi } from "@/lib/api";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { WeekNav } from "../week-nav";
+import { resolveWeek } from "../week-resolver";
+import { todayIso } from "../planner-utils";
 import { ShoppingListView } from "./shopping-list-view";
 
-export default async function ShoppingListPage() {
-  const api = await serverApi();
-  const { data: week, response } = await api.GET("/weeks/current");
+export default async function ShoppingListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ week?: string }>;
+}) {
+  const { week: selectedRaw } = await searchParams;
+  const selected = selectedRaw || undefined; // un ?week= vide n'est pas une date : on retombe sur la courante
+  const plannerHref = selected ? `/?week=${selected}` : "/";
+  const { week, status } = await resolveWeek(selected);
 
   // Même garde que la page planner : seul un vrai 404 = "pas de semaine", le reste est une erreur.
-  if (!week && response.status !== 404) {
+  if (!week && status !== 404) {
     return <p className="text-destructive">Impossible de charger la semaine.</p>;
   }
 
   if (!week) {
     return (
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle>Pas de semaine en cours</CardTitle>
-          <CardDescription>Crée ta semaine et planifie des repas pour générer ta liste.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Link href="/" className={buttonVariants()}>
-            Aller au planning
-          </Link>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <WeekNav startDate={selected ?? todayIso()} basePath="/shopping-list" />
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>Pas de semaine planifiée</CardTitle>
+            <CardDescription>Crée cette semaine et planifie des repas pour générer ta liste.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href={plannerHref} className={buttonVariants()}>
+              Aller au planning
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
   // Ici pas de 404 "métier" à distinguer (la semaine existe) : toute erreur est une vraie erreur.
+  const api = await serverApi();
   const { data: list, error } = await api.GET("/weeks/{id}/shopping-list", {
     params: { path: { id: week.id } },
   });
@@ -40,6 +53,7 @@ export default async function ShoppingListPage() {
 
   return (
     <div className="space-y-4">
+      <WeekNav startDate={week.startDate} basePath="/shopping-list" />
       <h1 className="font-heading text-2xl font-medium tracking-tight">Liste de courses</h1>
       {list.items.length === 0 ? (
         <Card className="max-w-md">
@@ -50,7 +64,7 @@ export default async function ShoppingListPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Link href="/" className={buttonVariants({ variant: "outline" })}>
+            <Link href={plannerHref} className={buttonVariants({ variant: "outline" })}>
               Aller au planning
             </Link>
           </CardContent>

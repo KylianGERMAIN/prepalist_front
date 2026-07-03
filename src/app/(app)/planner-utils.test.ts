@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Meal, WeekSlot } from "@/lib/models";
-import { cookedRecently, slotsReducer } from "./planner-utils";
+import { addDays, cookedRecently, slotsReducer, todayIso } from "./planner-utils";
 
 const DAY = 86_400_000;
 
@@ -67,6 +67,42 @@ describe("slotsReducer", () => {
     slotsReducer(state, { type: "clear", slotId: "s1" });
     expect(original.meal).not.toBeNull();
     expect(original.mealId).toBe("m1");
+  });
+});
+
+describe("addDays", () => {
+  it("ajoute une semaine (±7) sans dérive", () => {
+    expect(addDays("2026-06-30", 7)).toBe("2026-07-07");
+    expect(addDays("2026-06-30", -7)).toBe("2026-06-23");
+  });
+
+  it("passe la fin de mois", () => {
+    expect(addDays("2026-01-31", 1)).toBe("2026-02-01");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
+  });
+
+  it("passe la fin d'année", () => {
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDays("2027-01-01", -1)).toBe("2026-12-31");
+  });
+
+  it("gère une année bissextile (29 février)", () => {
+    expect(addDays("2028-02-28", 1)).toBe("2028-02-29");
+  });
+
+  it("borne isCurrent : la semaine [startDate, startDate+7) couvre 7 jours", () => {
+    // Base du repère "semaine courante" dans WeekNav.
+    const start = "2026-06-30";
+    const end = addDays(start, 7);
+    expect(start >= start && start < end).toBe(true); // premier jour inclus
+    expect(addDays(start, 6) < end).toBe(true); // dernier jour inclus
+    expect(end < end).toBe(false); // jour +7 exclu
+  });
+});
+
+describe("todayIso", () => {
+  it("renvoie le format YYYY-MM-DD", () => {
+    expect(todayIso()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });
 
