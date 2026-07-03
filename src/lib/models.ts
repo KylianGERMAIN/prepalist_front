@@ -14,6 +14,9 @@ export type CreateMealInput = components["schemas"]["CreateMealDto"];
 export type UpdateMealInput = components["schemas"]["UpdateMealDto"];
 export type MealIngredientInput = components["schemas"]["MealIngredientDto"];
 
+/** Profil de l'utilisateur courant (GET /users/me). */
+export type Me = components["schemas"]["MeDto"];
+
 /** Semaine de planning (détail) avec ses créneaux. */
 export type Week = components["schemas"]["Week"];
 /** Créneau d'un jour : midi (LUNCH) ou soir (DINNER), repas assigné (ou null) + portions. */
@@ -21,5 +24,9 @@ export type WeekSlot = components["schemas"]["WeekSlot"];
 
 /** Liste de courses agrégée d'une semaine. */
 export type ShoppingList = components["schemas"]["ShoppingListDto"];
-/** Ligne agrégée : un ingrédient, quantité cumulée sur la semaine + unité. */
+/** Ligne de la liste : nom, quantité, unité, état coché ; éditable et supprimable. */
 export type ShoppingListItem = components["schemas"]["ShoppingListItemDto"];
+/** Origine d'un item (indicateur seul) : DERIVED (issu d'un plat) ou MANUAL (ajouté à la main). */
+export type ShoppingItemSource = ShoppingListItem["source"];
+export type AddShoppingItemInput = components["schemas"]["CreateShoppingListItemDto"];
+export type UpdateShoppingItemInput = components["schemas"]["UpdateShoppingListItemDto"];

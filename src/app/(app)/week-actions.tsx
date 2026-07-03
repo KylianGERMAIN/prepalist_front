@@ -6,14 +6,14 @@ import { CalendarPlus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { createWeek, generateWeek } from "./planner-actions";
 
-export function CreateWeekButton() {
+export function CreateWeekButton({ startDate }: { startDate?: string }) {
   const [pending, startTransition] = useTransition();
   return (
     <Button
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          const res = await createWeek();
+          const res = await createWeek(startDate);
           if (!res.ok) toast.error(res.error);
         })
       }

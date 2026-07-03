@@ -5,6 +5,16 @@ Toutes les évolutions notables du front PrepaList sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.3.0] - 2026-07-03
+
+### Ajouté
+
+- **Liste de courses éditable** : cochage persistant (optimistic UI), ajout d'items manuels, édition et suppression de tout item, et un bouton « Synchroniser » qui complète la liste depuis les plats sans écraser les quantités modifiées ni les cochages.
+- **Navigation entre semaines** : boutons ← / → pilotés par l'URL (`?week=`), partagés entre le planning et la liste de courses (même semaine des deux côtés), avec repère « semaine courante ».
+- **Réglage du jour de courses** : page `/settings` pour choisir le jour qui borne la semaine ; le planning démarre sur ce jour.
+- **Planning** : suppression rapide d'un repas, signaux visuels sur les repas et mise en page responsive par jour.
+- **Version de l'app en pied de page**.
+
 ## [0.2.0] - 2026-07-02
 
 ### Modifié
@@ -25,5 +35,6 @@ Refonte v2 du front PrepaList (Next.js App Router + shadcn/ui). Remplace la v1 (
 - **Design** : design system Graphite.
 - **Déploiement** : cible Vercel, déclenché sur tag de version (auto-deploy Git désactivé via `vercel.json`).
 
+[0.3.0]: https://github.com/KylianGERMAIN/prepalist_front/releases/tag/v0.3.0
 [0.2.0]: https://github.com/KylianGERMAIN/prepalist_front/releases/tag/v0.2.0
 [0.1.0]: https://github.com/KylianGERMAIN/prepalist_front/releases/tag/v0.1.0

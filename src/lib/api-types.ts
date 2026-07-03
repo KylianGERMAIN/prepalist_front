@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liveness check */
+        /** Readiness check (API + base de données) */
         get: operations["HealthController_check"];
         put?: never;
         post?: never;
@@ -19,6 +19,24 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/users/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Profil de l’utilisateur courant */
+        get: operations["UsersController_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Met à jour les préférences (jour de courses) */
+        patch: operations["UsersController_updateMe"];
         trace?: never;
     };
     "/auth/register": {
@@ -97,10 +115,10 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste paginée des repas (filtres favorite/tag/name) */
+        /** Liste paginée du catalogue de repas (filtres favorite/tag/name) */
         get: operations["MealsController_findAll"];
         put?: never;
-        /** Crée un repas */
+        /** Crée un repas (admin uniquement) */
         post: operations["MealsController_create"];
         delete?: never;
         options?: never;
@@ -119,11 +137,11 @@ export interface paths {
         get: operations["MealsController_findOne"];
         put?: never;
         post?: never;
-        /** Supprime un repas */
+        /** Supprime un repas (admin uniquement) */
         delete: operations["MealsController_remove"];
         options?: never;
         head?: never;
-        /** Met à jour un repas */
+        /** Met à jour un repas (admin uniquement) */
         patch: operations["MealsController_update"];
         trace?: never;
     };
@@ -168,7 +186,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Semaine contenant une date (jour de courses) */
+        get: operations["WeeksController_findByDate"];
         put?: never;
         /** Crée une semaine (14 créneaux vides) */
         post: operations["WeeksController_create"];
@@ -219,7 +238,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste de courses agrégée d’une semaine */
+        /** Liste de courses matérialisée d’une semaine (init paresseuse) */
         get: operations["ShoppingListController_forWeek"];
         put?: never;
         post?: never;
@@ -229,10 +248,73 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/weeks/{id}/shopping-list/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Resynchronise les items dérivés depuis les plats */
+        post: operations["ShoppingListController_sync"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{id}/shopping-list/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Ajoute un item manuel à la liste */
+        post: operations["ShoppingListController_addItem"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/weeks/{id}/shopping-list/items/{itemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Supprime un item de la liste */
+        delete: operations["ShoppingListController_removeItem"];
+        options?: never;
+        head?: never;
+        /** Met à jour un item (checked, nom, quantité, unité) */
+        patch: operations["ShoppingListController_updateItem"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        MeDto: {
+            id: string;
+            email: string;
+            /** @enum {string} */
+            role: "USER" | "ADMIN";
+            shoppingDay: number;
+        };
+        UpdateMeDto: {
+            /** @description Jour de courses (0 = dimanche … 6 = samedi). */
+            shoppingDay: number;
+        };
         RegisterDto: {
             /** @example user@example.com */
             email: string;
@@ -261,7 +343,6 @@ export interface components {
         };
         MealSummaryDto: {
             id: string;
-            userId: string;
             name: string;
             rating: number | null;
             isFavorite: boolean;
@@ -328,14 +409,14 @@ export interface components {
         };
         Week: {
             id: string;
-            /** @description Lundi de la semaine (YYYY-MM-DD) */
+            /** @description Début de semaine = jour de courses (YYYY-MM-DD) */
             startDate: string;
             /** Format: date-time */
             createdAt: string;
             slots: components["schemas"]["WeekSlot"][];
         };
         CreateWeekDto: {
-            /** @description Date calendaire dans la semaine voulue (YYYY-MM-DD) ; ramenée au lundi. Défaut : semaine courante. */
+            /** @description Date calendaire dans la semaine voulue (YYYY-MM-DD) ; ramenée au début de semaine (jour de courses). Défaut : semaine courante. */
             startDate?: string;
         };
         UpdateSlotDto: {
@@ -344,16 +425,31 @@ export interface components {
             servings?: number;
         };
         ShoppingListItemDto: {
-            ingredientId: string;
+            id: string;
+            /** @enum {string} */
+            source: "DERIVED" | "MANUAL";
+            ingredientId: string | null;
             name: string;
-            unit: string;
-            quantity: number;
+            unit: string | null;
+            quantity: number | null;
+            checked: boolean;
         };
         ShoppingListDto: {
             weekId: string;
-            /** @description Lundi de la semaine (YYYY-MM-DD) */
+            /** @description Début de semaine = jour de courses (YYYY-MM-DD) */
             startDate: string;
             items: components["schemas"]["ShoppingListItemDto"][];
+        };
+        CreateShoppingListItemDto: {
+            name: string;
+            quantity?: number;
+            unit?: string;
+        };
+        UpdateShoppingListItemDto: {
+            checked?: boolean;
+            name?: string;
+            quantity?: number;
+            unit?: string;
         };
     };
     responses: never;
@@ -377,7 +473,51 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": unknown;
+                };
+            };
+        };
+    };
+    UsersController_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeDto"];
+                };
+            };
+        };
+    };
+    UsersController_updateMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMeDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MeDto"];
+                };
             };
         };
     };
@@ -650,6 +790,28 @@ export interface operations {
             };
         };
     };
+    WeeksController_findByDate: {
+        parameters: {
+            query: {
+                /** @description Date calendaire (YYYY-MM-DD) ; ramenée au début de semaine (jour de courses de l’utilisateur). */
+                startDate: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Week"];
+                };
+            };
+        };
+    };
     WeeksController_create: {
         parameters: {
             query?: never;
@@ -737,6 +899,98 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShoppingListDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_sync: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_addItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateShoppingListItemDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListItemDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_removeItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ShoppingListController_updateItem: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                itemId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateShoppingListItemDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListItemDto"];
                 };
             };
         };
