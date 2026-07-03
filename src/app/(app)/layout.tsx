@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Settings } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Footer } from "./footer";
 import { LogoutButton } from "./logout-button";
@@ -16,6 +17,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <NavLinks />
           </div>
           <div className="flex items-center gap-1">
+            <Link
+              href="/settings"
+              aria-label="Réglages"
+              title="Réglages"
+              className="inline-flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Settings className="size-4" />
+            </Link>
             <ThemeToggle />
             <LogoutButton />
           </div>
