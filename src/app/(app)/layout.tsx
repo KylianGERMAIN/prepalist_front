@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { Footer } from "./footer";
 import { LogoutButton } from "./logout-button";
 import { BottomNav, NavLinks } from "./nav-links";
 
@@ -20,9 +21,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </header>
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 pb-20 sm:px-6 md:pb-6">
+      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-6 sm:px-6">
         {children}
       </main>
+      <Footer />
       <BottomNav />
     </div>
   );
