@@ -3,7 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
-import type { AddShoppingItemInput, UpdateShoppingItemInput } from "@/lib/models";
+import type {
+  AddShoppingItemInput,
+  UpdateShoppingItemInput,
+} from "@/lib/models";
 
 /** Coche/décoche un item (PATCH) ; togglable sur tout item, dérivé comme manuel. */
 export async function toggleChecked(
@@ -26,7 +29,7 @@ export async function addManualItem(
 ): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/shopping-list/items", {
-        body: input,
+    body: input,
   });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/shopping-list");
@@ -49,9 +52,7 @@ export async function updateItem(
 }
 
 /** Supprime un item (DELETE), dérivé comme manuel. */
-export async function deleteItem(
-  itemId: string,
-): Promise<ActionResult> {
+export async function deleteItem(itemId: string): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.DELETE("/plan/shopping-list/items/{itemId}", {
     params: { path: { itemId } },
@@ -64,8 +65,7 @@ export async function deleteItem(
 /** Resynchronise les items dérivés depuis les plats (POST /sync) ; préserve cochés et manuels. */
 export async function syncShoppingList(): Promise<ActionResult> {
   const api = await serverApi();
-  const { error } = await api.POST("/plan/shopping-list/sync", {
-      });
+  const { error } = await api.POST("/plan/shopping-list/sync", {});
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/shopping-list");
   return { ok: true };

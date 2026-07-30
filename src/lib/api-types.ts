@@ -223,7 +223,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Vide les créneaux du plan et purge la liste de courses */
+        /** Vide les créneaux du plan et les items dérivés de la liste (les items manuels sont conservés) */
         delete: operations["PlanController_clear"];
         options?: never;
         head?: never;

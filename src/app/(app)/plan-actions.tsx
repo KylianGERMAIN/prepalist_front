@@ -54,7 +54,15 @@ export function ClearPlanButton() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      // Filtre toutes les sorties pendant l'appel — Échap, clic hors du modal et
+      // croix comprises. Sans ça le modal se fermait alors que ses deux boutons
+      // étaient désactivés, ce qui laissait croire à un verrouillage inexistant.
+      onOpenChange={(next) => {
+        if (!pending) setOpen(next);
+      }}
+    >
       <DialogTrigger
         render={
           <Button variant="ghost" size="sm">
@@ -63,7 +71,7 @@ export function ClearPlanButton() {
           </Button>
         }
       />
-      <DialogContent className="sm:max-w-sm">
+      <DialogContent className="sm:max-w-sm" showCloseButton={!pending}>
         <DialogHeader>
           <DialogTitle>Vider le plan ?</DialogTitle>
           <DialogDescription>
@@ -80,7 +88,11 @@ export function ClearPlanButton() {
               </Button>
             }
           />
-          <Button variant="destructive" disabled={pending} onClick={confirmClear}>
+          <Button
+            variant="destructive"
+            disabled={pending}
+            onClick={confirmClear}
+          >
             {pending ? "Vidage…" : "Vider"}
           </Button>
         </DialogFooter>

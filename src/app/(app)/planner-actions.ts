@@ -16,9 +16,26 @@ export async function generatePlan(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/generate", {});
   if (error) return { ok: false, error: errorText(error) };
-  await api.POST("/plan/shopping-list/sync", {});
+
+  // La génération est acquise en base : on révalide dans tous les cas, y compris
+  // si la resynchronisation échoue, sinon l'écran resterait sur l'ancien plan.
+  // Le catch couvre le rejet réseau (back tombé entre les deux appels), qui
+  // sinon remonterait jusqu'à error.tsx alors que le plan est bien généré.
+  const synced = await api
+    .POST("/plan/shopping-list/sync", {})
+    .then((res) => !res.error)
+    .catch(() => false);
+
   revalidatePath("/");
   revalidatePath("/shopping-list");
+
+  if (!synced) {
+    return {
+      ok: false,
+      error:
+        "Plan généré, mais la liste de courses n'a pas pu être resynchronisée. Lance Synchroniser depuis la liste.",
+    };
+  }
   return { ok: true };
 }
 
