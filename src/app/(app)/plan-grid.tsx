@@ -4,18 +4,17 @@ import { useOptimistic, useTransition } from "react";
 import { Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import type { Meal, Week, WeekSlot } from "@/lib/models";
-import { GenerateWeekButton } from "./week-actions";
+import type { Meal, Plan, PlanSlot } from "@/lib/models";
+import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
 import { SlotCell } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
-import { addDays, slotsReducer, todayIso } from "./planner-utils";
+import { dayLabel, slotsReducer } from "./planner-utils";
 
-// Indexé par getDay() (0 = dimanche), pas par la position dans la semaine :
-// la semaine démarre au jour de courses, pas forcément lundi.
-const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-
-/** Créneau non généré (semaine sans slots) : placeholder passif, juste le moment. */
-function EmptySlot({ moment }: { moment: WeekSlot["slot"] }) {
+/**
+ * Branche défensive : `Map.get` rend `PlanSlot | undefined`, et le back crée
+ * toujours les deux créneaux de chaque jour. Placeholder passif, jamais vu.
+ */
+function EmptySlot({ moment }: { moment: PlanSlot["slot"] }) {
   return (
     <div className="flex min-h-16 flex-1 items-start gap-1 rounded-md border border-dashed border-border p-2 text-xs text-muted-foreground opacity-60">
       {moment === "LUNCH" ? (
@@ -27,25 +26,31 @@ function EmptySlot({ moment }: { moment: WeekSlot["slot"] }) {
   );
 }
 
-export function WeekGrid({ week }: { week: Week }) {
-  const [optimisticSlots, dispatch] = useOptimistic(week.slots, slotsReducer);
+export function PlanGrid({
+  plan,
+  todayIndex,
+}: {
+  plan: Plan;
+  todayIndex: number | null;
+}) {
+  const [optimisticSlots, dispatch] = useOptimistic(plan.slots, slotsReducer);
   const [, startTransition] = useTransition();
 
   function handleUndo(slotId: string, meal: Meal, servings: number) {
     startTransition(async () => {
       dispatch({ type: "assign", slotId, meal, servings });
-      const res = await assignSlot(week.id, slotId, meal.id, servings);
+      const res = await assignSlot(slotId, meal.id, servings);
       if (!res.ok) toast.error(res.error);
     });
   }
 
-  function handleClear(slot: WeekSlot) {
+  function handleClear(slot: PlanSlot) {
     if (!slot.meal) return;
     const meal = slot.meal;
     const servings = slot.servings;
     startTransition(async () => {
       dispatch({ type: "clear", slotId: slot.id });
-      const res = await assignSlot(week.id, slot.id, null);
+      const res = await assignSlot(slot.id, null);
       if (res.ok) {
         toast.success("Créneau vidé", {
           action: {
@@ -60,56 +65,51 @@ export function WeekGrid({ week }: { week: Week }) {
   }
 
   // Report des restes du dîner vers le déjeuner du lendemain.
-  function handleDuplicate(slot: WeekSlot) {
+  function handleDuplicate(slot: PlanSlot) {
     if (!slot.meal || slot.slot !== "DINNER") return;
-    const nextDay = addDays(slot.date.slice(0, 10), 1);
     const target = optimisticSlots.find(
-      (s) => s.date.slice(0, 10) === nextDay && s.slot === "LUNCH",
+      (s) => s.dayIndex === slot.dayIndex + 1 && s.slot === "LUNCH",
     );
     if (!target) return;
     const meal = slot.meal;
     const servings = slot.servings;
     startTransition(async () => {
       dispatch({ type: "assign", slotId: target.id, meal, servings });
-      const res = await assignSlot(week.id, target.id, meal.id, servings);
-      if (res.ok) toast.success("Reporté au midi de demain");
+      const res = await assignSlot(target.id, meal.id, servings);
+      if (res.ok) toast.success("Reporté au midi du lendemain");
       else toast.error(res.error);
     });
   }
 
   // Index des créneaux par jour + moment, pour retrouver le slot d'une cellule.
-  const byKey = new Map<string, WeekSlot>();
+  const byKey = new Map<string, PlanSlot>();
   for (const slot of optimisticSlots) {
-    byKey.set(`${slot.date.slice(0, 10)}_${slot.slot}`, slot);
+    byKey.set(`${slot.dayIndex}_${slot.slot}`, slot);
   }
-  const days = Array.from({ length: 7 }, (_, i) => addDays(week.startDate, i));
-  const today = todayIso();
-  const startLabel = new Date(`${week.startDate}T00:00:00`).toLocaleDateString(
-    "fr-FR",
-    { day: "numeric", month: "long", year: "numeric" },
-  );
+  const days = Array.from({ length: plan.dayCount }, (_, i) => i);
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-2xl tracking-tight">
-          Semaine du {startLabel}
-        </h1>
-        <GenerateWeekButton weekId={week.id} />
+        <h1 className="font-heading text-2xl tracking-tight">Mon plan</h1>
+        <div className="flex items-center gap-1">
+          <GeneratePlanButton />
+          <ClearPlanButton />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
-        {days.map((iso) => {
-          const isToday = iso === today;
-          const lunch = byKey.get(`${iso}_LUNCH`);
-          const dinner = byKey.get(`${iso}_DINNER`);
+        {days.map((dayIndex) => {
+          const isToday = dayIndex === todayIndex;
+          const lunch = byKey.get(`${dayIndex}_LUNCH`);
+          const dinner = byKey.get(`${dayIndex}_DINNER`);
           // Report proposé seulement vers un midi de lendemain qui existe ET est libre
-          // (pas d'écrasement silencieux, et rien le dernier jour dont le lendemain est hors semaine).
-          const nextLunch = byKey.get(`${addDays(iso, 1)}_LUNCH`);
+          // (pas d'écrasement silencieux, et rien le dernier jour du plan).
+          const nextLunch = byKey.get(`${dayIndex + 1}_LUNCH`);
           const canDuplicate = !!nextLunch && !nextLunch.meal;
           return (
             <div
-              key={iso}
+              key={dayIndex}
               className={cn(
                 "flex h-full flex-col gap-2 rounded-lg border border-transparent p-1.5",
                 isToday && "border-primary/20 bg-primary/5",
@@ -121,26 +121,16 @@ export function WeekGrid({ week }: { week: Week }) {
                   isToday ? "font-medium text-primary" : "text-foreground",
                 )}
               >
-                {DAY_LABELS[new Date(`${iso}T00:00:00`).getDay()]}{" "}
-                <span
-                  className={cn("tnum", !isToday && "text-muted-foreground")}
-                >
-                  {iso.slice(8, 10)}
-                </span>
+                {dayLabel(plan.startDate, dayIndex)}
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 {lunch ? (
-                  <SlotCell
-                    weekId={week.id}
-                    slot={lunch}
-                    onClear={handleClear}
-                  />
+                  <SlotCell slot={lunch} onClear={handleClear} />
                 ) : (
                   <EmptySlot moment="LUNCH" />
                 )}
                 {dinner ? (
                   <SlotCell
-                    weekId={week.id}
                     slot={dinner}
                     onClear={handleClear}
                     onDuplicate={canDuplicate ? handleDuplicate : undefined}

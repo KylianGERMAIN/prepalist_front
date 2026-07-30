@@ -28,11 +28,9 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function EditItemDialog({
-  weekId,
   item,
   trigger,
 }: {
-  weekId: string;
   item: ShoppingListItem;
   trigger: ReactElement;
 }) {
@@ -68,7 +66,7 @@ export function EditItemDialog({
       quantity: values.quantity && !Number.isNaN(values.quantity) ? values.quantity : undefined,
       unit: values.unit.trim() || undefined,
     };
-    const res = await updateItem(weekId, item.id, patch);
+    const res = await updateItem(item.id, patch);
     if (res.ok) {
       toast.success("Article mis à jour");
       setOpen(false);

@@ -17,12 +17,12 @@ export type MealIngredientInput = components["schemas"]["MealIngredientDto"];
 /** Profil de l'utilisateur courant (GET /users/me). */
 export type Me = components["schemas"]["MeDto"];
 
-/** Semaine de planning (détail) avec ses créneaux. */
-export type Week = components["schemas"]["Week"];
-/** Créneau d'un jour : midi (LUNCH) ou soir (DINNER), repas assigné (ou null) + portions. */
-export type WeekSlot = components["schemas"]["WeekSlot"];
+/** Plan de repas courant (un seul par utilisateur) avec ses créneaux. */
+export type Plan = components["schemas"]["Plan"];
+/** Créneau d'un jour du plan : midi (LUNCH) ou soir (DINNER), repas assigné (ou null) + portions. */
+export type PlanSlot = components["schemas"]["PlanSlot"];
 
-/** Liste de courses agrégée d'une semaine. */
+/** Liste de courses agrégée du plan. */
 export type ShoppingList = components["schemas"]["ShoppingListDto"];
 /** Ligne de la liste : nom, quantité, unité, état coché ; éditable et supprimable. */
 export type ShoppingListItem = components["schemas"]["ShoppingListItemDto"];

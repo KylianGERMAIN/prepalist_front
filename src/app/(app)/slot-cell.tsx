@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import type { WeekSlot } from "@/lib/models";
+import type { PlanSlot } from "@/lib/models";
 import { assignSlot } from "./planner-actions";
 import { cookedRecently } from "./planner-utils";
 import { MealCombobox } from "./meal-combobox";
@@ -24,15 +24,13 @@ import { MealCombobox } from "./meal-combobox";
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
 
 export function SlotCell({
-  weekId,
   slot,
   onClear,
   onDuplicate,
 }: {
-  weekId: string;
-  slot: WeekSlot;
-  onClear: (slot: WeekSlot) => void;
-  onDuplicate?: (slot: WeekSlot) => void;
+  slot: PlanSlot;
+  onClear: (slot: PlanSlot) => void;
+  onDuplicate?: (slot: PlanSlot) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [mealId, setMealId] = useState<string | null>(slot.meal?.id ?? null);
@@ -48,7 +46,7 @@ export function SlotCell({
 
   function save(nextMealId: string) {
     startTransition(async () => {
-      const res = await assignSlot(weekId, slot.id, nextMealId, servings);
+      const res = await assignSlot(slot.id, nextMealId, servings);
       if (res.ok) {
         setOpen(false);
         toast.success("Créneau mis à jour");
@@ -70,8 +68,8 @@ export function SlotCell({
           {onDuplicate && (
             <button
               type="button"
-              aria-label="Reporter au midi de demain"
-              title="Reporter au midi de demain"
+              aria-label="Reporter au midi du lendemain"
+              title="Reporter au midi du lendemain"
               onClick={(e) => {
                 e.stopPropagation();
                 onDuplicate(slot);
