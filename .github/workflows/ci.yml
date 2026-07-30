@@ -6,8 +6,8 @@ on:
   pull_request:
     branches: [main, develop]
 
-# Un push de plus sur une PR annule le run precedent : le job contient un build
-# Next complet, les runs obsoletes s'empilent vite.
+# Un push de plus sur une PR annule le run précédent : le job contient un build
+# Next complet, les runs obsolètes s'empilent vite.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -33,17 +33,17 @@ jobs:
 
       - run: pnpm lint
 
-      # Genere .next/types (PageProps, LayoutProps, RouteContext) que tsconfig
-      # inclut : sans ca le typecheck tourne sur un set de fichiers different du
-      # local, ou ces types existent deja.
+      # Génère .next/types (PageProps, LayoutProps, RouteContext) que tsconfig
+      # inclut : sans ça le typecheck tourne sur un set de fichiers différent du
+      # local, où ces types existent déjà.
       - run: pnpm exec next typegen
 
-      # next build ecarte les diagnostics des *.test.ts (runTypeCheck.js, ignoreRegex
+      # next build écarte les diagnostics des *.test.ts (runTypeCheck.js, ignoreRegex
       # sur spec|test) : sans ce step, une erreur de type dans un test passe en prod.
       - run: pnpm typecheck
 
       - run: pnpm test
 
-      # API_URL absente : la garde fail-fast de src/lib/env.ts est neutralisee
+      # API_URL absente : la garde fail-fast de src/lib/env.ts est neutralisée
       # pendant phase-production-build.
       - run: pnpm build
