@@ -6,9 +6,19 @@ on:
   pull_request:
     branches: [main, develop]
 
+# Un push de plus sur une PR annule le run precedent : le job contient un build
+# Next complet, les runs obsoletes s'empilent vite.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
-  build:
+  verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 
@@ -16,17 +26,24 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm lint
 
-      # Couvre les fichiers hors graphe de build (*.test.ts), que `next build` ne typecheck pas.
+      # Genere .next/types (PageProps, LayoutProps, RouteContext) que tsconfig
+      # inclut : sans ca le typecheck tourne sur un set de fichiers different du
+      # local, ou ces types existent deja.
+      - run: pnpm exec next typegen
+
+      # next build ecarte les diagnostics des *.test.ts (runTypeCheck.js, ignoreRegex
+      # sur spec|test) : sans ce step, une erreur de type dans un test passe en prod.
       - run: pnpm typecheck
 
       - run: pnpm test
 
-      # API_URL absente : `env.ts` neutralise sa garde fail-fast pendant la phase de build.
+      # API_URL absente : la garde fail-fast de src/lib/env.ts est neutralisee
+      # pendant phase-production-build.
       - run: pnpm build

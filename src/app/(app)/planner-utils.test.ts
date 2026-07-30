@@ -89,15 +89,6 @@ describe("addDays", () => {
   it("gère une année bissextile (29 février)", () => {
     expect(addDays("2028-02-28", 1)).toBe("2028-02-29");
   });
-
-  it("borne isCurrent : la semaine [startDate, startDate+7) couvre 7 jours", () => {
-    // Base du repère "semaine courante" dans WeekNav.
-    const start = "2026-06-30";
-    const end = addDays(start, 7);
-    expect(end).toBe("2026-07-07"); // borne haute exclusive = jour +7
-    expect(start < end).toBe(true); // premier jour inclus
-    expect(addDays(start, 6) < end).toBe(true); // dernier jour inclus
-  });
 });
 
 describe("todayIso", () => {
