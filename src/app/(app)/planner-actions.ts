@@ -5,17 +5,24 @@ import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
 import type { MealSummary } from "@/lib/models";
 
-/** Remplit automatiquement les créneaux vides du plan (POST /plan/generate). */
+/**
+ * Remplit les créneaux vides du plan, puis resynchronise la liste de courses.
+ *
+ * La synchro est explicite ici parce que l'init paresseuse du back ne se
+ * déclenche que sur une liste totalement vide : un seul item manuel survivant
+ * suffirait à ce que les ingrédients du nouveau plan n'apparaissent jamais.
+ */
 export async function generatePlan(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/generate", {});
   if (error) return { ok: false, error: errorText(error) };
+  await api.POST("/plan/shopping-list/sync", {});
   revalidatePath("/");
   revalidatePath("/shopping-list");
   return { ok: true };
 }
 
-/** Vide tous les créneaux et purge la liste de courses (DELETE /plan/slots). */
+/** Vide tous les créneaux et les items dérivés ; les items manuels sont conservés. */
 export async function clearPlan(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.DELETE("/plan/slots", {});

@@ -67,9 +67,9 @@ export function ClearPlanButton() {
         <DialogHeader>
           <DialogTitle>Vider le plan ?</DialogTitle>
           <DialogDescription>
-            Tous les créneaux repassent à vide et la liste de courses est
-            supprimée, y compris les items ajoutés à la main. Cette action est
-            sans annulation.
+            Tous les créneaux repassent à vide et les ingrédients déduits des
+            plats sont retirés de la liste de courses. Les items que tu as
+            ajoutés à la main sont conservés. Cette action est sans annulation.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:justify-between">
