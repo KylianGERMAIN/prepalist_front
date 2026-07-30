@@ -81,8 +81,7 @@ export function MealDialog({
     defaultValues: EMPTY,
   });
   const lines = useFieldArray({ control, name: "ingredients" });
-  // useWatch et non le watch() de useForm : watch() est une fonction non mémoïsable,
-  // que React Compiler refuse d'optimiser (il skip alors tout le composant).
+  // Pas le watch() de useForm : non mémoïsable, React Compiler skip tout le composant.
   const rows = useWatch({ control, name: "ingredients" });
 
   // À l'ouverture : create → form vide ; edit → fetch du détail (la ligne n'a que le résumé,
