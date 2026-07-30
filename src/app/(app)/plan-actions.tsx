@@ -26,8 +26,9 @@ export function GeneratePlanButton() {
       onClick={() =>
         startTransition(async () => {
           const res = await generatePlan();
-          if (res.ok) toast.success("Plan généré");
-          else toast.error(res.error);
+          if (!res.ok) toast.error(res.error);
+          else if (res.warning) toast.warning(res.warning);
+          else toast.success("Plan généré");
         })
       }
     >

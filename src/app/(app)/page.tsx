@@ -1,6 +1,7 @@
 import { serverApi } from "@/lib/api";
 import { PlanGrid } from "./plan-grid";
-import { dayIndexOf, todayInAppTimeZone } from "./planner-utils";
+import { todayInAppTimeZone } from "./planner-today";
+import { dayIndexOf } from "./planner-utils";
 
 export default async function PlannerPage() {
   const api = await serverApi();

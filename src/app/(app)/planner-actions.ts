@@ -31,8 +31,8 @@ export async function generatePlan(): Promise<ActionResult> {
 
   if (!synced) {
     return {
-      ok: false,
-      error:
+      ok: true,
+      warning:
         "Plan généré, mais la liste de courses n'a pas pu être resynchronisée. Lance Synchroniser depuis la liste.",
     };
   }

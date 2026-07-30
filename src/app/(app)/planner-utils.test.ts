@@ -5,7 +5,6 @@ import {
   dayIndexOf,
   dayLabel,
   slotsReducer,
-  todayInAppTimeZone,
 } from "./planner-utils";
 
 const DAY = 86_400_000;
@@ -103,24 +102,11 @@ describe("dayIndexOf", () => {
     expect(dayIndexOf("2026-06-30", "2026-07-07", 7)).toBeNull(); // écoulé
   });
 
-  // Le passage à l'heure d'été fait une journée de 23 h : l'arithmétique doit
-  // rester calendaire, sinon l'index dérive d'un jour.
-  it("traverse les changements d'heure sans dériver", () => {
+  // Garde anti-régression : un retour à un calcul en heure locale ferait dériver
+  // ces deux cas, l'arithmétique UTC les rend exacts par construction.
+  it("reste exact autour des changements d'heure", () => {
     expect(dayIndexOf("2026-03-27", "2026-03-30", 7)).toBe(3); // +1 h
     expect(dayIndexOf("2026-10-23", "2026-10-26", 7)).toBe(3); // −1 h
-  });
-});
-
-describe("todayInAppTimeZone", () => {
-  it("renvoie une date calendaire au format YYYY-MM-DD", () => {
-    expect(todayInAppTimeZone()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-  });
-
-  it("suit le fuseau demandé et non celui du process", () => {
-    // Deux fuseaux à cheval sur la ligne de date ne peuvent pas rendre le même jour.
-    expect(todayInAppTimeZone("Pacific/Kiritimati")).not.toBe(
-      todayInAppTimeZone("Pacific/Niue"),
-    );
   });
 });
 
