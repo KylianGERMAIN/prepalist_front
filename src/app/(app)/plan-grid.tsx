@@ -8,9 +8,12 @@ import type { Meal, Plan, PlanSlot } from "@/lib/models";
 import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
 import { SlotCell } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
-import { currentDayIndex, dayLabel, slotsReducer } from "./planner-utils";
+import { dayLabel, slotsReducer } from "./planner-utils";
 
-/** Créneau absent du plan : placeholder passif, juste le moment. */
+/**
+ * Branche défensive : `Map.get` rend `PlanSlot | undefined`, et le back crée
+ * toujours les deux créneaux de chaque jour. Placeholder passif, jamais vu.
+ */
 function EmptySlot({ moment }: { moment: PlanSlot["slot"] }) {
   return (
     <div className="flex min-h-16 flex-1 items-start gap-1 rounded-md border border-dashed border-border p-2 text-xs text-muted-foreground opacity-60">
@@ -23,7 +26,13 @@ function EmptySlot({ moment }: { moment: PlanSlot["slot"] }) {
   );
 }
 
-export function PlanGrid({ plan }: { plan: Plan }) {
+export function PlanGrid({
+  plan,
+  todayIndex,
+}: {
+  plan: Plan;
+  todayIndex: number | null;
+}) {
   const [optimisticSlots, dispatch] = useOptimistic(plan.slots, slotsReducer);
   const [, startTransition] = useTransition();
 
@@ -78,7 +87,6 @@ export function PlanGrid({ plan }: { plan: Plan }) {
     byKey.set(`${slot.dayIndex}_${slot.slot}`, slot);
   }
   const days = Array.from({ length: plan.dayCount }, (_, i) => i);
-  const todayIndex = currentDayIndex(plan.startDate, plan.dayCount);
 
   return (
     <div className="space-y-4">

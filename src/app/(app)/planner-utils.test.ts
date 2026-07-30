@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { Meal, PlanSlot } from "@/lib/models";
 import {
   cookedRecently,
-  currentDayIndex,
+  dayIndexOf,
   dayLabel,
   slotsReducer,
+  todayInAppTimeZone,
 } from "./planner-utils";
 
 const DAY = 86_400_000;
@@ -90,23 +91,36 @@ describe("dayLabel", () => {
   });
 });
 
-describe("currentDayIndex", () => {
-  function isoDaysFromToday(n: number): string {
-    const d = new Date();
-    d.setDate(d.getDate() + n);
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${d.getFullYear()}-${mm}-${dd}`;
-  }
-
-  it("situe aujourd'hui dans le plan", () => {
-    expect(currentDayIndex(isoDaysFromToday(0), 7)).toBe(0);
-    expect(currentDayIndex(isoDaysFromToday(-3), 7)).toBe(3);
+describe("dayIndexOf", () => {
+  it("situe un jour dans les bornes du plan", () => {
+    expect(dayIndexOf("2026-06-30", "2026-06-30", 7)).toBe(0);
+    expect(dayIndexOf("2026-06-30", "2026-07-03", 7)).toBe(3);
+    expect(dayIndexOf("2026-06-30", "2026-07-06", 7)).toBe(6);
   });
 
-  it("renvoie null hors des bornes du plan", () => {
-    expect(currentDayIndex(isoDaysFromToday(-7), 7)).toBeNull(); // écoulé
-    expect(currentDayIndex(isoDaysFromToday(1), 7)).toBeNull(); // pas commencé
+  it("renvoie null hors des bornes", () => {
+    expect(dayIndexOf("2026-06-30", "2026-06-29", 7)).toBeNull(); // pas commencé
+    expect(dayIndexOf("2026-06-30", "2026-07-07", 7)).toBeNull(); // écoulé
+  });
+
+  // Le passage à l'heure d'été fait une journée de 23 h : l'arithmétique doit
+  // rester calendaire, sinon l'index dérive d'un jour.
+  it("traverse les changements d'heure sans dériver", () => {
+    expect(dayIndexOf("2026-03-27", "2026-03-30", 7)).toBe(3); // +1 h
+    expect(dayIndexOf("2026-10-23", "2026-10-26", 7)).toBe(3); // −1 h
+  });
+});
+
+describe("todayInAppTimeZone", () => {
+  it("renvoie une date calendaire au format YYYY-MM-DD", () => {
+    expect(todayInAppTimeZone()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("suit le fuseau demandé et non celui du process", () => {
+    // Deux fuseaux à cheval sur la ligne de date ne peuvent pas rendre le même jour.
+    expect(todayInAppTimeZone("Pacific/Kiritimati")).not.toBe(
+      todayInAppTimeZone("Pacific/Niue"),
+    );
   });
 });
 

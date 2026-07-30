@@ -1,5 +1,6 @@
 import { serverApi } from "@/lib/api";
 import { PlanGrid } from "./plan-grid";
+import { dayIndexOf, todayInAppTimeZone } from "./planner-utils";
 
 export default async function PlannerPage() {
   const api = await serverApi();
@@ -10,5 +11,13 @@ export default async function PlannerPage() {
     return <p className="text-destructive">Impossible de charger le plan.</p>;
   }
 
-  return <PlanGrid plan={plan} />;
+  // Résolu ici et non dans la grille : le fuseau de l'app fait foi, pas celui du
+  // navigateur, sinon SSR et hydratation peuvent désigner deux jours différents.
+  const todayIndex = dayIndexOf(
+    plan.startDate,
+    todayInAppTimeZone(),
+    plan.dayCount,
+  );
+
+  return <PlanGrid plan={plan} todayIndex={todayIndex} />;
 }

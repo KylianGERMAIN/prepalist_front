@@ -37,18 +37,40 @@ export function dayLabel(startDate: string, dayIndex: number): string {
   return lap === 0 ? name : `${name} +${lap}`;
 }
 
+const APP_TIME_ZONE = "Europe/Paris";
+
 /**
- * Index du jour courant dans le plan, ou `null` si aujourd'hui tombe en dehors
- * (plan pas encore commencé, ou déjà écoulé).
+ * Date calendaire du jour (`YYYY-MM-DD`) dans le fuseau de l'app.
+ *
+ * À appeler depuis un Server Component uniquement : lue côté client elle
+ * donnerait le fuseau du navigateur, et le rendu serveur puis l'hydratation
+ * pourraient tomber sur deux jours différents entre minuit et 2h.
  */
-export function currentDayIndex(
+export function todayInAppTimeZone(timeZone = APP_TIME_ZONE): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
+/**
+ * Index du jour `today` dans le plan, ou `null` s'il tombe hors des bornes
+ * (plan pas encore commencé, ou déjà écoulé).
+ *
+ * Fonction pure : les deux dates sont interprétées en UTC, donc arithmétique
+ * calendaire seule, insensible aux journées de 23 ou 25 h.
+ */
+export function dayIndexOf(
   startDate: string,
+  today: string,
   dayCount: number,
 ): number | null {
-  const start = new Date(`${startDate}T00:00:00`);
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const diff = Math.round((today.getTime() - start.getTime()) / 86_400_000);
+  const diff = Math.round(
+    (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${startDate}T00:00:00Z`)) /
+      86_400_000,
+  );
   return diff >= 0 && diff < dayCount ? diff : null;
 }
 
