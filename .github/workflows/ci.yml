@@ -1,0 +1,32 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      # Couvre les fichiers hors graphe de build (*.test.ts), que `next build` ne typecheck pas.
+      - run: pnpm typecheck
+
+      - run: pnpm test
+
+      # API_URL absente : `env.ts` neutralise sa garde fail-fast pendant la phase de build.
+      - run: pnpm build

@@ -94,9 +94,9 @@ describe("addDays", () => {
     // Base du repère "semaine courante" dans WeekNav.
     const start = "2026-06-30";
     const end = addDays(start, 7);
-    expect(start >= start && start < end).toBe(true); // premier jour inclus
+    expect(end).toBe("2026-07-07"); // borne haute exclusive = jour +7
+    expect(start < end).toBe(true); // premier jour inclus
     expect(addDays(start, 6) < end).toBe(true); // dernier jour inclus
-    expect(end < end).toBe(false); // jour +7 exclu
   });
 });
 
