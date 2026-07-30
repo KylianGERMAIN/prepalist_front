@@ -31,7 +31,7 @@ jobs:
 
       - run: pnpm lint
 
-      # Doit précéder le typecheck : tsconfig inclut .next/types, absent en CI.
+      # Doit précéder le typecheck : génère .next/types et next-env.d.ts, absents en CI.
       - run: pnpm exec next typegen
 
       - run: pnpm typecheck

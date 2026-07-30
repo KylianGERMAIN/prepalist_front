@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactElement } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -73,6 +73,7 @@ export function MealDialog({
     register,
     handleSubmit,
     control,
+    watch,
     setValue,
     reset,
     formState: { errors, isSubmitting },
@@ -81,8 +82,6 @@ export function MealDialog({
     defaultValues: EMPTY,
   });
   const lines = useFieldArray({ control, name: "ingredients" });
-  // Pas le watch() de useForm : non mémoïsable, React Compiler skip tout le composant.
-  const rows = useWatch({ control, name: "ingredients" });
 
   // À l'ouverture : create → form vide ; edit → fetch du détail (la ligne n'a que le résumé,
   // sans ingredients) puis préremplissage. Pattern summary/detail : on charge le lourd au besoin.
@@ -194,8 +193,9 @@ export function MealDialog({
                 <div key={row.id} className="flex items-start gap-2">
                   <div className="flex-1">
                     <IngredientCombobox
-                      value={rows?.[index]?.ingredientId}
-                      label={rows?.[index]?.ingredientName || undefined}
+                      // eslint-disable-next-line react-hooks/incompatible-library -- React Compiler n'est pas activé sur ce projet
+                      value={watch(`ingredients.${index}.ingredientId`)}
+                      label={watch(`ingredients.${index}.ingredientName`) || undefined}
                       onSelect={(ing) => {
                         setValue(`ingredients.${index}.ingredientId`, ing.id, {
                           shouldValidate: true,
