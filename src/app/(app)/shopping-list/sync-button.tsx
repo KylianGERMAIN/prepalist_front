@@ -6,7 +6,7 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { syncShoppingList } from "./shopping-list-actions";
 
-export function SyncButton({ weekId }: { weekId: string }) {
+export function SyncButton() {
   const [pending, startTransition] = useTransition();
   return (
     <Button
@@ -15,7 +15,7 @@ export function SyncButton({ weekId }: { weekId: string }) {
       disabled={pending}
       onClick={() =>
         startTransition(async () => {
-          const res = await syncShoppingList(weekId);
+          const res = await syncShoppingList();
           if (res.ok) toast.success("Liste synchronisée depuis les plats");
           else toast.error(res.error);
         })

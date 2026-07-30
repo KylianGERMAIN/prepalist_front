@@ -1,4 +1,4 @@
-import type { Meal, WeekSlot } from "@/lib/models";
+import type { Meal, PlanSlot } from "@/lib/models";
 
 export type SlotAction =
   | { type: "clear"; slotId: string }
@@ -6,9 +6,9 @@ export type SlotAction =
 
 /** Reducer pur de l'état optimiste des créneaux : remplace (immutable) le slot ciblé. */
 export function slotsReducer(
-  state: WeekSlot[],
+  state: PlanSlot[],
   action: SlotAction,
-): WeekSlot[] {
+): PlanSlot[] {
   return state.map((s) => {
     if (s.id !== action.slotId) return s;
     if (action.type === "clear") return { ...s, meal: null, mealId: null };
@@ -21,21 +21,35 @@ export function slotsReducer(
   });
 }
 
-/** Ajoute n jours à une date ISO (YYYY-MM-DD) et renvoie la nouvelle date ISO, sans dérive de fuseau. */
-export function addDays(iso: string, n: number): string {
-  const d = new Date(`${iso}T00:00:00`);
-  d.setDate(d.getDate() + n);
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mm}-${dd}`;
+const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+
+/**
+ * Libellé d'un jour du plan : son nom, sans date. `startDate` sert d'ancre pour
+ * savoir sur quel jour de la semaine tombe l'index 0.
+ *
+ * Au-delà de 7 jours les noms se répètent : on suffixe le numéro de tour
+ * (« Mar +1 ») pour distinguer deux mardis du même plan.
+ */
+export function dayLabel(startDate: string, dayIndex: number): string {
+  const startDay = new Date(`${startDate}T00:00:00`).getDay();
+  const name = DAY_LABELS[(startDay + dayIndex) % 7];
+  const lap = Math.floor(dayIndex / 7);
+  return lap === 0 ? name : `${name} +${lap}`;
 }
 
-/** Date du jour au format ISO local (YYYY-MM-DD). */
-export function todayIso(): string {
-  const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${mm}-${dd}`;
+/**
+ * Index du jour courant dans le plan, ou `null` si aujourd'hui tombe en dehors
+ * (plan pas encore commencé, ou déjà écoulé).
+ */
+export function currentDayIndex(
+  startDate: string,
+  dayCount: number,
+): number | null {
+  const start = new Date(`${startDate}T00:00:00`);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diff = Math.round((today.getTime() - start.getTime()) / 86_400_000);
+  return diff >= 0 && diff < dayCount ? diff : null;
 }
 
 export const RECENT_DAYS = 7;

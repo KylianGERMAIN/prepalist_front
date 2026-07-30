@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { Meal, WeekSlot } from "@/lib/models";
-import { addDays, cookedRecently, slotsReducer, todayIso } from "./planner-utils";
+import type { Meal, PlanSlot } from "@/lib/models";
+import {
+  cookedRecently,
+  currentDayIndex,
+  dayLabel,
+  slotsReducer,
+} from "./planner-utils";
 
 const DAY = 86_400_000;
 
@@ -19,10 +24,10 @@ function meal(overrides: Partial<Meal> = {}): Meal {
   };
 }
 
-function slot(overrides: Partial<WeekSlot> = {}): WeekSlot {
+function slot(overrides: Partial<PlanSlot> = {}): PlanSlot {
   return {
     id: "s1",
-    date: "2026-06-29",
+    dayIndex: 0,
     slot: "LUNCH",
     mealId: null,
     meal: null,
@@ -70,30 +75,38 @@ describe("slotsReducer", () => {
   });
 });
 
-describe("addDays", () => {
-  it("ajoute une semaine (±7) sans dérive", () => {
-    expect(addDays("2026-06-30", 7)).toBe("2026-07-07");
-    expect(addDays("2026-06-30", -7)).toBe("2026-06-23");
+describe("dayLabel", () => {
+  // 2026-06-30 est un mardi.
+  it("nomme les jours à partir de startDate, sans date", () => {
+    expect(dayLabel("2026-06-30", 0)).toBe("Mar");
+    expect(dayLabel("2026-06-30", 1)).toBe("Mer");
+    expect(dayLabel("2026-06-30", 6)).toBe("Lun");
   });
 
-  it("passe la fin de mois", () => {
-    expect(addDays("2026-01-31", 1)).toBe("2026-02-01");
-    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
-  });
-
-  it("passe la fin d'année", () => {
-    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
-    expect(addDays("2027-01-01", -1)).toBe("2026-12-31");
-  });
-
-  it("gère une année bissextile (29 février)", () => {
-    expect(addDays("2028-02-28", 1)).toBe("2028-02-29");
+  it("désambiguïse au-delà de 7 jours (noms qui se répètent)", () => {
+    expect(dayLabel("2026-06-30", 7)).toBe("Mar +1");
+    expect(dayLabel("2026-06-30", 8)).toBe("Mer +1");
+    expect(dayLabel("2026-06-30", 14)).toBe("Mar +2");
   });
 });
 
-describe("todayIso", () => {
-  it("renvoie le format YYYY-MM-DD", () => {
-    expect(todayIso()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+describe("currentDayIndex", () => {
+  function isoDaysFromToday(n: number): string {
+    const d = new Date();
+    d.setDate(d.getDate() + n);
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  }
+
+  it("situe aujourd'hui dans le plan", () => {
+    expect(currentDayIndex(isoDaysFromToday(0), 7)).toBe(0);
+    expect(currentDayIndex(isoDaysFromToday(-3), 7)).toBe(3);
+  });
+
+  it("renvoie null hors des bornes du plan", () => {
+    expect(currentDayIndex(isoDaysFromToday(-7), 7)).toBeNull(); // écoulé
+    expect(currentDayIndex(isoDaysFromToday(1), 7)).toBeNull(); // pas commencé
   });
 });
 

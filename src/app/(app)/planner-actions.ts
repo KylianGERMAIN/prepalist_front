@@ -5,24 +5,20 @@ import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
 import type { MealSummary } from "@/lib/models";
 
-/** Crée une semaine (POST /weeks) ; sans startDate le back prend la semaine courante. */
-export async function createWeek(startDate?: string): Promise<ActionResult> {
+/** Remplit automatiquement les créneaux vides du plan (POST /plan/generate). */
+export async function generatePlan(): Promise<ActionResult> {
   const api = await serverApi();
-  const { error } = await api.POST("/weeks", {
-    body: startDate ? { startDate } : {},
-  });
+  const { error } = await api.POST("/plan/generate", {});
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/");
   revalidatePath("/shopping-list");
   return { ok: true };
 }
 
-/** Remplit automatiquement les créneaux de la semaine (POST /weeks/:id/generate). */
-export async function generateWeek(weekId: string): Promise<ActionResult> {
+/** Vide tous les créneaux et purge la liste de courses (DELETE /plan/slots). */
+export async function clearPlan(): Promise<ActionResult> {
   const api = await serverApi();
-  const { error } = await api.POST("/weeks/{id}/generate", {
-    params: { path: { id: weekId } },
-  });
+  const { error } = await api.DELETE("/plan/slots", {});
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/");
   revalidatePath("/shopping-list");
@@ -31,7 +27,6 @@ export async function generateWeek(weekId: string): Promise<ActionResult> {
 
 /** Assigne (ou vide si mealId null) un repas sur un créneau, avec portions optionnelles. */
 export async function assignSlot(
-  weekId: string,
   slotId: string,
   mealId: string | null,
   servings?: number,
@@ -39,8 +34,8 @@ export async function assignSlot(
   const api = await serverApi();
   const body: { mealId?: string | null; servings?: number } = { mealId };
   if (servings !== undefined) body.servings = servings;
-  const { error } = await api.PATCH("/weeks/{id}/slots/{slotId}", {
-    params: { path: { id: weekId, slotId } },
+  const { error } = await api.PATCH("/plan/slots/{slotId}", {
+    params: { path: { slotId } },
     body,
   });
   if (error) return { ok: false, error: errorText(error) };

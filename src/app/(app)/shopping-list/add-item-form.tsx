@@ -20,7 +20,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-export function AddItemForm({ weekId }: { weekId: string }) {
+export function AddItemForm() {
   const {
     register,
     handleSubmit,
@@ -36,7 +36,7 @@ export function AddItemForm({ weekId }: { weekId: string }) {
     if (values.quantity && !Number.isNaN(values.quantity)) payload.quantity = values.quantity;
     if (values.unit.trim()) payload.unit = values.unit.trim();
 
-    const res = await addManualItem(weekId, payload);
+    const res = await addManualItem(payload);
     if (res.ok) {
       toast.success("Article ajouté");
       reset();

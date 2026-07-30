@@ -14,10 +14,8 @@ import { AddItemForm } from "./add-item-form";
 import { EditItemDialog } from "./edit-item-dialog";
 
 export function ShoppingListView({
-  weekId,
   items,
 }: {
-  weekId: string;
   items: ShoppingListItem[];
 }) {
   const [optimisticItems, dispatch] = useOptimistic(items, shoppingItemsReducer);
@@ -30,14 +28,14 @@ export function ShoppingListView({
   function handleToggle(item: ShoppingListItem) {
     startTransition(async () => {
       dispatch({ type: "toggle", itemId: item.id });
-      const res = await toggleChecked(weekId, item.id, !item.checked);
+      const res = await toggleChecked(item.id, !item.checked);
       if (!res.ok) toast.error(res.error);
     });
   }
 
   function handleDelete(item: ShoppingListItem) {
     startTransition(async () => {
-      const res = await deleteItem(weekId, item.id);
+      const res = await deleteItem(item.id);
       if (res.ok) toast.success("Article supprimé");
       else toast.error(res.error);
     });
@@ -101,7 +99,6 @@ export function ShoppingListView({
               </label>
               <div className="flex items-center gap-0.5">
                 <EditItemDialog
-                  weekId={weekId}
                   item={item}
                   trigger={
                     <Button variant="ghost" size="sm" title="Modifier" aria-label="Modifier l'article">
@@ -127,7 +124,7 @@ export function ShoppingListView({
       </ul>
       )}
 
-      <AddItemForm weekId={weekId} />
+      <AddItemForm />
     </div>
   );
 }
