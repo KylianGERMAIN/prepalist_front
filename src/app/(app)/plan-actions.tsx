@@ -1,9 +1,19 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Eraser, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { clearPlan, generatePlan } from "./planner-actions";
 
 export function GeneratePlanButton() {
@@ -28,25 +38,53 @@ export function GeneratePlanButton() {
 }
 
 export function ClearPlanButton() {
+  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  function confirmClear() {
+    startTransition(async () => {
+      const res = await clearPlan();
+      if (res.ok) {
+        setOpen(false);
+        toast.success("Plan vidé");
+      } else {
+        toast.error(res.error);
+      }
+    });
+  }
+
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      disabled={pending}
-      onClick={() => {
-        // Destructif et sans annulation : la liste de courses part aussi, items
-        // manuels compris.
-        if (!confirm("Vider le plan et la liste de courses ?")) return;
-        startTransition(async () => {
-          const res = await clearPlan();
-          if (res.ok) toast.success("Plan vidé");
-          else toast.error(res.error);
-        });
-      }}
-    >
-      <Eraser className="mr-2 size-4" />
-      {pending ? "Vidage…" : "Vider"}
-    </Button>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger
+        render={
+          <Button variant="ghost" size="sm">
+            <Eraser className="mr-2 size-4" />
+            Vider
+          </Button>
+        }
+      />
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Vider le plan ?</DialogTitle>
+          <DialogDescription>
+            Tous les créneaux repassent à vide et la liste de courses est
+            supprimée, y compris les items ajoutés à la main. Cette action est
+            sans annulation.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="gap-2 sm:justify-between">
+          <DialogClose
+            render={
+              <Button variant="ghost" disabled={pending}>
+                Annuler
+              </Button>
+            }
+          />
+          <Button variant="destructive" disabled={pending} onClick={confirmClear}>
+            {pending ? "Vidage…" : "Vider"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
