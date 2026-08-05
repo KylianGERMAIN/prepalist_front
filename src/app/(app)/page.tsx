@@ -1,46 +1,24 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WeekGrid } from "./week-grid";
-import { WeekNav } from "./week-nav";
-import { CreateWeekButton } from "./week-actions";
-import { resolveWeek } from "./week-resolver";
-import { todayIso } from "./planner-utils";
+import { serverApi } from "@/lib/api";
+import { PlanGrid } from "./plan-grid";
+import { todayInAppTimeZone } from "./planner-today";
+import { dayIndexOf } from "./planner-utils";
 
-export default async function PlannerPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ week?: string }>;
-}) {
-  const { week: selectedRaw } = await searchParams;
-  const selected = selectedRaw || undefined; // un ?week= vide n'est pas une date : on retombe sur la courante
-  const { week, status } = await resolveWeek(selected);
+export default async function PlannerPage() {
+  const api = await serverApi();
+  // Le back crée le plan à la volée : pas d'état vide à gérer, pas de date à passer.
+  const { data: plan } = await api.GET("/plan", {});
 
-  // On ne bascule en « état vide » que sur un vrai 404 (le back ne crée pas la semaine).
-  // Toute autre erreur (500, etc.) doit se voir, pas se déguiser en « aucune semaine ».
-  if (!week && status !== 404) {
-    return <p className="text-destructive">Impossible de charger la semaine.</p>;
+  if (!plan) {
+    return <p className="text-destructive">Impossible de charger le plan.</p>;
   }
 
-  if (!week) {
-    return (
-      <div className="space-y-4">
-        <WeekNav startDate={selected ?? todayIso()} basePath="/" />
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Aucune semaine planifiée</CardTitle>
-            <CardDescription>Crée cette semaine pour planifier tes repas.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CreateWeekButton startDate={selected} />
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <WeekNav startDate={week.startDate} basePath="/" />
-      <WeekGrid week={week} />
-    </div>
+  // Résolu ici et non dans la grille : le fuseau de l'app fait foi, pas celui du
+  // navigateur, sinon SSR et hydratation peuvent désigner deux jours différents.
+  const todayIndex = dayIndexOf(
+    plan.startDate,
+    todayInAppTimeZone(),
+    plan.dayCount,
   );
+
+  return <PlanGrid plan={plan} todayIndex={todayIndex} />;
 }

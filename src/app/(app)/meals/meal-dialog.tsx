@@ -193,6 +193,7 @@ export function MealDialog({
                 <div key={row.id} className="flex items-start gap-2">
                   <div className="flex-1">
                     <IngredientCombobox
+                      // eslint-disable-next-line react-hooks/incompatible-library -- React Compiler n'est pas activé sur ce projet
                       value={watch(`ingredients.${index}.ingredientId`)}
                       label={watch(`ingredients.${index}.ingredientName`) || undefined}
                       onSelect={(ing) => {

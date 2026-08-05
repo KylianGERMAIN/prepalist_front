@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
-import type { Meal, WeekSlot } from "@/lib/models";
-import { addDays, cookedRecently, slotsReducer, todayIso } from "./planner-utils";
+import type { Meal, PlanSlot } from "@/lib/models";
+import {
+  cookedRecently,
+  dayIndexOf,
+  dayLabel,
+  slotsReducer,
+} from "./planner-utils";
 
 const DAY = 86_400_000;
 
@@ -19,10 +24,10 @@ function meal(overrides: Partial<Meal> = {}): Meal {
   };
 }
 
-function slot(overrides: Partial<WeekSlot> = {}): WeekSlot {
+function slot(overrides: Partial<PlanSlot> = {}): PlanSlot {
   return {
     id: "s1",
-    date: "2026-06-29",
+    dayIndex: 0,
     slot: "LUNCH",
     mealId: null,
     meal: null,
@@ -70,39 +75,38 @@ describe("slotsReducer", () => {
   });
 });
 
-describe("addDays", () => {
-  it("ajoute une semaine (±7) sans dérive", () => {
-    expect(addDays("2026-06-30", 7)).toBe("2026-07-07");
-    expect(addDays("2026-06-30", -7)).toBe("2026-06-23");
+describe("dayLabel", () => {
+  // 2026-06-30 est un mardi.
+  it("nomme les jours à partir de startDate, sans date", () => {
+    expect(dayLabel("2026-06-30", 0)).toBe("Mar");
+    expect(dayLabel("2026-06-30", 1)).toBe("Mer");
+    expect(dayLabel("2026-06-30", 6)).toBe("Lun");
   });
 
-  it("passe la fin de mois", () => {
-    expect(addDays("2026-01-31", 1)).toBe("2026-02-01");
-    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
-  });
-
-  it("passe la fin d'année", () => {
-    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
-    expect(addDays("2027-01-01", -1)).toBe("2026-12-31");
-  });
-
-  it("gère une année bissextile (29 février)", () => {
-    expect(addDays("2028-02-28", 1)).toBe("2028-02-29");
-  });
-
-  it("borne isCurrent : la semaine [startDate, startDate+7) couvre 7 jours", () => {
-    // Base du repère "semaine courante" dans WeekNav.
-    const start = "2026-06-30";
-    const end = addDays(start, 7);
-    expect(start >= start && start < end).toBe(true); // premier jour inclus
-    expect(addDays(start, 6) < end).toBe(true); // dernier jour inclus
-    expect(end < end).toBe(false); // jour +7 exclu
+  it("désambiguïse au-delà de 7 jours (noms qui se répètent)", () => {
+    expect(dayLabel("2026-06-30", 7)).toBe("Mar +1");
+    expect(dayLabel("2026-06-30", 8)).toBe("Mer +1");
+    expect(dayLabel("2026-06-30", 14)).toBe("Mar +2");
   });
 });
 
-describe("todayIso", () => {
-  it("renvoie le format YYYY-MM-DD", () => {
-    expect(todayIso()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+describe("dayIndexOf", () => {
+  it("situe un jour dans les bornes du plan", () => {
+    expect(dayIndexOf("2026-06-30", "2026-06-30", 7)).toBe(0);
+    expect(dayIndexOf("2026-06-30", "2026-07-03", 7)).toBe(3);
+    expect(dayIndexOf("2026-06-30", "2026-07-06", 7)).toBe(6);
+  });
+
+  it("renvoie null hors des bornes", () => {
+    expect(dayIndexOf("2026-06-30", "2026-06-29", 7)).toBeNull(); // pas commencé
+    expect(dayIndexOf("2026-06-30", "2026-07-07", 7)).toBeNull(); // écoulé
+  });
+
+  // Garde anti-régression : un retour à un calcul en heure locale ferait dériver
+  // ces deux cas, l'arithmétique UTC les rend exacts par construction.
+  it("reste exact autour des changements d'heure", () => {
+    expect(dayIndexOf("2026-03-27", "2026-03-30", 7)).toBe(3); // +1 h
+    expect(dayIndexOf("2026-10-23", "2026-10-26", 7)).toBe(3); // −1 h
   });
 });
 

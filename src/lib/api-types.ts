@@ -11,7 +11,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Readiness check (API + base de données) */
+        /** Liveness check (process uniquement) */
         get: operations["HealthController_check"];
         put?: never;
         post?: never;
@@ -162,15 +162,15 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/weeks/current": {
+    "/plan": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Semaine courante de l’utilisateur */
-        get: operations["WeeksController_findCurrent"];
+        /** Plan courant de l’utilisateur, créé vide au premier accès */
+        get: operations["PlanController_find"];
         put?: never;
         post?: never;
         delete?: never;
@@ -179,25 +179,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/weeks": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Semaine contenant une date (jour de courses) */
-        get: operations["WeeksController_findByDate"];
-        put?: never;
-        /** Crée une semaine (14 créneaux vides) */
-        post: operations["WeeksController_create"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/weeks/{id}/generate": {
+    "/plan/generate": {
         parameters: {
             query?: never;
             header?: never;
@@ -206,15 +188,15 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Génère la semaine par tirage pondéré */
-        post: operations["WeeksController_generate"];
+        /** Remplit les créneaux vides par tirage pondéré */
+        post: operations["PlanController_generate"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/weeks/{id}/slots/{slotId}": {
+    "/plan/slots/{slotId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -228,18 +210,35 @@ export interface paths {
         options?: never;
         head?: never;
         /** Met à jour un créneau (repas / portions) */
-        patch: operations["WeeksController_updateSlot"];
+        patch: operations["PlanController_updateSlot"];
         trace?: never;
     };
-    "/weeks/{id}/shopping-list": {
+    "/plan/slots": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        /** Liste de courses matérialisée d’une semaine (init paresseuse) */
-        get: operations["ShoppingListController_forWeek"];
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Vide les créneaux du plan et les items dérivés de la liste (les items manuels sont conservés) */
+        delete: operations["PlanController_clear"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plan/shopping-list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Liste de courses matérialisée du plan (init paresseuse) */
+        get: operations["ShoppingListController_forPlan"];
         put?: never;
         post?: never;
         delete?: never;
@@ -248,7 +247,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/weeks/{id}/shopping-list/sync": {
+    "/plan/shopping-list/sync": {
         parameters: {
             query?: never;
             header?: never;
@@ -265,7 +264,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/weeks/{id}/shopping-list/items": {
+    "/plan/shopping-list/items": {
         parameters: {
             query?: never;
             header?: never;
@@ -282,7 +281,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/weeks/{id}/shopping-list/items/{itemId}": {
+    "/plan/shopping-list/items/{itemId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -398,26 +397,25 @@ export interface components {
             tags?: string[];
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
-        WeekSlot: {
+        PlanSlot: {
             id: string;
-            date: string;
+            /** @description Rang du jour dans le plan : 0 = premier jour. */
+            dayIndex: number;
             /** @enum {string} */
             slot: "LUNCH" | "DINNER";
             mealId: string | null;
             meal: components["schemas"]["Meal"] | null;
             servings: number;
         };
-        Week: {
+        Plan: {
             id: string;
-            /** @description Début de semaine = jour de courses (YYYY-MM-DD) */
+            /** @description Premier jour du plan (YYYY-MM-DD). Ancre d’affichage : sert à libeller les jours et à situer le jour courant, jamais à retrouver un plan. */
             startDate: string;
+            /** @description Nombre de jours couverts par le plan. */
+            dayCount: number;
             /** Format: date-time */
             createdAt: string;
-            slots: components["schemas"]["WeekSlot"][];
-        };
-        CreateWeekDto: {
-            /** @description Date calendaire dans la semaine voulue (YYYY-MM-DD) ; ramenée au début de semaine (jour de courses). Défaut : semaine courante. */
-            startDate?: string;
+            slots: components["schemas"]["PlanSlot"][];
         };
         UpdateSlotDto: {
             /** @description Repas à assigner, ou null pour vider le créneau */
@@ -435,8 +433,8 @@ export interface components {
             checked: boolean;
         };
         ShoppingListDto: {
-            weekId: string;
-            /** @description Début de semaine = jour de courses (YYYY-MM-DD) */
+            planId: string;
+            /** @description Premier jour du plan (YYYY-MM-DD) */
             startDate: string;
             items: components["schemas"]["ShoppingListItemDto"][];
         };
@@ -771,7 +769,7 @@ export interface operations {
             };
         };
     };
-    WeeksController_findCurrent: {
+    PlanController_find: {
         parameters: {
             query?: never;
             header?: never;
@@ -785,17 +783,14 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Week"];
+                    "application/json": components["schemas"]["Plan"];
                 };
             };
         };
     };
-    WeeksController_findByDate: {
+    PlanController_generate: {
         parameters: {
-            query: {
-                /** @description Date calendaire (YYYY-MM-DD) ; ramenée au début de semaine (jour de courses de l’utilisateur). */
-                startDate: string;
-            };
+            query?: never;
             header?: never;
             path?: never;
             cookie?: never;
@@ -807,61 +802,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Week"];
+                    "application/json": components["schemas"]["Plan"];
                 };
             };
         };
     };
-    WeeksController_create: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["CreateWeekDto"];
-            };
-        };
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Week"];
-                };
-            };
-        };
-    };
-    WeeksController_generate: {
+    PlanController_updateSlot: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["Week"];
-                };
-            };
-        };
-    };
-    WeeksController_updateSlot: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
                 slotId: string;
             };
             cookie?: never;
@@ -877,18 +827,35 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Week"];
+                    "application/json": components["schemas"]["Plan"];
                 };
             };
         };
     };
-    ShoppingListController_forWeek: {
+    PlanController_clear: {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Plan"];
+                };
             };
+        };
+    };
+    ShoppingListController_forPlan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -907,9 +874,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody?: never;
@@ -928,9 +893,7 @@ export interface operations {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
         requestBody: {
@@ -954,7 +917,6 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
                 itemId: string;
             };
             cookie?: never;
@@ -974,7 +936,6 @@ export interface operations {
             query?: never;
             header?: never;
             path: {
-                id: string;
                 itemId: string;
             };
             cookie?: never;

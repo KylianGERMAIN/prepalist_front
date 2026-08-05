@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import Link from "next/link";
 import { Settings } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -15,10 +14,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Link href="/" className="font-heading text-xl tracking-tight">
               PrepaList<span className="text-accent-foreground">.</span>
             </Link>
-            {/* Suspense : useSearchParams (conservation du ?week=) bail out de la génération statique. */}
-            <Suspense>
-              <NavLinks />
-            </Suspense>
+            <NavLinks />
           </div>
           <div className="flex items-center gap-1">
             <Link
@@ -38,9 +34,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
-      <Suspense>
-        <BottomNav />
-      </Suspense>
+      <BottomNav />
     </div>
   );
 }

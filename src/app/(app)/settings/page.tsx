@@ -21,10 +21,11 @@ export default async function SettingsPage() {
       <h1 className="font-heading text-2xl tracking-tight">Réglages</h1>
       <Card className="max-w-md">
         <CardHeader>
-          <CardTitle>Semaine</CardTitle>
+          <CardTitle>Jour de courses</CardTitle>
           <CardDescription>
-            Le jour de courses borne ta semaine : elle va du dîner de ce jour au
-            déjeuner du même jour la semaine suivante.
+            Premier jour de ton plan : il sert à nommer les colonnes du planning.
+            Le changement s’applique au prochain plan, c’est-à-dire au prochain
+            vidage — ton plan en cours n’est pas déplacé.
           </CardDescription>
         </CardHeader>
         <CardContent>

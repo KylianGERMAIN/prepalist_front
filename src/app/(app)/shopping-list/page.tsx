@@ -1,65 +1,30 @@
-import Link from "next/link";
 import { serverApi } from "@/lib/api";
-import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { WeekNav } from "../week-nav";
-import { resolveWeek } from "../week-resolver";
-import { todayIso } from "../planner-utils";
 import { ShoppingListView } from "./shopping-list-view";
 import { SyncButton } from "./sync-button";
 
-export default async function ShoppingListPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ week?: string }>;
-}) {
-  const { week: selectedRaw } = await searchParams;
-  const selected = selectedRaw || undefined; // un ?week= vide n'est pas une date : on retombe sur la courante
-  const plannerHref = selected ? `/?week=${selected}` : "/";
-  const { week, status } = await resolveWeek(selected);
-
-  // Même garde que la page planner : seul un vrai 404 = "pas de semaine", le reste est une erreur.
-  if (!week && status !== 404) {
-    return <p className="text-destructive">Impossible de charger la semaine.</p>;
-  }
-
-  if (!week) {
-    return (
-      <div className="space-y-4">
-        <WeekNav startDate={selected ?? todayIso()} basePath="/shopping-list" />
-        <Card className="max-w-md">
-          <CardHeader>
-            <CardTitle>Pas de semaine planifiée</CardTitle>
-            <CardDescription>Crée cette semaine et planifie des repas pour générer ta liste.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Link href={plannerHref} className={buttonVariants()}>
-              Aller au planning
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  // Ici pas de 404 "métier" à distinguer (la semaine existe) : toute erreur est une vraie erreur.
+export default async function ShoppingListPage() {
+  // Le plan existe toujours (créé à la volée) et la liste s'initialise
+  // paresseusement au premier GET : aucun état vide à distinguer d'une erreur.
   const api = await serverApi();
-  const { data: list, error } = await api.GET("/weeks/{id}/shopping-list", {
-    params: { path: { id: week.id } },
-  });
+  const { data: list } = await api.GET("/plan/shopping-list", {});
 
-  if (error || !list) {
-    return <p className="text-destructive">Impossible de charger la liste de courses.</p>;
+  if (!list) {
+    return (
+      <p className="text-destructive">
+        Impossible de charger la liste de courses.
+      </p>
+    );
   }
 
   return (
     <div className="space-y-4">
-      <WeekNav startDate={week.startDate} basePath="/shopping-list" />
       <div className="flex items-center justify-between">
-        <h1 className="font-heading text-2xl font-medium tracking-tight">Liste de courses</h1>
-        <SyncButton weekId={week.id} />
+        <h1 className="font-heading text-2xl font-medium tracking-tight">
+          Liste de courses
+        </h1>
+        <SyncButton />
       </div>
-      <ShoppingListView weekId={week.id} items={list.items} />
+      <ShoppingListView items={list.items} />
     </div>
   );
 }

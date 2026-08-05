@@ -12,6 +12,5 @@ export async function updateShoppingDay(
   const { error } = await api.PATCH("/users/me", { body: { shoppingDay } });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/settings");
-  revalidatePath("/"); // le début de la semaine courante dépend du jour de courses
   return { ok: true };
 }
