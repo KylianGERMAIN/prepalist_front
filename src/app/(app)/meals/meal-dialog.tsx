@@ -83,8 +83,8 @@ export function MealDialog({
   });
   const lines = useFieldArray({ control, name: "ingredients" });
 
-  // À l'ouverture : create → form vide ; edit → fetch du détail (la ligne n'a que le résumé,
-  // sans ingredients) puis préremplissage. Pattern summary/detail : on charge le lourd au besoin.
+  // En édition, un fetch du détail est nécessaire : la ligne de liste n'est qu'un
+  // résumé, sans les `ingredients`.
   async function handleOpenChange(next: boolean) {
     setOpen(next);
     if (!next) return;

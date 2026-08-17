@@ -102,8 +102,7 @@ describe("dayIndexOf", () => {
     expect(dayIndexOf("2026-06-30", "2026-07-07", 7)).toBeNull(); // écoulé
   });
 
-  // Garde anti-régression : un retour à un calcul en heure locale ferait dériver
-  // ces deux cas, l'arithmétique UTC les rend exacts par construction.
+  // Un retour à un calcul en heure locale ferait dériver ces deux cas.
   it("reste exact autour des changements d'heure", () => {
     expect(dayIndexOf("2026-03-27", "2026-03-30", 7)).toBe(3); // +1 h
     expect(dayIndexOf("2026-10-23", "2026-10-26", 7)).toBe(3); // −1 h

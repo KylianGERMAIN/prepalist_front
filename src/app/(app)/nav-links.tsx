@@ -11,12 +11,11 @@ const LINKS = [
   { href: "/shopping-list", label: "Courses", icon: ShoppingCart },
 ] as const;
 
-/** Égalité de route stricte pour "/" (sinon il matcherait tout), prefix sinon. */
+// Égalité stricte sur "/" : en préfixe il matcherait toutes les routes.
 function isActive(pathname: string, href: string) {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-/** Liens horizontaux de la barre supérieure (md+). Actif souligné en primary olive. */
 export function NavLinks() {
   const pathname = usePathname();
   return (
@@ -42,7 +41,6 @@ export function NavLinks() {
   );
 }
 
-/** Bottom-nav fixe (mobile only). Item actif marqué par un fond accent miel désaturé. */
 export function BottomNav() {
   const pathname = usePathname();
   return (

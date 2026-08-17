@@ -16,7 +16,6 @@ import { cn } from "@/lib/utils";
 import type { MealSummary } from "@/lib/models";
 import { searchMeals } from "./planner-actions";
 
-/** Combobox de sélection d'un repas (recherche serveur debouncée), pour assigner un créneau. */
 export function MealCombobox({
   value,
   label,
@@ -33,7 +32,7 @@ export function MealCombobox({
 
   useEffect(() => {
     if (!open) return;
-    // À l'ouverture (query vide) on charge les repas récents (limit 20 côté action) ; sinon on filtre.
+    // Query vide = les repas récents, pas une liste vide.
     let stale = false;
     const timer = setTimeout(() => {
       startTransition(async () => {

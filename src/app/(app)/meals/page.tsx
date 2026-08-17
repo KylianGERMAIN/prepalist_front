@@ -80,7 +80,7 @@ export default async function MealsPage({
   );
 }
 
-/** Construit l'URL d'une page en conservant les filtres courants. */
+/** Conserve les filtres courants dans l'URL. */
 function pageHref(sp: SearchParams, page: number): string {
   const q = new URLSearchParams();
   if (sp.name) q.set("name", sp.name);
