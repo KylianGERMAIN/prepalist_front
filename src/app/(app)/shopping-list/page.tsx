@@ -3,8 +3,8 @@ import { ShoppingListView } from "./shopping-list-view";
 import { SyncButton } from "./sync-button";
 
 export default async function ShoppingListPage() {
-  // Le plan existe toujours (créé à la volée) et la liste s'initialise
-  // paresseusement au premier GET : aucun état vide à distinguer d'une erreur.
+  // Le back crée le plan et initialise la liste au premier GET : pas d'état vide
+  // à distinguer d'une erreur.
   const api = await serverApi();
   const { data: list } = await api.GET("/plan/shopping-list", {});
 

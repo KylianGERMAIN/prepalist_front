@@ -6,7 +6,7 @@ import { Star } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
-/** Barre de filtres : pilote les query params lus par la page serveur (`/meals?name=&tag=&favorite=`). */
+/** Pilote les query params que la page serveur relit (`?name=&tag=&favorite=`). */
 export function MealsFilters() {
   const router = useRouter();
   const sp = useSearchParams();

@@ -11,16 +11,13 @@ import { API_URL } from "@/lib/env";
 const PUBLIC_PATHS = ["/login", "/register"];
 
 /**
- * Garde d'authentification + refresh transparent (Proxy = ex-Middleware, renommé en Next 16).
- * - cookie access présent → laisse passer (et renvoie les pages publiques vers l'accueil).
- * - access absent mais refresh présent → tente un refresh côté back, repose les cookies sur la réponse.
- * - aucun token valide → redirige vers /login (sauf pages publiques).
+ * Proxy = ex-Middleware, renommé en Next 16.
  *
- * Le refresh vit ici (et pas dans les Server Components) car seul un proxy/Route Handler
- * peut réécrire un cookie : un SC ne peut pas poser de cookie pendant le render.
+ * Le refresh vit ici et non dans un Server Component : un SC ne peut pas poser de
+ * cookie pendant le render.
  *
- * ponytail: refresh = un fetch back quand l'access a expiré (~toutes les 15 min), acceptable.
- * Si la latence proxy gêne, passer à une vérif d'exp locale du JWT (decode sans I/O) avant le fetch.
+ * ponytail: un fetch back à chaque expiration d'access (~15 min). Décoder l'`exp` du
+ * JWT sans I/O si la latence proxy gêne.
  */
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;

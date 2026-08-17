@@ -1,15 +1,11 @@
-/**
- * Validation des identifiants à la frontière de confiance (Route Handlers).
- * Le back revalide via class-validator ; cette garde évite un aller-retour réseau
- * sur un corps manifestement invalide et normalise les messages côté front.
- */
 export class CredentialsError extends Error {}
 
 /**
- * Parse et valide un corps de requête en couple email/mot de passe.
- * @param body corps JSON brut (non fiable)
- * @param minPassword longueur minimale du mot de passe (8 à l'inscription, 1 à la connexion
- *   — on ne réimpose pas la règle d'inscription au login, un compte legacy pourrait y échouer)
+ * Garde de commodité sur un corps non fiable, pas la validation de référence : le
+ * back revalide tout via class-validator.
+ *
+ * @param minPassword 8 à l'inscription, 1 à la connexion : réimposer la règle
+ *   d'inscription au login bloquerait un compte plus ancien qu'elle.
  */
 export function parseCredentials(
   body: unknown,

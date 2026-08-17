@@ -10,10 +10,8 @@ import { SlotCell } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
 import { dayLabel, slotsReducer } from "./planner-utils";
 
-/**
- * Branche défensive : `Map.get` rend `PlanSlot | undefined`, et le back crée
- * toujours les deux créneaux de chaque jour. Placeholder passif, jamais vu.
- */
+// Inatteignable en pratique : le back crée toujours les deux créneaux d'un jour.
+// N'existe que parce que `Map.get` rend `PlanSlot | undefined`.
 function EmptySlot({ moment }: { moment: PlanSlot["slot"] }) {
   return (
     <div className="flex min-h-16 flex-1 items-start gap-1 rounded-md border border-dashed border-border p-2 text-xs text-muted-foreground opacity-60">
@@ -81,7 +79,6 @@ export function PlanGrid({
     });
   }
 
-  // Index des créneaux par jour + moment, pour retrouver le slot d'une cellule.
   const byKey = new Map<string, PlanSlot>();
   for (const slot of optimisticSlots) {
     byKey.set(`${slot.dayIndex}_${slot.slot}`, slot);
@@ -103,8 +100,7 @@ export function PlanGrid({
           const isToday = dayIndex === todayIndex;
           const lunch = byKey.get(`${dayIndex}_LUNCH`);
           const dinner = byKey.get(`${dayIndex}_DINNER`);
-          // Report proposé seulement vers un midi de lendemain qui existe ET est libre
-          // (pas d'écrasement silencieux, et rien le dernier jour du plan).
+          // Report proposé seulement vers un midi libre : pas d'écrasement silencieux.
           const nextLunch = byKey.get(`${dayIndex + 1}_LUNCH`);
           const canDuplicate = !!nextLunch && !nextLunch.meal;
           return (

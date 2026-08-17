@@ -8,12 +8,9 @@ import { API_URL } from "./env";
 
 const baseUrl = API_URL;
 
-/**
- * Si le back rejette le token (401) alors que le cookie access est présent et non expiré
- * (clé JWT tournée, compte supprimé...), le proxy ne peut pas le détecter. On renvoie vers
- * le Route Handler de logout (GET) qui purge les cookies et redirige vers /login — évite
- * que l'utilisateur reste coincé sur un écran d'erreur avec une session morte.
- */
+// Rattrape ce que le proxy ne voit pas : un cookie access non expiré que le back
+// rejette quand même (clé JWT tournée, compte supprimé). Sans ça, session morte et
+// écran d'erreur.
 const handle401: Middleware = {
   onResponse({ response }) {
     if (response.status === 401) {
@@ -24,11 +21,8 @@ const handle401: Middleware = {
 };
 
 /**
- * Client API typé (openapi-fetch) pour Server Components et Server Actions.
- * Injecte le cookie access en `Authorization: Bearer` — le navigateur ne portant
- * jamais le token (httpOnly), c'est le serveur qui le relaie au back.
- *
- * À instancier par requête (le token est lu au moment de l'appel).
+ * À instancier par requête : le token est lu à l'appel.
+ * Le cookie étant httpOnly, c'est le serveur qui relaie le Bearer au back.
  */
 export async function serverApi() {
   const token = (await cookies()).get(ACCESS_COOKIE)?.value;

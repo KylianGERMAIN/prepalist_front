@@ -6,21 +6,18 @@ import { type ActionResult, errorText } from "@/lib/action-result";
 import type { MealSummary } from "@/lib/models";
 
 /**
- * Remplit les créneaux vides du plan, puis resynchronise la liste de courses.
+ * Ne remplit que les créneaux vides : une assignation manuelle n'est jamais écrasée.
  *
- * La synchro est explicite ici parce que l'init paresseuse du back ne se
- * déclenche que sur une liste totalement vide : un seul item manuel survivant
- * suffirait à ce que les ingrédients du nouveau plan n'apparaissent jamais.
+ * Synchronise ensuite la liste explicitement, car l'init paresseuse du back n'agit
+ * que sur une liste vide : un seul item manuel survivant masquerait le nouveau plan.
  */
 export async function generatePlan(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/generate", {});
   if (error) return { ok: false, error: errorText(error) };
 
-  // La génération est acquise en base : on révalide dans tous les cas, y compris
-  // si la resynchronisation échoue, sinon l'écran resterait sur l'ancien plan.
-  // Le catch couvre le rejet réseau (back tombé entre les deux appels), qui
-  // sinon remonterait jusqu'à error.tsx alors que le plan est bien généré.
+  // La génération est déjà acquise en base : un rejet réseau de la synchro (back
+  // tombé entre les deux appels) ne doit pas remonter jusqu'à error.tsx.
   const synced = await api
     .POST("/plan/shopping-list/sync", {})
     .then((res) => !res.error)
@@ -39,7 +36,7 @@ export async function generatePlan(): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Vide tous les créneaux et les items dérivés ; les items manuels sont conservés. */
+/** Réancre `startDate` sur le jour de courses — seul appel qui le déplace. Les items manuels survivent. */
 export async function clearPlan(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.DELETE("/plan/slots", {});
@@ -49,7 +46,7 @@ export async function clearPlan(): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Assigne (ou vide si mealId null) un repas sur un créneau, avec portions optionnelles. */
+/** `mealId` à `null` vide le créneau. */
 export async function assignSlot(
   slotId: string,
   mealId: string | null,
@@ -68,7 +65,6 @@ export async function assignSlot(
   return { ok: true };
 }
 
-/** Recherche de repas (résumé) pour la combobox d'assignation d'un créneau. */
 export async function searchMeals(name: string): Promise<MealSummary[]> {
   const api = await serverApi();
   const { data } = await api.GET("/meals", {
