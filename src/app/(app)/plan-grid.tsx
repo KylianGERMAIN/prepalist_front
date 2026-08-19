@@ -4,7 +4,7 @@ import { useOptimistic, useTransition } from "react";
 import { Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import type { Meal, Plan, PlanSlot } from "@/lib/models";
+import type { MealSummary, Plan, PlanSlot } from "@/lib/models";
 import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
 import { SlotCell } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
@@ -34,7 +34,7 @@ export function PlanGrid({
   const [optimisticSlots, dispatch] = useOptimistic(plan.slots, slotsReducer);
   const [, startTransition] = useTransition();
 
-  function handleUndo(slotId: string, meal: Meal, servings: number) {
+  function handleUndo(slotId: string, meal: MealSummary, servings: number) {
     startTransition(async () => {
       dispatch({ type: "assign", slotId, meal, servings });
       const res = await assignSlot(slotId, meal.id, servings);

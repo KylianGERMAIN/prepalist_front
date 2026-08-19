@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Meal, PlanSlot } from "@/lib/models";
+import type { MealSummary, PlanSlot } from "@/lib/models";
 import {
   cookedRecently,
   dayIndexOf,
@@ -9,7 +9,7 @@ import {
 
 const DAY = 86_400_000;
 
-function meal(overrides: Partial<Meal> = {}): Meal {
+function meal(overrides: Partial<MealSummary> = {}): MealSummary {
   return {
     id: "m1",
     name: "Chili",
@@ -19,7 +19,6 @@ function meal(overrides: Partial<Meal> = {}): Meal {
     timesCooked: 0,
     tags: [],
     createdAt: "2026-01-01T00:00:00.000Z",
-    ingredients: [],
     ...overrides,
   };
 }

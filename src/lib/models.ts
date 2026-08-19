@@ -15,8 +15,9 @@ export type MealIngredientInput = components["schemas"]["MealIngredientDto"];
 export type Me = components["schemas"]["MeDto"];
 
 /** Un seul par utilisateur. */
-export type Plan = components["schemas"]["Plan"];
-export type PlanSlot = components["schemas"]["PlanSlot"];
+export type Plan = components["schemas"]["PlanDto"];
+/** `meal` est un résumé : les créneaux ne portent pas les `ingredients`. */
+export type PlanSlot = components["schemas"]["PlanSlotDto"];
 
 export type ShoppingList = components["schemas"]["ShoppingListDto"];
 export type ShoppingListItem = components["schemas"]["ShoppingListItemDto"];
