@@ -397,17 +397,17 @@ export interface components {
             tags?: string[];
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
-        PlanSlot: {
+        PlanSlotDto: {
             id: string;
             /** @description Rang du jour dans le plan : 0 = premier jour. */
             dayIndex: number;
             /** @enum {string} */
             slot: "LUNCH" | "DINNER";
             mealId: string | null;
-            meal: components["schemas"]["Meal"] | null;
+            meal: components["schemas"]["MealSummaryDto"] | null;
             servings: number;
         };
-        Plan: {
+        PlanDto: {
             id: string;
             /** @description Premier jour du plan (YYYY-MM-DD). Ancre d’affichage : sert à libeller les jours et à situer le jour courant, jamais à retrouver un plan. */
             startDate: string;
@@ -415,7 +415,7 @@ export interface components {
             dayCount: number;
             /** Format: date-time */
             createdAt: string;
-            slots: components["schemas"]["PlanSlot"][];
+            slots: components["schemas"]["PlanSlotDto"][];
         };
         UpdateSlotDto: {
             /** @description Repas à assigner, ou null pour vider le créneau */
@@ -783,7 +783,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Plan"];
+                    "application/json": components["schemas"]["PlanDto"];
                 };
             };
         };
@@ -802,7 +802,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Plan"];
+                    "application/json": components["schemas"]["PlanDto"];
                 };
             };
         };
@@ -827,7 +827,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Plan"];
+                    "application/json": components["schemas"]["PlanDto"];
                 };
             };
         };
@@ -846,7 +846,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Plan"];
+                    "application/json": components["schemas"]["PlanDto"];
                 };
             };
         };

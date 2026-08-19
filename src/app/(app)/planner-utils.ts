@@ -1,8 +1,8 @@
-import type { Meal, PlanSlot } from "@/lib/models";
+import type { MealSummary, PlanSlot } from "@/lib/models";
 
 export type SlotAction =
   | { type: "clear"; slotId: string }
-  | { type: "assign"; slotId: string; meal: Meal; servings: number };
+  | { type: "assign"; slotId: string; meal: MealSummary; servings: number };
 
 export function slotsReducer(
   state: PlanSlot[],
