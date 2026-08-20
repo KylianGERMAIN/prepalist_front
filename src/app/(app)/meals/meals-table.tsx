@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { MealSummary } from "@/lib/models";
-import { deleteMeal, markCooked } from "./actions";
+import { deleteMeal, markCooked, setMealState } from "./actions";
 import { MealDialog } from "./meal-dialog";
 
 export function MealsTable({ meals, isAdmin }: { meals: MealSummary[]; isAdmin: boolean }) {
@@ -46,6 +46,34 @@ export function MealsTable({ meals, isAdmin }: { meals: MealSummary[]; isAdmin: 
   );
 }
 
+function FavoriteToggle({ meal }: { meal: MealSummary }) {
+  const [pending, startTransition] = useTransition();
+
+  function toggle() {
+    startTransition(async () => {
+      const res = await setMealState(meal.id, { isFavorite: !meal.isFavorite });
+      if (!res.ok) toast.error(res.error);
+    });
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="-ml-2 px-2"
+      onClick={toggle}
+      disabled={pending}
+      title={meal.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+    >
+      <Star
+        className={
+          meal.isFavorite ? "size-4 fill-current text-accent" : "size-4 text-muted-foreground"
+        }
+      />
+    </Button>
+  );
+}
+
 function MealRow({ meal, isAdmin }: { meal: MealSummary; isAdmin: boolean }) {
   const [pending, startTransition] = useTransition();
 
@@ -60,8 +88,8 @@ function MealRow({ meal, isAdmin }: { meal: MealSummary; isAdmin: boolean }) {
   return (
     <TableRow>
       <TableCell className="font-medium">
-        <span className="flex items-center gap-2">
-          {meal.isFavorite ? <Star className="size-4 fill-current text-accent" /> : null}
+        <span className="flex items-center gap-1">
+          <FavoriteToggle meal={meal} />
           {meal.name}
         </span>
       </TableCell>
