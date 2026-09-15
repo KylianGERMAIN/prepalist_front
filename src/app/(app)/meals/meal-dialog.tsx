@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, type ReactElement } from "react";
+import { useState, type ComponentProps, type ReactElement } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, inputClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dialog";
 import type { CreateMealInput, Meal } from "@/lib/models";
 import { UNITS, type Unit } from "@/lib/units";
-import { cn } from "@/lib/utils";
 import { IngredientCombobox } from "./ingredient-combobox";
 import { createMeal, getMeal, updateMeal } from "./actions";
 
@@ -31,22 +30,26 @@ const schema = z.object({
       ingredientId: z.string().min(1, "Ingrédient requis."),
       ingredientName: z.string(),
       quantity: z.number().positive("Quantité > 0."),
-      unit: z.enum(UNITS, { message: "Unité requise." }),
+      // Saisi comme une chaîne, rendu comme une `Unit` : le formulaire doit
+      // pouvoir porter le vide et une valeur héritée, pas la soumission.
+      unit: z
+        .string()
+        .min(1, "Unité requise.")
+        .pipe(z.enum(UNITS, { message: "Unité hors liste." })),
     }),
   ),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.input<typeof schema>;
+type SubmittedValues = z.output<typeof schema>;
 
 const EMPTY: FormValues = { name: "", tags: "", ingredients: [] };
 
-// Unité vide au départ : c'est zod qui refuse la soumission. Lui donner une
-// vraie unité par défaut ferait passer une ligne jamais renseignée.
 const NEW_LINE = (): FormValues["ingredients"][number] => ({
   ingredientId: "",
   ingredientName: "",
   quantity: 1,
-  unit: "" as Unit,
+  unit: "",
 });
 
 function toDefaults(meal: Meal): FormValues {
@@ -65,6 +68,30 @@ function toDefaults(meal: Meal): FormValues {
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return <p className="text-sm text-destructive">{message}</p>;
+}
+
+/**
+ * Un `<select>` sans option correspondante vide son affichage sans rien dire :
+ * une recette antérieure au jeu fermé garde donc sa valeur ici, visible et
+ * refusée à la soumission, plutôt que d'être effacée en silence.
+ */
+function UnitSelect({
+  current,
+  ...props
+}: ComponentProps<"select"> & { current: string }) {
+  const legacy = current && !UNITS.includes(current as Unit) ? current : null;
+
+  return (
+    <select aria-label="Unité" className={inputClassName} {...props}>
+      <option value="">Unité</option>
+      {legacy && <option value={legacy}>{legacy}</option>}
+      {UNITS.map((unit) => (
+        <option key={unit} value={unit}>
+          {unit}
+        </option>
+      ))}
+    </select>
+  );
 }
 
 export function MealDialog({
@@ -86,7 +113,7 @@ export function MealDialog({
     setValue,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+  } = useForm<FormValues, unknown, SubmittedValues>({
     resolver: standardSchemaResolver(schema),
     defaultValues: EMPTY,
   });
@@ -112,7 +139,7 @@ export function MealDialog({
     }
   }
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: SubmittedValues) {
     const payload: CreateMealInput = {
       name: values.name,
       tags: values.tags
@@ -183,9 +210,7 @@ export function MealDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    lines.append(NEW_LINE())
-                  }
+                  onClick={() => lines.append(NEW_LINE())}
                 >
                   <Plus className="mr-2 size-4" />
                   Ligne
@@ -219,22 +244,10 @@ export function MealDialog({
                     <FieldError message={errors.ingredients?.[index]?.quantity?.message} />
                   </div>
                   <div className="w-24">
-                    <select
-                      aria-label="Unité"
-                      className={cn(
-                        "h-8 w-full rounded-lg border border-input bg-transparent px-2 text-base outline-none transition-colors",
-                        "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-                        "md:text-sm dark:bg-input/30",
-                      )}
+                    <UnitSelect
+                      current={watch(`ingredients.${index}.unit`)}
                       {...register(`ingredients.${index}.unit`)}
-                    >
-                      <option value="">Unité</option>
-                      {UNITS.map((unit) => (
-                        <option key={unit} value={unit}>
-                          {unit}
-                        </option>
-                      ))}
-                    </select>
+                    />
                     <FieldError message={errors.ingredients?.[index]?.unit?.message} />
                   </div>
                   <Button

@@ -2,12 +2,16 @@ import { describe, expect, it } from "vitest";
 import { formatUnit } from "./units";
 
 describe("formatUnit", () => {
-  it("laisse le singulier jusqu'à 1 inclus", () => {
-    expect(formatUnit(1, "tranche")).toBe("tranche");
+  // En français le singulier tient jusqu'à 2 exclu : c'est 1,5 qui distingue
+  // la règle correcte du seuil anglais à 1.
+  it("laisse le singulier sous 2", () => {
     expect(formatUnit(0.25, "pièce")).toBe("pièce");
+    expect(formatUnit(1, "tranche")).toBe("tranche");
+    expect(formatUnit(1.5, "tranche")).toBe("tranche");
+    expect(formatUnit(1.99, "tranche")).toBe("tranche");
   });
 
-  it("accorde au-delà de 1", () => {
+  it("accorde à partir de 2", () => {
     expect(formatUnit(2, "tranche")).toBe("tranches");
     expect(formatUnit(3, "gousse")).toBe("gousses");
   });
