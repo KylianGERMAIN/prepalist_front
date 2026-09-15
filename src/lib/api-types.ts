@@ -351,11 +351,13 @@ export interface components {
         Ingredient: {
             id: string;
             name: string;
-            defaultUnit: string | null;
+            /** @enum {string|null} */
+            defaultUnit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c" | null;
         };
         CreateIngredientDto: {
             name: string;
-            defaultUnit?: string | null;
+            /** @enum {string|null} */
+            defaultUnit?: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c" | null;
         };
         MealSummaryDto: {
             id: string;
@@ -382,7 +384,8 @@ export interface components {
         MealIngredientDto: {
             ingredientId: string;
             quantity: number;
-            unit: string;
+            /** @enum {string} */
+            unit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c";
         };
         CreateMealDto: {
             name: string;
@@ -394,7 +397,8 @@ export interface components {
             ingredient: components["schemas"]["Ingredient"];
             ingredientId: string;
             quantity: number;
-            unit: string;
+            /** @enum {string} */
+            unit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c";
         };
         MealDto: {
             id: string;

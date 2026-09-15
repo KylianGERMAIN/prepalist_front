@@ -18,6 +18,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { CreateMealInput, Meal } from "@/lib/models";
+import { UNITS, type Unit } from "@/lib/units";
+import { cn } from "@/lib/utils";
 import { IngredientCombobox } from "./ingredient-combobox";
 import { createMeal, getMeal, updateMeal } from "./actions";
 
@@ -29,7 +31,7 @@ const schema = z.object({
       ingredientId: z.string().min(1, "Ingrédient requis."),
       ingredientName: z.string(),
       quantity: z.number().positive("Quantité > 0."),
-      unit: z.string().min(1, "Unité requise."),
+      unit: z.enum(UNITS, { message: "Unité requise." }),
     }),
   ),
 });
@@ -37,6 +39,15 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const EMPTY: FormValues = { name: "", tags: "", ingredients: [] };
+
+// Unité vide au départ : c'est zod qui refuse la soumission. Lui donner une
+// vraie unité par défaut ferait passer une ligne jamais renseignée.
+const NEW_LINE = (): FormValues["ingredients"][number] => ({
+  ingredientId: "",
+  ingredientName: "",
+  quantity: 1,
+  unit: "" as Unit,
+});
 
 function toDefaults(meal: Meal): FormValues {
   return {
@@ -173,7 +184,7 @@ export function MealDialog({
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    lines.append({ ingredientId: "", ingredientName: "", quantity: 1, unit: "" })
+                    lines.append(NEW_LINE())
                   }
                 >
                   <Plus className="mr-2 size-4" />
@@ -208,7 +219,22 @@ export function MealDialog({
                     <FieldError message={errors.ingredients?.[index]?.quantity?.message} />
                   </div>
                   <div className="w-24">
-                    <Input placeholder="Unité" {...register(`ingredients.${index}.unit`)} />
+                    <select
+                      aria-label="Unité"
+                      className={cn(
+                        "h-8 w-full rounded-lg border border-input bg-transparent px-2 text-base outline-none transition-colors",
+                        "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
+                        "md:text-sm dark:bg-input/30",
+                      )}
+                      {...register(`ingredients.${index}.unit`)}
+                    >
+                      <option value="">Unité</option>
+                      {UNITS.map((unit) => (
+                        <option key={unit} value={unit}>
+                          {unit}
+                        </option>
+                      ))}
+                    </select>
                     <FieldError message={errors.ingredients?.[index]?.unit?.message} />
                   </div>
                   <Button
