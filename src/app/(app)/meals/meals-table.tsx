@@ -1,8 +1,9 @@
 "use client";
 
-import { useTransition } from "react";
+import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
 import { ChefHat, Pencil, Star, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import {
   Table,
   TableBody,
@@ -18,11 +19,29 @@ import type { MealSummary } from "@/lib/models";
 import { deleteMeal, markCooked, setMealState } from "./actions";
 import { MealDialog } from "./meal-dialog";
 
+function favoriteReducer(meals: MealSummary[], mealId: string): MealSummary[] {
+  return meals.map((meal) =>
+    meal.id === mealId ? { ...meal, isFavorite: !meal.isFavorite } : meal,
+  );
+}
+
 export function MealsTable({ meals, isAdmin }: { meals: MealSummary[]; isAdmin: boolean }) {
-  if (meals.length === 0) {
+  const [optimisticMeals, toggleOptimistic] = useOptimistic(meals, favoriteReducer);
+  const [, startTransition] = useTransition();
+
+  function toggleFavorite(meal: MealSummary) {
+    startTransition(async () => {
+      toggleOptimistic(meal.id);
+      const res = await setMealState(meal.id, { isFavorite: !meal.isFavorite });
+      if (res.ok) toast.success(meal.isFavorite ? "Retiré des favoris" : "Ajouté aux favoris");
+      else toast.error(res.error);
+    });
+  }
+
+  if (optimisticMeals.length === 0) {
     return (
       <p className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
-        Aucun repas. Crée ton premier repas pour commencer.
+        {isAdmin ? "Aucun repas. Crée ton premier repas pour commencer." : "Aucun repas."}
       </p>
     );
   }
@@ -38,43 +57,47 @@ export function MealsTable({ meals, isAdmin }: { meals: MealSummary[]; isAdmin: 
         </TableRow>
       </TableHeader>
       <TableBody>
-        {meals.map((meal) => (
-          <MealRow key={meal.id} meal={meal} isAdmin={isAdmin} />
+        {optimisticMeals.map((meal) => (
+          <MealRow
+            key={meal.id}
+            meal={meal}
+            isAdmin={isAdmin}
+            onToggleFavorite={() => toggleFavorite(meal)}
+          />
         ))}
       </TableBody>
     </Table>
   );
 }
 
-function FavoriteToggle({ meal }: { meal: MealSummary }) {
-  const [pending, startTransition] = useTransition();
-
-  function toggle() {
-    startTransition(async () => {
-      const res = await setMealState(meal.id, { isFavorite: !meal.isFavorite });
-      if (!res.ok) toast.error(res.error);
-    });
-  }
+function FavoriteToggle({ isFavorite, onToggle }: { isFavorite: boolean; onToggle: () => void }) {
+  const label = isFavorite ? "Retirer des favoris" : "Ajouter aux favoris";
 
   return (
     <Button
       variant="ghost"
-      size="sm"
-      className="-ml-2 px-2"
-      onClick={toggle}
-      disabled={pending}
-      title={meal.isFavorite ? "Retirer des favoris" : "Ajouter aux favoris"}
+      size="icon-sm"
+      onClick={onToggle}
+      aria-pressed={isFavorite}
+      aria-label={label}
+      title={label}
     >
       <Star
-        className={
-          meal.isFavorite ? "size-4 fill-current text-accent" : "size-4 text-muted-foreground"
-        }
+        className={cn("size-4", isFavorite ? "fill-current text-accent" : "text-muted-foreground")}
       />
     </Button>
   );
 }
 
-function MealRow({ meal, isAdmin }: { meal: MealSummary; isAdmin: boolean }) {
+function MealRow({
+  meal,
+  isAdmin,
+  onToggleFavorite,
+}: {
+  meal: MealSummary;
+  isAdmin: boolean;
+  onToggleFavorite: () => void;
+}) {
   const [pending, startTransition] = useTransition();
 
   function cook() {
@@ -89,7 +112,7 @@ function MealRow({ meal, isAdmin }: { meal: MealSummary; isAdmin: boolean }) {
     <TableRow>
       <TableCell className="font-medium">
         <span className="flex items-center gap-1">
-          <FavoriteToggle meal={meal} />
+          <FavoriteToggle isFavorite={meal.isFavorite} onToggle={onToggleFavorite} />
           {meal.name}
         </span>
       </TableCell>
