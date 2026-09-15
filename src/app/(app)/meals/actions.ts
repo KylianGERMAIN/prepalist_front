@@ -3,9 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
-import type { CreateMealInput, Ingredient, Meal, UpdateMealInput } from "@/lib/models";
+import type {
+  CreateMealInput,
+  Ingredient,
+  Meal,
+  UpdateMealInput,
+  UpdateMealStateInput,
+} from "@/lib/models";
 
-/** Détail d'un repas (avec ses ingrédients) — pour préremplir le dialog d'édition. */
 export async function getMeal(id: string): Promise<Meal | null> {
   const api = await serverApi();
   const { data } = await api.GET("/meals/{id}", { params: { path: { id } } });
@@ -44,7 +49,20 @@ export async function markCooked(id: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Recherche d'ingrédients (pour la combobox des lignes de repas). */
+export async function setMealState(
+  id: string,
+  input: UpdateMealStateInput,
+): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.PATCH("/meals/{id}/state", {
+    params: { path: { id } },
+    body: input,
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/meals");
+  return { ok: true };
+}
+
 export async function searchIngredients(search: string): Promise<Ingredient[]> {
   const api = await serverApi();
   const { data } = await api.GET("/ingredients", {
@@ -53,7 +71,6 @@ export async function searchIngredients(search: string): Promise<Ingredient[]> {
   return data ?? [];
 }
 
-/** Crée un ingrédient à la volée (depuis la combobox) et le renvoie, ou remonte l'erreur. */
 export async function createIngredient(
   name: string,
 ): Promise<{ ok: true; ingredient: Ingredient } | { ok: false; error: string }> {

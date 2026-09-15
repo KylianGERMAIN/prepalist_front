@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Meal, PlanSlot } from "@/lib/models";
+import type { MealSummary, PlanSlot } from "@/lib/models";
 import {
   cookedRecently,
   dayIndexOf,
@@ -9,17 +9,18 @@ import {
 
 const DAY = 86_400_000;
 
-function meal(overrides: Partial<Meal> = {}): Meal {
+function meal(overrides: Partial<MealSummary> = {}): MealSummary {
   return {
     id: "m1",
     name: "Chili",
+    userId: null,
+    status: "PUBLISHED",
     rating: 4,
     isFavorite: false,
     lastCookedAt: null,
     timesCooked: 0,
     tags: [],
     createdAt: "2026-01-01T00:00:00.000Z",
-    ingredients: [],
     ...overrides,
   };
 }
@@ -102,8 +103,7 @@ describe("dayIndexOf", () => {
     expect(dayIndexOf("2026-06-30", "2026-07-07", 7)).toBeNull(); // écoulé
   });
 
-  // Garde anti-régression : un retour à un calcul en heure locale ferait dériver
-  // ces deux cas, l'arithmétique UTC les rend exacts par construction.
+  // Un retour à un calcul en heure locale ferait dériver ces deux cas.
   it("reste exact autour des changements d'heure", () => {
     expect(dayIndexOf("2026-03-27", "2026-03-30", 7)).toBe(3); // +1 h
     expect(dayIndexOf("2026-10-23", "2026-10-26", 7)).toBe(3); // −1 h

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { serverApi } from "@/lib/api";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -40,6 +41,9 @@ export default async function MealsPage({
 
   const meals = data?.items ?? [];
   const totalPages = Math.max(1, Math.ceil((data?.total ?? 0) / LIMIT));
+  if (page > totalPages) {
+    redirect(pageHref(sp, totalPages));
+  }
 
   return (
     <div className="space-y-4">
@@ -80,7 +84,7 @@ export default async function MealsPage({
   );
 }
 
-/** Construit l'URL d'une page en conservant les filtres courants. */
+/** Conserve les filtres courants dans l'URL. */
 function pageHref(sp: SearchParams, page: number): string {
   const q = new URLSearchParams();
   if (sp.name) q.set("name", sp.name);

@@ -4,10 +4,8 @@ const FRONT_VERSION = process.env.APP_VERSION ?? "?";
 
 async function fetchApiVersion(): Promise<string | null> {
   try {
-    // Revalidation 5 min : la version de l'API ne bouge qu'au déploiement, inutile
-    // de taper /health à chaque rendu. Timeout court : /health ne doit pas bloquer
-    // le rendu des pages si l'API répond lentement.
-    // fetch brut (pas serverApi()) : endpoint public, on évite le middleware 401.
+    // La version ne bouge qu'au déploiement, et une API lente ne doit pas retarder
+    // le rendu. `fetch` brut et non `serverApi()` : évite son middleware 401.
     const res = await fetch(`${API_URL}/health`, {
       signal: AbortSignal.timeout(2000),
       next: { revalidate: 300 },

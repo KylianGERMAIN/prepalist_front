@@ -1,5 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
+import { errorText } from "./action-result";
 import {
   ACCESS_COOKIE,
   ACCESS_MAX_AGE,
@@ -9,10 +10,9 @@ import {
 } from "./cookies";
 import { API_URL } from "./env";
 
-/** Paire de tokens renvoyée par le back (cf. TokenPair côté API). */
 export type TokenPair = { accessToken: string; refreshToken: string };
 
-/** Erreur portant le statut HTTP du back pour le relayer tel quel au client. */
+/** Porte le statut du back pour le relayer tel quel au client. */
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -20,14 +20,6 @@ export class ApiError extends Error {
   ) {
     super(message);
   }
-}
-
-/** Extrait un message lisible d'un corps d'erreur NestJS (`message` string ou string[]). */
-function errorMessage(data: unknown, fallback: string): string {
-  const msg = (data as { message?: unknown } | null)?.message;
-  if (Array.isArray(msg)) return msg.join(", ");
-  if (typeof msg === "string") return msg;
-  return fallback;
 }
 
 async function postAuth(path: string, body: unknown): Promise<TokenPair> {
@@ -39,45 +31,38 @@ async function postAuth(path: string, body: unknown): Promise<TokenPair> {
   });
   if (!res.ok) {
     const data = await res.json().catch(() => null);
-    throw new ApiError(res.status, errorMessage(data, "Échec de l'authentification."));
+    throw new ApiError(res.status, errorText(data, "Échec de l'authentification."));
   }
   return res.json() as Promise<TokenPair>;
 }
 
-/** Authentifie un utilisateur existant. */
 export const login = (email: string, password: string) =>
   postAuth("/auth/login", { email, password });
 
-/** Crée un compte et renvoie une paire de tokens. */
 export const register = (email: string, password: string) =>
   postAuth("/auth/register", { email, password });
 
-/** Pose access + refresh en cookies httpOnly. */
 export async function setTokens(pair: TokenPair): Promise<void> {
   const jar = await cookies();
   jar.set(ACCESS_COOKIE, pair.accessToken, { ...cookieBase(), maxAge: ACCESS_MAX_AGE });
   jar.set(REFRESH_COOKIE, pair.refreshToken, { ...cookieBase(), maxAge: REFRESH_MAX_AGE });
 }
 
-/** Supprime les cookies d'auth (déconnexion). */
 export async function clearTokens(): Promise<void> {
   const jar = await cookies();
   jar.delete(ACCESS_COOKIE);
   jar.delete(REFRESH_COOKIE);
 }
 
-/** Token d'accès courant, ou undefined si non connecté. À injecter en Bearer dès F1. */
 export async function getAccessToken(): Promise<string | undefined> {
   return (await cookies()).get(ACCESS_COOKIE)?.value;
 }
 
-/** Utilisateur courant, tel qu'encodé dans le JWT access (id/email/role). */
 export type CurrentUser = { id: string; email: string; role: string };
 
 /**
- * Décode le rôle depuis le payload du JWT access, sans vérifier la signature :
- * le cookie httpOnly est posé par nos propres route handlers `/api/auth/*`,
- * donc son contenu est de confiance côté serveur.
+ * Décode le payload sans vérifier la signature : le cookie httpOnly n'est posé que
+ * par notre code serveur, les Route Handlers `/api/auth/*` et `proxy.ts`.
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const token = await getAccessToken();

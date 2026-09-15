@@ -12,8 +12,8 @@ export default async function PlannerPage() {
     return <p className="text-destructive">Impossible de charger le plan.</p>;
   }
 
-  // Résolu ici et non dans la grille : le fuseau de l'app fait foi, pas celui du
-  // navigateur, sinon SSR et hydratation peuvent désigner deux jours différents.
+  // Résolu côté serveur : avec le fuseau du navigateur, SSR et hydratation peuvent
+  // désigner deux jours différents.
   const todayIndex = dayIndexOf(
     plan.startDate,
     todayInAppTimeZone(),

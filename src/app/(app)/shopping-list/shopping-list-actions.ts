@@ -8,7 +8,9 @@ import type {
   UpdateShoppingItemInput,
 } from "@/lib/models";
 
-/** Coche/décoche un item (PATCH) ; togglable sur tout item, dérivé comme manuel. */
+// `toggleChecked`, `updateItem` et `deleteItem` valent pour un item DERIVED comme
+// pour un MANUAL : le back n'oppose les deux sources qu'à la synchro.
+
 export async function toggleChecked(
   itemId: string,
   checked: boolean,
@@ -23,7 +25,6 @@ export async function toggleChecked(
   return { ok: true };
 }
 
-/** Ajoute un item manuel (POST). */
 export async function addManualItem(
   input: AddShoppingItemInput,
 ): Promise<ActionResult> {
@@ -36,7 +37,6 @@ export async function addManualItem(
   return { ok: true };
 }
 
-/** Édite un item (PATCH) : checked et/ou contenu (name/quantity/unit), dérivé comme manuel. */
 export async function updateItem(
   itemId: string,
   patch: UpdateShoppingItemInput,
@@ -51,7 +51,6 @@ export async function updateItem(
   return { ok: true };
 }
 
-/** Supprime un item (DELETE), dérivé comme manuel. */
 export async function deleteItem(itemId: string): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.DELETE("/plan/shopping-list/items/{itemId}", {
@@ -62,7 +61,7 @@ export async function deleteItem(itemId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Resynchronise les items dérivés depuis les plats (POST /sync) ; préserve cochés et manuels. */
+/** Préserve les items cochés et les manuels. */
 export async function syncShoppingList(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/shopping-list/sync", {});

@@ -57,9 +57,8 @@ export function ClearPlanButton() {
   return (
     <Dialog
       open={open}
-      // Filtre toutes les sorties pendant l'appel — Échap, clic hors du modal et
-      // croix comprises. Sans ça le modal se fermait alors que ses deux boutons
-      // étaient désactivés, ce qui laissait croire à un verrouillage inexistant.
+      // Bloque toutes les sorties pendant l'appel, Échap et clic extérieur compris :
+      // les boutons désactivés ne suffisent pas à empêcher la fermeture.
       onOpenChange={(next) => {
         if (!pending) setOpen(next);
       }}

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
 
-/** Met à jour le jour de courses (0 = dimanche … 6 = samedi) via PATCH /users/me. */
+/** `shoppingDay` : 0 = dimanche … 6 = samedi. */
 export async function updateShoppingDay(
   shoppingDay: number,
 ): Promise<ActionResult> {

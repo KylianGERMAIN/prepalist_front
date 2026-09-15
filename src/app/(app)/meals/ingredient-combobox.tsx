@@ -17,10 +17,6 @@ import { cn } from "@/lib/utils";
 import type { Ingredient } from "@/lib/models";
 import { createIngredient, searchIngredients } from "./actions";
 
-/**
- * Combobox d'ingrédient : recherche serveur (debouncée) dans GET /ingredients
- * + création à la volée (POST /ingredients) si le terme tapé n'existe pas.
- */
 export function IngredientCombobox({
   value,
   label,

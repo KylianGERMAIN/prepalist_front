@@ -100,7 +100,7 @@ export interface paths {
         /** Recherche dans le catalogue d’ingrédients */
         get: operations["IngredientsController_search"];
         put?: never;
-        /** Ajoute un ingrédient au catalogue */
+        /** Ajoute un ingrédient au catalogue (admin uniquement) */
         post: operations["IngredientsController_create"];
         delete?: never;
         options?: never;
@@ -141,8 +141,25 @@ export interface paths {
         delete: operations["MealsController_remove"];
         options?: never;
         head?: never;
-        /** Met à jour un repas (admin uniquement) */
+        /** Met à jour la recette (admin uniquement) */
         patch: operations["MealsController_update"];
+        trace?: never;
+    };
+    "/meals/{id}/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Favori et note du repas pour le compte appelant */
+        patch: operations["MealsController_updateState"];
         trace?: never;
     };
     "/meals/{id}/cooked": {
@@ -154,7 +171,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Marque un repas comme cuisiné */
+        /** Marque un repas comme cuisiné par le compte appelant */
         post: operations["MealsController_markCooked"];
         delete?: never;
         options?: never;
@@ -343,6 +360,10 @@ export interface components {
         MealSummaryDto: {
             id: string;
             name: string;
+            /** @description Compte propriétaire, null pour une recette de l’application. */
+            userId: string | null;
+            /** @enum {string} */
+            status: "PRIVATE" | "PENDING" | "PUBLISHED";
             rating: number | null;
             isFavorite: boolean;
             /** Format: date-time */
@@ -365,8 +386,6 @@ export interface components {
         };
         CreateMealDto: {
             name: string;
-            rating?: number;
-            isFavorite?: boolean;
             tags?: string[];
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
@@ -377,9 +396,13 @@ export interface components {
             quantity: number;
             unit: string;
         };
-        Meal: {
+        MealDto: {
             id: string;
             name: string;
+            /** @description Compte propriétaire, null pour une recette de l’application. */
+            userId: string | null;
+            /** @enum {string} */
+            status: "PRIVATE" | "PENDING" | "PUBLISHED";
             rating: number | null;
             isFavorite: boolean;
             /** Format: date-time */
@@ -392,22 +415,24 @@ export interface components {
         };
         UpdateMealDto: {
             name?: string;
-            rating?: number;
-            isFavorite?: boolean;
             tags?: string[];
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
-        PlanSlot: {
+        UpdateMealStateDto: {
+            isFavorite?: boolean;
+            rating?: number | null;
+        };
+        PlanSlotDto: {
             id: string;
             /** @description Rang du jour dans le plan : 0 = premier jour. */
             dayIndex: number;
             /** @enum {string} */
             slot: "LUNCH" | "DINNER";
             mealId: string | null;
-            meal: components["schemas"]["Meal"] | null;
+            meal: components["schemas"]["MealSummaryDto"] | null;
             servings: number;
         };
-        Plan: {
+        PlanDto: {
             id: string;
             /** @description Premier jour du plan (YYYY-MM-DD). Ancre d’affichage : sert à libeller les jours et à situer le jour courant, jamais à retrouver un plan. */
             startDate: string;
@@ -415,7 +440,7 @@ export interface components {
             dayCount: number;
             /** Format: date-time */
             createdAt: string;
-            slots: components["schemas"]["PlanSlot"][];
+            slots: components["schemas"]["PlanSlotDto"][];
         };
         UpdateSlotDto: {
             /** @description Repas à assigner, ou null pour vider le créneau */
@@ -678,7 +703,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Meal"];
+                    "application/json": components["schemas"]["MealDto"];
                 };
             };
         };
@@ -699,7 +724,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Meal"];
+                    "application/json": components["schemas"]["MealDto"];
                 };
             };
         };
@@ -743,7 +768,32 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Meal"];
+                    "application/json": components["schemas"]["MealDto"];
+                };
+            };
+        };
+    };
+    MealsController_updateState: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMealStateDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MealDto"];
                 };
             };
         };
@@ -764,7 +814,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Meal"];
+                    "application/json": components["schemas"]["MealDto"];
                 };
             };
         };
@@ -783,7 +833,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Plan"];
+                    "application/json": components["schemas"]["PlanDto"];
                 };
             };
         };
@@ -802,7 +852,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Plan"];
+                    "application/json": components["schemas"]["PlanDto"];
                 };
             };
         };
@@ -827,7 +877,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Plan"];
+                    "application/json": components["schemas"]["PlanDto"];
                 };
             };
         };
@@ -846,7 +896,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Plan"];
+                    "application/json": components["schemas"]["PlanDto"];
                 };
             };
         };

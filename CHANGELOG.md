@@ -5,6 +5,22 @@ Toutes les évolutions notables du front PrepaList sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.5.0] - 2026-09-15
+
+### Modifié
+
+- **Le favori et la note appartiennent au compte, plus à la recette** : ils quittent le formulaire de repas, où ils décrivaient le catalogue partagé. L'étoile de la table devient le contrôle et bascule le favori du compte connecté, pour tous les comptes et non les seuls administrateurs — c'est l'état de l'appelant, l'API ne le réserve pas. Elle bascule à l'écran sans attendre le serveur.
+- **`api-types` régénérés** pour le contrat de plan moins profond et pour l'état par compte.
+
+### Corrigé
+
+- **Dernière page vide après avoir retiré un favori** : sous le filtre « Favoris », retirer le dernier favori d'une page réduisait le total sans corriger l'URL ; la table affichait « Aucun repas » alors qu'il en restait. Une page hors bornes renvoie maintenant sur la dernière page réelle.
+- **Invitation à créer un repas montrée à un compte qui ne le peut pas** : la création reste réservée aux administrateurs, le message d'état vide ne la propose plus aux autres.
+
+### Interne
+
+- **Tests en jsdom** (vitest) : la table des repas et la vue liste de courses sont couvertes, dont la bascule optimiste et l'appel d'action.
+
 ## [0.4.0] - 2026-08-05
 
 ### Ajouté

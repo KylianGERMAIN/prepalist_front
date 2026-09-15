@@ -23,7 +23,6 @@ import { createMeal, getMeal, updateMeal } from "./actions";
 
 const schema = z.object({
   name: z.string().min(1, "Nom requis."),
-  isFavorite: z.boolean(),
   tags: z.string(), // saisi en CSV, découpé à la soumission
   ingredients: z.array(
     z.object({
@@ -37,12 +36,11 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const EMPTY: FormValues = { name: "", isFavorite: false, tags: "", ingredients: [] };
+const EMPTY: FormValues = { name: "", tags: "", ingredients: [] };
 
 function toDefaults(meal: Meal): FormValues {
   return {
     name: meal.name,
-    isFavorite: meal.isFavorite,
     tags: meal.tags.join(", "),
     ingredients: meal.ingredients.map((mi) => ({
       ingredientId: mi.ingredientId,
@@ -83,8 +81,8 @@ export function MealDialog({
   });
   const lines = useFieldArray({ control, name: "ingredients" });
 
-  // À l'ouverture : create → form vide ; edit → fetch du détail (la ligne n'a que le résumé,
-  // sans ingredients) puis préremplissage. Pattern summary/detail : on charge le lourd au besoin.
+  // En édition, un fetch du détail est nécessaire : la ligne de liste n'est qu'un
+  // résumé, sans les `ingredients`.
   async function handleOpenChange(next: boolean) {
     setOpen(next);
     if (!next) return;
@@ -106,7 +104,6 @@ export function MealDialog({
   async function onSubmit(values: FormValues) {
     const payload: CreateMealInput = {
       name: values.name,
-      isFavorite: values.isFavorite,
       tags: values.tags
         .split(",")
         .map((t) => t.trim())
@@ -167,11 +164,6 @@ export function MealDialog({
                 {...register("tags")}
               />
             </div>
-
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" className="size-4 accent-accent" {...register("isFavorite")} />
-              Favori
-            </label>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">

@@ -12,10 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-/**
- * Dialog de confirmation réutilisable (delete, actions destructives). Réutilisé F2/F3.
- * `onConfirm` peut être async (ex. Server Action) ; le bouton reste désactivé le temps de l'appel.
- */
+/** `onConfirm` accepte une promesse : le bouton reste désactivé le temps de l'appel. */
 export function ConfirmDialog({
   trigger,
   title,
