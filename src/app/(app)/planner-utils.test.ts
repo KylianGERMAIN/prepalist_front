@@ -13,6 +13,8 @@ function meal(overrides: Partial<MealSummary> = {}): MealSummary {
   return {
     id: "m1",
     name: "Chili",
+    userId: null,
+    status: "PUBLISHED",
     rating: 4,
     isFavorite: false,
     lastCookedAt: null,

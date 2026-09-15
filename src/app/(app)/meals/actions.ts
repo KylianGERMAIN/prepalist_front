@@ -3,7 +3,13 @@
 import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
-import type { CreateMealInput, Ingredient, Meal, UpdateMealInput } from "@/lib/models";
+import type {
+  CreateMealInput,
+  Ingredient,
+  Meal,
+  UpdateMealInput,
+  UpdateMealStateInput,
+} from "@/lib/models";
 
 export async function getMeal(id: string): Promise<Meal | null> {
   const api = await serverApi();
@@ -38,6 +44,20 @@ export async function deleteMeal(id: string): Promise<ActionResult> {
 export async function markCooked(id: string): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/meals/{id}/cooked", { params: { path: { id } } });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/meals");
+  return { ok: true };
+}
+
+export async function setMealState(
+  id: string,
+  input: UpdateMealStateInput,
+): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.PATCH("/meals/{id}/state", {
+    params: { path: { id } },
+    body: input,
+  });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/meals");
   return { ok: true };

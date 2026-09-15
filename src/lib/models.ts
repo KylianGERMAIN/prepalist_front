@@ -3,7 +3,7 @@ import type { components } from "./api-types";
 // Module purement typé, sans runtime : importable côté Server comme côté Client.
 
 /** Porte les `ingredients`, contrairement à `MealSummary`. */
-export type Meal = components["schemas"]["Meal"];
+export type Meal = components["schemas"]["MealDto"];
 /** Items de la liste GET /meals, sans les `ingredients`. */
 export type MealSummary = components["schemas"]["MealSummaryDto"];
 export type MealIngredient = components["schemas"]["MealIngredient"];
@@ -11,6 +11,8 @@ export type Ingredient = components["schemas"]["Ingredient"];
 export type CreateMealInput = components["schemas"]["CreateMealDto"];
 export type UpdateMealInput = components["schemas"]["UpdateMealDto"];
 export type MealIngredientInput = components["schemas"]["MealIngredientDto"];
+/** Favori et note : propres au compte connecté, pas à la recette. */
+export type UpdateMealStateInput = components["schemas"]["UpdateMealStateDto"];
 
 export type Me = components["schemas"]["MeDto"];
 
