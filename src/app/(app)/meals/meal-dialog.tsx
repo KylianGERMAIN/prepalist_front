@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, type ComponentProps, type ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input, inputClassName } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -18,7 +18,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { CreateMealInput, Meal } from "@/lib/models";
-import { UNITS, type Unit } from "@/lib/units";
+import { UNITS } from "@/lib/units";
+import { UnitSelect } from "@/components/unit-select";
 import { IngredientCombobox } from "./ingredient-combobox";
 import { createMeal, getMeal, updateMeal } from "./actions";
 
@@ -68,30 +69,6 @@ function toDefaults(meal: Meal): FormValues {
 function FieldError({ message }: { message?: string }) {
   if (!message) return null;
   return <p className="text-sm text-destructive">{message}</p>;
-}
-
-/**
- * Un `<select>` sans option correspondante vide son affichage sans rien dire :
- * une recette antérieure au jeu fermé garde donc sa valeur ici, visible et
- * refusée à la soumission, plutôt que d'être effacée en silence.
- */
-function UnitSelect({
-  current,
-  ...props
-}: ComponentProps<"select"> & { current: string }) {
-  const legacy = current && !UNITS.includes(current as Unit) ? current : null;
-
-  return (
-    <select aria-label="Unité" className={inputClassName} {...props}>
-      <option value="">Unité</option>
-      {legacy && <option value={legacy}>{legacy}</option>}
-      {UNITS.map((unit) => (
-        <option key={unit} value={unit}>
-          {unit}
-        </option>
-      ))}
-    </select>
-  );
 }
 
 export function MealDialog({

@@ -470,7 +470,8 @@ export interface components {
         CreateShoppingListItemDto: {
             name: string;
             quantity?: number;
-            unit?: string;
+            /** @enum {string} */
+            unit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c";
         };
         UpdateShoppingListItemDto: {
             checked?: boolean;

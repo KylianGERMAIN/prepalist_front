@@ -25,7 +25,7 @@ export const UNITS = Object.keys(PLURAL) as [Unit, ...Unit[]];
 // singulier tient jusqu'à 2 exclu, donc « 1,5 tranche » et non « 1,5 tranches ».
 const plural = new Intl.PluralRules("fr");
 
-/** Une unité d'item manuel est du texte libre, rendue telle quelle. */
+/** Une unité antérieure au jeu fermé est rendue telle quelle. */
 export function formatUnit(quantity: number | null, unit: string | null): string {
   if (!unit) return "";
   if (quantity == null || plural.select(quantity) !== "other") return unit;

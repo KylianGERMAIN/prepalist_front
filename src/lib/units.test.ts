@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import { formatUnit } from "./units";
 
 describe("formatUnit", () => {
-  // En français le singulier tient jusqu'à 2 exclu : c'est 1,5 qui distingue
-  // la règle correcte du seuil anglais à 1.
   it("laisse le singulier sous 2", () => {
     expect(formatUnit(0.25, "pièce")).toBe("pièce");
     expect(formatUnit(1, "tranche")).toBe("tranche");
@@ -26,7 +24,6 @@ describe("formatUnit", () => {
     expect(formatUnit(2, "c.à.s")).toBe("c.à.s");
   });
 
-  // L'unité d'un item ajouté à la main n'est pas dans le jeu fermé.
   it("rend une unité inconnue telle quelle", () => {
     expect(formatUnit(3, "sachet")).toBe("sachet");
   });

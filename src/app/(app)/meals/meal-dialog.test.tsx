@@ -56,8 +56,6 @@ describe("MealDialog — unité", () => {
     expect(select).toHaveValue("tranche");
   });
 
-  // Sans option de secours, le select se viderait sans rien dire et l'unité
-  // d'origine ne serait plus consultable nulle part.
   it("garde une unité héritée visible et sélectionnée", async () => {
     const select = await openEditDialog("sachet");
 
