@@ -4,6 +4,7 @@ import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatUnit } from "@/lib/units";
 import type { ShoppingListItem } from "@/lib/models";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -93,7 +94,9 @@ export function ShoppingListView({
                       item.checked && "line-through",
                     )}
                   >
-                    {[item.quantity, item.unit].filter(Boolean).join(" ")}
+                    {[item.quantity, formatUnit(item.quantity, item.unit)]
+                      .filter(Boolean)
+                      .join(" ")}
                   </span>
                 ) : null}
               </label>

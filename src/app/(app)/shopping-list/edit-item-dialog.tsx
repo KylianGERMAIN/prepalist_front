@@ -16,13 +16,14 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { UnitSelect } from "@/components/unit-select";
 import type { ShoppingListItem, UpdateShoppingItemInput } from "@/lib/models";
 import { updateItem } from "./shopping-list-actions";
 
 const schema = z.object({
   name: z.string().min(1, "Nom requis."),
   quantity: z.union([z.number().positive("Quantité > 0."), z.nan()]).optional(),
-  unit: z.string(),
+  unit: z.string().min(1, "Unité requise."),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -64,7 +65,7 @@ export function EditItemDialog({
     const patch: UpdateShoppingItemInput = {
       name: values.name,
       quantity: values.quantity && !Number.isNaN(values.quantity) ? values.quantity : undefined,
-      unit: values.unit.trim() || undefined,
+      unit: values.unit,
     };
     const res = await updateItem(item.id, patch);
     if (res.ok) {
@@ -103,11 +104,14 @@ export function EditItemDialog({
             </div>
             <div className="flex-1 space-y-2">
               <Label htmlFor="edit-item-unit">Unité</Label>
-              <Input id="edit-item-unit" {...register("unit")} />
+              <UnitSelect id="edit-item-unit" current={item.unit ?? ""} {...register("unit")} />
             </div>
           </div>
           {errors.quantity?.message ? (
             <p className="text-sm text-destructive">{errors.quantity.message}</p>
+          ) : null}
+          {errors.unit?.message ? (
+            <p className="text-sm text-destructive">{errors.unit.message}</p>
           ) : null}
           <DialogFooter>
             <Button type="submit" disabled={isSubmitting}>

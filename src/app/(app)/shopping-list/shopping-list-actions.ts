@@ -61,7 +61,7 @@ export async function deleteItem(itemId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Préserve les items cochés et les manuels. */
+/** Réécrit les items dérivés depuis les plats (coches et éditions perdues) ; les manuels sont conservés. */
 export async function syncShoppingList(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/shopping-list/sync", {});

@@ -18,6 +18,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { CreateMealInput, Meal } from "@/lib/models";
+import { UNITS } from "@/lib/units";
+import { UnitSelect } from "@/components/unit-select";
 import { IngredientCombobox } from "./ingredient-combobox";
 import { createMeal, getMeal, updateMeal } from "./actions";
 
@@ -29,14 +31,27 @@ const schema = z.object({
       ingredientId: z.string().min(1, "Ingrédient requis."),
       ingredientName: z.string(),
       quantity: z.number().positive("Quantité > 0."),
-      unit: z.string().min(1, "Unité requise."),
+      // Saisi comme une chaîne, rendu comme une `Unit` : le formulaire doit
+      // pouvoir porter le vide et une valeur héritée, pas la soumission.
+      unit: z
+        .string()
+        .min(1, "Unité requise.")
+        .pipe(z.enum(UNITS, { message: "Unité hors liste." })),
     }),
   ),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.input<typeof schema>;
+type SubmittedValues = z.output<typeof schema>;
 
 const EMPTY: FormValues = { name: "", tags: "", ingredients: [] };
+
+const NEW_LINE = (): FormValues["ingredients"][number] => ({
+  ingredientId: "",
+  ingredientName: "",
+  quantity: 1,
+  unit: "",
+});
 
 function toDefaults(meal: Meal): FormValues {
   return {
@@ -75,7 +90,7 @@ export function MealDialog({
     setValue,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+  } = useForm<FormValues, unknown, SubmittedValues>({
     resolver: standardSchemaResolver(schema),
     defaultValues: EMPTY,
   });
@@ -101,7 +116,7 @@ export function MealDialog({
     }
   }
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: SubmittedValues) {
     const payload: CreateMealInput = {
       name: values.name,
       tags: values.tags
@@ -172,9 +187,7 @@ export function MealDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    lines.append({ ingredientId: "", ingredientName: "", quantity: 1, unit: "" })
-                  }
+                  onClick={() => lines.append(NEW_LINE())}
                 >
                   <Plus className="mr-2 size-4" />
                   Ligne
@@ -208,7 +221,10 @@ export function MealDialog({
                     <FieldError message={errors.ingredients?.[index]?.quantity?.message} />
                   </div>
                   <div className="w-24">
-                    <Input placeholder="Unité" {...register(`ingredients.${index}.unit`)} />
+                    <UnitSelect
+                      current={watch(`ingredients.${index}.unit`)}
+                      {...register(`ingredients.${index}.unit`)}
+                    />
                     <FieldError message={errors.ingredients?.[index]?.unit?.message} />
                   </div>
                   <Button
