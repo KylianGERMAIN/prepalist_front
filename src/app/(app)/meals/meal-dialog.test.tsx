@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Meal } from "@/lib/models";
 import { MealDialog } from "./meal-dialog";
 
@@ -102,8 +102,15 @@ describe("MealDialog — unité par défaut de l’ingrédient", () => {
     Element.prototype.scrollIntoView = vi.fn();
     vi.mocked(searchIngredients).mockResolvedValue([
       { id: "i2", name: "Tomate", defaultUnit: "g" },
+      { id: "i4", name: "Tomme", defaultUnit: "tranche" },
     ] as never);
     vi.mocked(createIngredient).mockReset();
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    delete (Element.prototype as Partial<Element>).scrollIntoView;
+    vi.mocked(searchIngredients).mockResolvedValue([]);
   });
 
   it("préremplit l’unité vide avec celle de l’ingrédient", async () => {
@@ -113,6 +120,21 @@ describe("MealDialog — unité par défaut de l’ingrédient", () => {
     await waitFor(() =>
       expect(screen.getByRole("combobox", { name: "Unité" })).toHaveValue("g"),
     );
+  });
+
+  it("fait suivre l’unité préremplie quand on change d’ingrédient", async () => {
+    const unitSelect = () => screen.getByRole("combobox", { name: "Unité" });
+    await pickIngredient();
+    fireEvent.click(await screen.findByRole("option", { name: /Tomate/ }));
+    await waitFor(() => expect(unitSelect()).toHaveValue("g"));
+
+    fireEvent.click(screen.getByText("Tomate"));
+    fireEvent.change(await screen.findByPlaceholderText(/Rechercher/), {
+      target: { value: "Tom" },
+    });
+    fireEvent.click(await screen.findByRole("option", { name: /Tomme/ }));
+
+    await waitFor(() => expect(unitSelect()).toHaveValue("tranche"));
   });
 
   it("n’écrase pas une unité déjà choisie", async () => {

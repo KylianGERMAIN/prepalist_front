@@ -21,12 +21,12 @@ import { createIngredient, searchIngredients } from "./actions";
 export function IngredientCombobox({
   value,
   label,
-  unit,
+  defaultUnit,
   onSelect,
 }: {
   value?: string;
   label?: string;
-  unit?: Unit;
+  defaultUnit?: Unit;
   onSelect: (ingredient: Ingredient) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -55,7 +55,7 @@ export function IngredientCombobox({
     const name = query.trim();
     if (!name) return;
     startTransition(async () => {
-      const res = await createIngredient(name, unit);
+      const res = await createIngredient(name, defaultUnit);
       if (res.ok) {
         onSelect(res.ingredient);
         setOpen(false);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactElement } from "react";
+import { useRef, useState, type ReactElement } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
@@ -96,6 +96,9 @@ export function MealDialog({
     defaultValues: EMPTY,
   });
   const lines = useFieldArray({ control, name: "ingredients" });
+  // Unité posée par le préremplissage, par ligne : elle suit l'ingrédient tant
+  // que l'utilisateur ne l'a pas changée lui-même.
+  const prefilledUnits = useRef(new Map<string, string>());
 
   // En édition, un fetch du détail est nécessaire : la ligne de liste n'est qu'un
   // résumé, sans les `ingredients`.
@@ -202,16 +205,19 @@ export function MealDialog({
                       // eslint-disable-next-line react-hooks/incompatible-library -- React Compiler n'est pas activé sur ce projet
                       value={watch(`ingredients.${index}.ingredientId`)}
                       label={watch(`ingredients.${index}.ingredientName`) || undefined}
-                      unit={asUnit(watch(`ingredients.${index}.unit`))}
+                      defaultUnit={asUnit(watch(`ingredients.${index}.unit`))}
                       onSelect={(ing) => {
                         setValue(`ingredients.${index}.ingredientId`, ing.id, {
                           shouldValidate: true,
                         });
                         setValue(`ingredients.${index}.ingredientName`, ing.name);
-                        if (ing.defaultUnit && !getValues(`ingredients.${index}.unit`)) {
-                          setValue(`ingredients.${index}.unit`, ing.defaultUnit, {
-                            shouldValidate: true,
+                        const unit = getValues(`ingredients.${index}.unit`);
+                        if (!unit || unit === prefilledUnits.current.get(row.id)) {
+                          const next = ing.defaultUnit ?? "";
+                          setValue(`ingredients.${index}.unit`, next, {
+                            shouldValidate: next !== "",
                           });
+                          prefilledUnits.current.set(row.id, next);
                         }
                       }}
                     />
