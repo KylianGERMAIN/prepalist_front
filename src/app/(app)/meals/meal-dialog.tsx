@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { CreateMealInput, Meal } from "@/lib/models";
-import { UNITS } from "@/lib/units";
+import { asUnit, UNITS } from "@/lib/units";
 import { UnitSelect } from "@/components/unit-select";
 import { IngredientCombobox } from "./ingredient-combobox";
 import { createMeal, getMeal, updateMeal } from "./actions";
@@ -88,6 +88,7 @@ export function MealDialog({
     control,
     watch,
     setValue,
+    getValues,
     reset,
     formState: { errors, isSubmitting },
   } = useForm<FormValues, unknown, SubmittedValues>({
@@ -201,11 +202,17 @@ export function MealDialog({
                       // eslint-disable-next-line react-hooks/incompatible-library -- React Compiler n'est pas activé sur ce projet
                       value={watch(`ingredients.${index}.ingredientId`)}
                       label={watch(`ingredients.${index}.ingredientName`) || undefined}
+                      unit={asUnit(watch(`ingredients.${index}.unit`))}
                       onSelect={(ing) => {
                         setValue(`ingredients.${index}.ingredientId`, ing.id, {
                           shouldValidate: true,
                         });
                         setValue(`ingredients.${index}.ingredientName`, ing.name);
+                        if (ing.defaultUnit && !getValues(`ingredients.${index}.unit`)) {
+                          setValue(`ingredients.${index}.unit`, ing.defaultUnit, {
+                            shouldValidate: true,
+                          });
+                        }
                       }}
                     />
                     <FieldError message={errors.ingredients?.[index]?.ingredientId?.message} />

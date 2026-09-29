@@ -21,6 +21,10 @@ const PLURAL: Record<Unit, string> = {
 
 export const UNITS = Object.keys(PLURAL) as [Unit, ...Unit[]];
 
+export function asUnit(value: string): Unit | undefined {
+  return UNITS.find((unit) => unit === value);
+}
+
 // `Intl.PluralRules` plutôt qu'un seuil écrit à la main : en français le
 // singulier tient jusqu'à 2 exclu, donc « 1,5 tranche » et non « 1,5 tranches ».
 const plural = new Intl.PluralRules("fr");
