@@ -4,6 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MealSummary, PlanSlot } from "@/lib/models";
 import { SlotCell, type NextSlotInfo } from "./slot-cell";
 
+vi.mock("./meals/actions", () => ({ getMeal: vi.fn() }));
+
+import { getMeal } from "./meals/actions";
+
 vi.mock("./planner-actions", () => ({
   assignSlot: vi.fn(),
   searchMeals: vi.fn(),
@@ -118,4 +122,35 @@ describe("SlotCell", () => {
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
     expect(onAssign).toHaveBeenCalledWith(EMPTY_SLOT, CARBO, 2, false);
   });
+
+  it("ouvre la fiche du repas choisi par-dessus la modale", async () => {
+    vi.mocked(getMeal).mockResolvedValue({
+      ...CARBO,
+      ingredients: [],
+      description: "Ne pas cuire la crème.",
+    } as never);
+    const user = userEvent.setup();
+    renderCell();
+    await user.click(screen.getByRole("button", { name: /ajouter/i }));
+    expect(screen.queryByRole("button", { name: "Voir la fiche" })).not.toBeInTheDocument();
+
+    await openDialogAndPickAgain(user);
+    await user.click(screen.getByRole("button", { name: "Voir la fiche" }));
+
+    expect(await screen.findByText("Ne pas cuire la crème.")).toBeInTheDocument();
+    expect(getMeal).toHaveBeenCalledWith("m1");
+
+    await user.keyboard("{Escape}");
+    await waitFor(() =>
+      expect(screen.queryByText("Ne pas cuire la crème.")).not.toBeInTheDocument(),
+    );
+    expect(screen.getByRole("button", { name: "Enregistrer" })).toBeInTheDocument();
+  });
 });
+
+async function openDialogAndPickAgain(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(await screen.findByRole("combobox"));
+  await user.type(screen.getByPlaceholderText("Rechercher un repas…"), "carbo");
+  await screen.findByRole("option", { name: "Pâtes carbo" });
+  await user.keyboard("{Enter}");
+}

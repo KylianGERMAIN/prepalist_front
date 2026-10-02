@@ -17,6 +17,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { MealSummary, PlanSlot } from "@/lib/models";
 import { MealCombobox } from "./meal-combobox";
+import { MealDetailsDialog } from "./meals/meal-details-dialog";
 import { readAlsoNext, writeAlsoNext } from "./planner-utils";
 
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
@@ -152,6 +153,16 @@ export function SlotCell({
                 onSelect={setSelected}
                 focusAfterSelect={submitRef}
               />
+              {selected ? (
+                <MealDetailsDialog
+                  mealId={selected.id}
+                  trigger={
+                    <button type="button" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+                      Voir la fiche
+                    </button>
+                  }
+                />
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="slot-servings">Portions</Label>

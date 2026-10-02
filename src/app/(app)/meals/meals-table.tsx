@@ -19,6 +19,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { MealSummary, UpdateMealStateInput } from "@/lib/models";
 import { deleteMeal, setMealState } from "./actions";
 import { MealDialog } from "./meal-dialog";
+import { MealDetailsDialog } from "./meal-details-dialog";
 
 const RATINGS = [1, 2, 3, 4, 5];
 
@@ -112,7 +113,17 @@ function MealRow({
     <TableRow>
       <TableCell className="font-medium">
         <span className="flex items-center gap-1">
-          {meal.name}
+          <MealDetailsDialog
+            mealId={meal.id}
+            trigger={
+              <button
+                type="button"
+                className="rounded-sm text-left underline decoration-dotted underline-offset-4 hover:decoration-solid focus-visible:outline-2 focus-visible:outline-ring"
+              >
+                {meal.name}
+              </button>
+            }
+          />
           <RatingSelect mealName={meal.name} rating={meal.rating} onRate={onRate} />
         </span>
       </TableCell>
