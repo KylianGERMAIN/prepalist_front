@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Label } from "@/components/ui/label";
 import { updateShoppingDay } from "../settings-actions";
+import { NativeSelect } from "@/components/ui/native-select";
 
 // Ordre d'affichage lundi -> dimanche ; la valeur suit la convention JS (0 = dimanche).
 const DAYS = [
@@ -37,19 +38,18 @@ export function ShoppingDayForm({ current }: { current: number }) {
   return (
     <div className="space-y-2">
       <Label htmlFor="shopping-day">Jour de courses</Label>
-      <select
+      <NativeSelect
         id="shopping-day"
         value={day}
         disabled={pending}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
       >
         {DAYS.map((d) => (
           <option key={d.value} value={d.value}>
             {d.label}
           </option>
         ))}
-      </select>
+      </NativeSelect>
     </div>
   );
 }

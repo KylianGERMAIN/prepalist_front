@@ -69,13 +69,8 @@ describe("shoppingItemsReducer — suppressions et quantité", () => {
     expect(next.map((i) => i.id)).toEqual(["b"]);
   });
 
-  it("retire seulement les achetés", () => {
-    const next = shoppingItemsReducer(state, { type: "clear", scope: "checked" });
-    expect(next.map((i) => i.id)).toEqual(["b"]);
-  });
-
   it("vide tout", () => {
-    expect(shoppingItemsReducer(state, { type: "clear", scope: "all" })).toEqual([]);
+    expect(shoppingItemsReducer(state, { type: "clear" })).toEqual([]);
   });
 
   it("change la quantité de l'item ciblé", () => {

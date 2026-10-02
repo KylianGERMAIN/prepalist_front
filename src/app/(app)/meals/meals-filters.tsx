@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Input, inputClassName } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 import type { TagCount } from "@/lib/models";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 
 /** Pilote les query params que la page serveur relit (`?name=&tag=&incomplete=`). */
 export function MealsFilters({ tags }: { tags: TagCount[] }) {
@@ -40,11 +40,11 @@ export function MealsFilters({ tags }: { tags: TagCount[] }) {
         onChange={(e) => setName(e.target.value)}
         className="max-w-[200px]"
       />
-      <select
+      <NativeSelect
         aria-label="Tag"
         value={tag}
         onChange={(e) => setTag(e.target.value)}
-        className={cn(inputClassName, "w-auto max-w-[200px]")}
+        className="w-auto max-w-[200px]"
       >
         <option value="">Tous les tags</option>
         {tag && !tags.some((t) => t.name === tag) ? <option value={tag}>{tag}</option> : null}
@@ -53,7 +53,7 @@ export function MealsFilters({ tags }: { tags: TagCount[] }) {
             {t.name} ({t.count})
           </option>
         ))}
-      </select>
+      </NativeSelect>
       <Button
         type="button"
         variant={incomplete ? "default" : "outline"}

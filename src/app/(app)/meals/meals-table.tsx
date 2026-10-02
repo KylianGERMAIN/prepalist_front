@@ -4,8 +4,6 @@ import Link from "next/link";
 import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { inputClassName } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -22,6 +20,7 @@ import { deleteMeal, setMealState } from "./actions";
 import { MealDialog } from "./meal-dialog";
 import { MealDetailsDialog } from "./meal-details-dialog";
 import { IncompleteBadge } from "@/components/incomplete-badge";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const RATINGS = [1, 2, 3, 4, 5];
 
@@ -86,9 +85,9 @@ function RatingSelect({
   onRate: (rating: number | null) => void;
 }) {
   return (
-    <select
+    <NativeSelect
       aria-label={`Note de ${mealName}`}
-      className={cn(inputClassName, "ml-auto w-28 shrink-0")}
+      className="ml-auto w-28 shrink-0"
       value={rating ?? ""}
       onChange={(e) => onRate(e.target.value ? Number(e.target.value) : null)}
     >
@@ -98,7 +97,7 @@ function RatingSelect({
           {value}/5
         </option>
       ))}
-    </select>
+    </NativeSelect>
   );
 }
 
@@ -120,7 +119,7 @@ function MealRow({
             trigger={
               <button
                 type="button"
-                className="rounded-sm text-left underline decoration-dotted underline-offset-4 hover:decoration-solid focus-visible:outline-2 focus-visible:outline-ring"
+                className="rounded-sm text-left underline-offset-4 hover:underline focus-visible:outline-2 [@media(hover:none)]:underline focus-visible:outline-ring"
               >
                 {meal.name}
               </button>

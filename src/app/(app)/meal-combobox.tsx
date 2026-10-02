@@ -100,7 +100,7 @@ export function MealCombobox({
         }
       />
       <PopoverContent
-        className="w-[280px] p-0"
+        className="w-(--anchor-width) max-w-(--available-width) min-w-72 p-0"
         align="start"
         // Une fonction court-circuiterait la garde de base-ui qui laisse le focus
         // là où l'utilisateur l'a mis : seul le cas « sélection » le redirige.

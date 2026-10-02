@@ -14,7 +14,7 @@ vi.mock("./shopping-list-actions", () => ({
   updateItem: vi.fn(),
 }));
 
-import { clearList, deleteItems, toggleChecked, updateItem } from "./shopping-list-actions";
+import { deleteItems, toggleChecked, updateItem } from "./shopping-list-actions";
 
 const pending = () => new Promise<never>(() => {});
 
@@ -110,20 +110,6 @@ describe("ShoppingListView", () => {
 
     expect(screen.queryByRole("group", { name: "Sélection" })).not.toBeInTheDocument();
     expect(deleteItems).not.toHaveBeenCalled();
-  });
-
-  it("retire les achetés en un geste", async () => {
-    vi.mocked(clearList).mockReturnValue(pending());
-    const user = userEvent.setup();
-    render(
-      <ShoppingListView aisleOrder={AISLES} items={[item({ id: "1", checked: true }), item({ id: "2", name: "Crème" })]} />,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Retirer les achetés" }));
-
-    expect(clearList).toHaveBeenCalledWith("checked");
-    expect(screen.queryByText("Beurre")).not.toBeInTheDocument();
-    expect(screen.getByText("Crème")).toBeInTheDocument();
   });
 
   it("modifie la quantité en place avec Entrée", async () => {

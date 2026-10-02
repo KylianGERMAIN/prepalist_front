@@ -1,11 +1,11 @@
-import type { ClearScope, ShoppingListItem } from "@/lib/models";
+import type { ShoppingListItem } from "@/lib/models";
 import { formatUnit } from "@/lib/units";
 import type { Aisle } from "@/lib/aisles";
 
 export type ShoppingItemAction =
   | { type: "setChecked"; itemId: string; checked: boolean }
   | { type: "remove"; itemIds: string[] }
-  | { type: "clear"; scope: ClearScope }
+  | { type: "clear" }
   | { type: "setQuantity"; itemId: string; quantity: number };
 
 /** L'ajout et la restauration passent par le serveur : il faut l'id et l'état qu'il attribue. */
@@ -25,7 +25,7 @@ export function shoppingItemsReducer(
       return state.filter((item) => !ids.has(item.id));
     }
     case "clear":
-      return action.scope === "all" ? [] : state.filter((item) => !item.checked);
+      return [];
     case "setQuantity":
       return state.map((item) =>
         item.id === action.itemId ? { ...item, quantity: action.quantity } : item,

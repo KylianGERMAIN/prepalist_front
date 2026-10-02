@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input, inputClassName } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { MealSummary, PlanSlot } from "@/lib/models";
 import { MealCombobox } from "./meal-combobox";
 import { MealDetailsDialog } from "./meals/meal-details-dialog";
 import { readAlsoNext, writeAlsoNext } from "./planner-utils";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
 
@@ -44,7 +45,7 @@ export function SlotCell({
   next?: NextSlotInfo;
   onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
   onAway: (slot: PlanSlot, alsoNext: boolean) => void;
-  /** Alternative au glisser-déposer : sur petit écran ou au clavier. */
+  /** Alternative au glisser-déposer sans glisser : seul moyen de changer de jour sur mobile. */
   moveTargets: { id: string; label: string }[];
   onMove: (slotId: string, targetSlotId: string) => void;
   onClear: (slot: PlanSlot) => void;
@@ -54,6 +55,7 @@ export function SlotCell({
   const [servings, setServings] = useState(slot.servings);
   const [alsoNext, setAlsoNext] = useState(true);
   const [moveTo, setMoveTo] = useState("");
+  const [showMove, setShowMove] = useState(false);
   const submitRef = useRef<HTMLButtonElement>(null);
 
   function reset() {
@@ -61,6 +63,7 @@ export function SlotCell({
     setServings(slot.servings);
     setAlsoNext(readAlsoNext());
     setMoveTo("");
+    setShowMove(false);
   }
 
   const meal = slot.meal;
@@ -68,7 +71,7 @@ export function SlotCell({
   const MomentIcon = slot.slot === "LUNCH" ? Sun : Moon;
 
   return (
-    <div className="group relative flex-1">
+    <div className="group relative min-w-0 flex-1">
       {(meal || slot.away) && (
         <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-md bg-card/95 p-0.5 opacity-0 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-70">
           <button
@@ -105,7 +108,7 @@ export function SlotCell({
               )}
             >
               {slot.away ? (
-                <span className="flex items-center gap-1 pr-6">
+                <span className="flex flex-wrap items-center gap-1 pr-6">
                   <MomentIcon className="size-3.5 shrink-0" />
                   <MapPin className="size-3.5 shrink-0" />
                   Dehors
@@ -234,17 +237,28 @@ export function SlotCell({
               </span>
             </label>
 
+            {(meal || slot.away) && !showMove ? (
+              <button
+                type="button"
+                onClick={() => setShowMove(true)}
+                className="hidden text-xs text-muted-foreground underline-offset-4 hover:underline sm:inline"
+              >
+                Déplacer vers un autre créneau…
+              </button>
+            ) : null}
             {meal || slot.away ? (
-              <div className="space-y-2">
+              // Toujours visible sur mobile, où le glisser-déposer ne change pas de jour ;
+              // replié ailleurs, mais gardé pour qui ne peut pas glisser (WCAG 2.5.7).
+              <div className={cn("space-y-2", !showMove && "sm:hidden")}>
                 <Label htmlFor={`move-${slot.id}`}>Déplacer vers</Label>
                 {/* Validation par bouton : sur Windows, une flèche sur un select fermé
                     change déjà sa valeur. */}
                 <div className="flex gap-2">
-                  <select
+                  <NativeSelect
                     id={`move-${slot.id}`}
                     value={moveTo}
                     onChange={(e) => setMoveTo(e.target.value)}
-                    className={cn(inputClassName, "flex-1")}
+                    className="flex-1"
                   >
                     <option value="">Choisir un créneau…</option>
                     {moveTargets
@@ -254,7 +268,7 @@ export function SlotCell({
                           {t.label}
                         </option>
                       ))}
-                  </select>
+                  </NativeSelect>
                   <Button
                     type="button"
                     variant="outline"
@@ -291,7 +305,7 @@ export function SlotCell({
                 }}
                 disabled={slot.away}
               >
-                <MapPin className="mr-2 size-4" />
+                <MapPin className="size-4" />
                 Je mange dehors
               </Button>
               <Button ref={submitRef} type="submit" disabled={!selected}>
