@@ -59,7 +59,7 @@ export function ShoppingListView({
 
       {sorted.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Liste vide. Ajoute un article ou synchronise depuis tes plats planifiés.
+          Liste vide. Planifie des repas ou ajoute un article.
         </p>
       ) : (
       <ul className="divide-y rounded-md border">

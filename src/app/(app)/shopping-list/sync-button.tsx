@@ -16,11 +16,11 @@ export function SyncButton() {
         </Button>
       }
       title="Resynchroniser la liste ?"
-      description="Les articles issus des plats que tu as supprimés reviennent. Les coches et les articles ajoutés à la main sont conservés."
+      description="Les articles issus des plats que tu as supprimés reviennent, et les quantités modifiées à la main sont recalculées. Les coches et les articles ajoutés à la main sont conservés."
       confirmLabel="Synchroniser"
       onConfirm={async () => {
         const res = await syncShoppingList();
-        if (res.ok) toast.success("Liste synchronisée depuis les plats");
+        if (res.ok) toast.success("Articles supprimés restaurés");
         else toast.error(res.error);
       }}
     />

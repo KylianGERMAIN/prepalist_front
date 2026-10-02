@@ -8,9 +8,6 @@ import type {
   UpdateShoppingItemInput,
 } from "@/lib/models";
 
-// `toggleChecked`, `updateItem` et `deleteItem` valent pour un item DERIVED comme
-// pour un MANUAL : le back n'oppose les deux sources qu'à la synchro.
-
 export async function toggleChecked(
   itemId: string,
   checked: boolean,
