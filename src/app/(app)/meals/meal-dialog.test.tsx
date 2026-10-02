@@ -8,6 +8,7 @@ vi.mock("./actions", () => ({
   createMeal: vi.fn(),
   updateMeal: vi.fn(),
   searchIngredients: vi.fn().mockResolvedValue([]),
+  listTags: vi.fn().mockResolvedValue([{ name: "hiver", count: 3 }]),
   createIngredient: vi.fn(),
 }));
 
@@ -181,5 +182,41 @@ describe("MealDialog — description", () => {
     await waitFor(() =>
       expect(updateMeal).toHaveBeenCalledWith("m1", expect.objectContaining({ description: null })),
     );
+  });
+});
+
+describe("MealDialog — tags", () => {
+  it("ferme la liste des tags avec Échap sans fermer la modale", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const user = userEvent.setup();
+    render(<MealDialog mode="create" />);
+    await user.click(screen.getByRole("button", { name: /Nouveau repas/ }));
+    const tags = await screen.findByLabelText("Tags");
+
+    await user.type(tags, "hi");
+    await screen.findByRole("option", { name: /hiver/ });
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => expect(screen.queryByRole("option", { name: /hiver/ })).not.toBeInTheDocument());
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nom")).toBeInTheDocument();
+  });
+
+  it("garde les tags quand un second Échap ferme la modale", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    vi.mocked(getMeal).mockResolvedValue({ ...mealWith("tranche"), tags: ["hiver", "rapide"] } as Meal);
+    const user = userEvent.setup();
+    render(<MealDialog mode="edit" mealId="m1" />);
+    await user.click(screen.getByRole("button"));
+    const tags = await screen.findByLabelText("Tags");
+    await user.click(tags);
+
+    await user.keyboard("{Escape}");
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await user.click(screen.getByRole("button"));
+    await screen.findByLabelText("Tags");
+    expect(screen.getByRole("button", { name: "Retirer le tag hiver" })).toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactElement } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { TAG_MAX_LENGTH, TagInput } from "@/components/tag-input";
 import {
   Dialog,
   DialogContent,
@@ -18,15 +19,15 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { CreateMealInput, Meal } from "@/lib/models";
+import type { CreateMealInput, Meal, TagCount } from "@/lib/models";
 import { asUnit, UNITS } from "@/lib/units";
 import { UnitSelect } from "@/components/unit-select";
 import { IngredientCombobox } from "./ingredient-combobox";
-import { createMeal, getMeal, updateMeal } from "./actions";
+import { createMeal, getMeal, listTags, updateMeal } from "./actions";
 
 const schema = z.object({
   name: z.string().min(1, "Nom requis."),
-  tags: z.string(), // saisi en CSV, découpé à la soumission
+  tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(20, "20 tags au plus."),
   description: z.string().max(5000, "5 000 caractères au plus."),
   ingredients: z.array(
     z.object({
@@ -46,7 +47,7 @@ const schema = z.object({
 type FormValues = z.input<typeof schema>;
 type SubmittedValues = z.output<typeof schema>;
 
-const EMPTY: FormValues = { name: "", tags: "", description: "", ingredients: [] };
+const EMPTY: FormValues = { name: "", tags: [], description: "", ingredients: [] };
 
 const NEW_LINE = (): FormValues["ingredients"][number] => ({
   ingredientId: "",
@@ -58,7 +59,7 @@ const NEW_LINE = (): FormValues["ingredients"][number] => ({
 function toDefaults(meal: Meal): FormValues {
   return {
     name: meal.name,
-    tags: meal.tags.join(", "),
+    tags: meal.tags,
     description: meal.description ?? "",
     ingredients: meal.ingredients.map((mi) => ({
       ingredientId: mi.ingredientId,
@@ -85,6 +86,7 @@ export function MealDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [tagSuggestions, setTagSuggestions] = useState<TagCount[]>([]);
   const {
     register,
     handleSubmit,
@@ -109,6 +111,9 @@ export function MealDialog({
   async function handleOpenChange(next: boolean) {
     setOpen(next);
     if (!next) return;
+    void listTags()
+      .then(setTagSuggestions)
+      .catch(() => setTagSuggestions([]));
     if (mode === "edit" && mealId) {
       setLoading(true);
       const full = await getMeal(mealId);
@@ -127,10 +132,7 @@ export function MealDialog({
   async function onSubmit(values: SubmittedValues) {
     const payload: CreateMealInput = {
       name: values.name,
-      tags: values.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tags: values.tags,
       description: values.description.trim() || null,
       ingredients: values.ingredients.map((l) => ({
         ingredientId: l.ingredientId,
@@ -182,11 +184,19 @@ export function MealDialog({
 
             <div className="space-y-2">
               <Label htmlFor="meal-tags">Tags</Label>
-              <Input
-                id="meal-tags"
-                placeholder="rapide, batch, végé (séparés par des virgules)"
-                {...register("tags")}
+              <Controller
+                control={control}
+                name="tags"
+                render={({ field }) => (
+                  <TagInput
+                    id="meal-tags"
+                    value={field.value}
+                    onChange={field.onChange}
+                    suggestions={tagSuggestions}
+                  />
+                )}
               />
+              <FieldError message={errors.tags?.message} />
             </div>
 
             <div className="space-y-2">

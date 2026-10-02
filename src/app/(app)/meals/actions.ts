@@ -5,6 +5,7 @@ import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
 import type {
   CreateMealInput,
+  TagCount,
   Ingredient,
   Meal,
   UpdateMealInput,
@@ -54,6 +55,12 @@ export async function setMealState(
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/meals");
   return { ok: true };
+}
+
+export async function listTags(): Promise<TagCount[]> {
+  const api = await serverApi();
+  const { data } = await api.GET("/meals/tags", {});
+  return data ?? [];
 }
 
 export async function searchIngredients(search: string): Promise<Ingredient[]> {

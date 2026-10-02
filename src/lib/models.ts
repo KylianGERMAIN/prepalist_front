@@ -13,6 +13,7 @@ export type UpdateMealInput = components["schemas"]["UpdateMealDto"];
 export type MealIngredientInput = components["schemas"]["MealIngredientDto"];
 /** Note : propre au compte connecté, pas à la recette. */
 export type UpdateMealStateInput = components["schemas"]["UpdateMealStateDto"];
+export type TagCount = components["schemas"]["TagCountDto"];
 
 export type Me = components["schemas"]["MeDto"];
 
