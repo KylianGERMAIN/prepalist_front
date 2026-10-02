@@ -2,10 +2,11 @@
 
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
-import { CheckSquare, Eraser, ListChecks, Pencil, ShoppingCart, Trash2, X } from "lucide-react";
+import { CheckSquare, ChevronDown, Eraser, ListChecks, Pencil, ShoppingCart, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { asUnit, formatUnit } from "@/lib/units";
 import type { ShoppingListItem } from "@/lib/models";
+import { type Aisle, aisleLabel } from "@/lib/aisles";
 import type { ActionResult } from "@/lib/action-result";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +26,7 @@ import {
   quantityLabel,
   readStoreMode,
   shoppingItemsReducer,
-  sortItems,
+  groupByAisle,
   subscribeStoreMode,
   writeStoreMode,
 } from "./shopping-list-utils";
@@ -34,13 +35,21 @@ import { EditItemDialog } from "./edit-item-dialog";
 import { ShareButton } from "./share-button";
 import { StoreModeList } from "./store-mode-list";
 
-export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
+export function ShoppingListView({
+  items,
+  aisleOrder,
+  canEditIngredients = false,
+}: {
+  items: ShoppingListItem[];
+  aisleOrder: Aisle[];
+  canEditIngredients?: boolean;
+}) {
   const [optimisticItems, dispatch] = useOptimistic(items, shoppingItemsReducer);
   const [, startTransition] = useTransition();
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const selectButtonRef = useRef<HTMLButtonElement>(null);
-  const listRef = useRef<HTMLUListElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const storeMode = useSyncExternalStore(subscribeStoreMode, readStoreMode, () => false);
   const wakeLockSupported = useWakeLock(storeMode);
 
@@ -50,7 +59,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
     return () => document.body.removeAttribute("data-store-mode");
   }, [storeMode]);
 
-  const sorted = sortItems(optimisticItems);
+  const sections = groupByAisle(optimisticItems, aisleOrder);
   // Un autre appareil peut retirer un article sélectionné pendant la sélection.
   const selectedIds = optimisticItems.filter((i) => selected.has(i.id)).map((i) => i.id);
   const checkedCount = optimisticItems.filter((i) => i.checked).length;
@@ -143,7 +152,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
         {wakeLockSupported ? null : (
           <p className="text-sm text-muted-foreground">L’écran peut se mettre en veille sur ce navigateur.</p>
         )}
-        <StoreModeList items={sorted} onSetChecked={checkInStore} />
+        <StoreModeList items={optimisticItems} aisleOrder={aisleOrder} onSetChecked={checkInStore} />
         <div className="sticky bottom-2 z-10 flex items-center justify-between gap-3 rounded-md border bg-card p-2 shadow-sm">
           <span className="px-2 text-base text-muted-foreground">
             <span className="tnum">{checkedCount}</span> / <span className="tnum">{optimisticItems.length}</span>{" "}
@@ -211,79 +220,100 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
         </div>
       </div>
 
-      {sorted.length === 0 ? (
+      {sections.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           Liste vide. Planifie des repas ou ajoute un article.
         </p>
       ) : (
-        <ul ref={listRef} className="divide-y rounded-md border">
-          {sorted.map((item) => (
-            <li key={item.id} className="flex items-center gap-2 pr-2 hover:bg-muted/50">
-              <label className="flex flex-1 cursor-pointer items-center gap-3 px-4 py-2.5">
-                {selecting ? (
-                  <input
-                    type="checkbox"
-                    aria-label={`Sélectionner ${item.name}`}
-                    checked={selected.has(item.id)}
-                    onChange={() => toggleSelected(item.id)}
-                    className="size-4 accent-primary"
-                  />
-                ) : (
-                  <input
-                    type="checkbox"
-                    checked={item.checked}
-                    onChange={() => setChecked(item, !item.checked)}
-                    className="size-4 accent-accent"
-                  />
-                )}
-                <span
-                  className={cn(
-                    "flex flex-1 items-center gap-2",
-                    item.checked && "text-muted-foreground line-through",
-                  )}
-                >
-                  {item.name}
-                  {selecting && item.checked ? <span className="sr-only">(acheté)</span> : null}
-                  {item.source === "MANUAL" ? (
-                    <Badge variant="secondary" className="font-normal">
-                      Manuel
-                    </Badge>
-                  ) : null}
+        <div ref={listRef} className="space-y-3">
+          {sections.map((section) => (
+            // La clé change quand la section se termine : elle se remonte, donc se replie.
+            <details
+              key={`${section.aisle}-${section.remaining === 0}`}
+              open={section.remaining > 0}
+              className="group rounded-md border"
+            >
+              <summary className="sticky top-14 z-[5] flex cursor-pointer list-none items-center justify-between rounded-md bg-card px-4 py-2 text-sm font-medium">
+                <span>{aisleLabel(section.aisle)}</span>
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  <span className="tnum" aria-label={`${section.remaining} restants sur ${section.items.length}`}>
+                    {section.remaining} / {section.items.length}
+                  </span>
+                  <ChevronDown className="size-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
                 </span>
-              </label>
-              <QuantityEditor
-                item={item}
-                disabled={selecting}
-                onSave={(quantity) =>
-                  run({ type: "setQuantity", itemId: item.id, quantity }, () =>
-                    updateItem(item.id, { quantity }),
-                  )
-                }
-              />
-              {selecting ? null : (
-                <div className="flex items-center gap-0.5">
-                  <EditItemDialog
-                    item={item}
-                    trigger={
-                      <Button variant="ghost" size="sm" title="Modifier" aria-label={`Modifier ${item.name}`}>
-                        <Pencil className="size-4" />
-                      </Button>
-                    }
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    title="Retirer"
-                    aria-label={`Retirer ${item.name}`}
-                    onClick={() => removeOne(item)}
-                  >
-                    <Trash2 className="size-4" />
-                  </Button>
-                </div>
-              )}
-            </li>
+              </summary>
+              <ul className="divide-y border-t">
+                {section.items.map((item) => (
+                  <li key={item.id} className="flex items-center gap-2 pr-2 hover:bg-muted/50">
+                    <label className="flex flex-1 cursor-pointer items-center gap-3 px-4 py-2.5">
+                      {selecting ? (
+                        <input
+                          type="checkbox"
+                          aria-label={`Sélectionner ${item.name}`}
+                          checked={selected.has(item.id)}
+                          onChange={() => toggleSelected(item.id)}
+                          className="size-4 accent-primary"
+                        />
+                      ) : (
+                        <input
+                          type="checkbox"
+                          checked={item.checked}
+                          onChange={() => setChecked(item, !item.checked)}
+                          className="size-4 accent-accent"
+                        />
+                      )}
+                      <span
+                        className={cn(
+                          "flex flex-1 items-center gap-2",
+                          item.checked && "text-muted-foreground line-through",
+                        )}
+                      >
+                        {item.name}
+                        {selecting && item.checked ? <span className="sr-only">(acheté)</span> : null}
+                        {item.source === "MANUAL" ? (
+                          <Badge variant="secondary" className="font-normal">
+                            Manuel
+                          </Badge>
+                        ) : null}
+                      </span>
+                    </label>
+                    <QuantityEditor
+                      item={item}
+                      disabled={selecting}
+                      onSave={(quantity) =>
+                        run({ type: "setQuantity", itemId: item.id, quantity }, () =>
+                          updateItem(item.id, { quantity }),
+                        )
+                      }
+                    />
+                    {selecting ? null : (
+                      <div className="flex items-center gap-0.5">
+                        <EditItemDialog
+                          item={item}
+                          canEditIngredient={canEditIngredients}
+                          trigger={
+                            <Button variant="ghost" size="sm" title="Modifier" aria-label={`Modifier ${item.name}`}>
+                              <Pencil className="size-4" />
+                            </Button>
+                          }
+                        />
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          title="Retirer"
+                          aria-label={`Retirer ${item.name}`}
+                          onClick={() => removeOne(item)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </details>
           ))}
-        </ul>
+        </div>
       )}
 
       {selecting ? (

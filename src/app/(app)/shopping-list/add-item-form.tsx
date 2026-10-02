@@ -8,6 +8,8 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { UnitSelect } from "@/components/unit-select";
+import { AisleSelect } from "@/components/aisle-select";
+import { AISLES } from "@/lib/aisles";
 import type { AddShoppingItemInput } from "@/lib/models";
 import { UNITS } from "@/lib/units";
 import { addManualItem } from "./shopping-list-actions";
@@ -18,6 +20,7 @@ const schema = z.object({
     .union([z.number().positive("Quantité > 0."), z.nan()])
     .optional(),
   unit: z.enum(UNITS, { message: "Unité requise." }),
+  aisle: z.enum(AISLES),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -30,11 +33,11 @@ export function AddItemForm() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: standardSchemaResolver(schema),
-    defaultValues: { name: "", quantity: undefined },
+    defaultValues: { name: "", quantity: undefined, aisle: "OTHER" },
   });
 
   async function onSubmit(values: FormValues) {
-    const payload: AddShoppingItemInput = { name: values.name, unit: values.unit };
+    const payload: AddShoppingItemInput = { name: values.name, unit: values.unit, aisle: values.aisle };
     if (values.quantity && !Number.isNaN(values.quantity)) payload.quantity = values.quantity;
 
     const res = await addManualItem(payload);
@@ -64,6 +67,9 @@ export function AddItemForm() {
         </div>
         <div className="w-24">
           <UnitSelect defaultValue="" {...register("unit")} />
+        </div>
+        <div className="w-36">
+          <AisleSelect {...register("aisle")} />
         </div>
         <Button type="submit" disabled={isSubmitting} title="Ajouter">
           <Plus className="size-4" />

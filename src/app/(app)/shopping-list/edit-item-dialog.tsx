@@ -17,13 +17,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { UnitSelect } from "@/components/unit-select";
+import { AisleSelect } from "@/components/aisle-select";
+import { AISLES } from "@/lib/aisles";
 import type { ShoppingListItem, UpdateShoppingItemInput } from "@/lib/models";
-import { updateItem } from "./shopping-list-actions";
+import { updateIngredientAisle, updateItem } from "./shopping-list-actions";
 
 const schema = z.object({
   name: z.string().min(1, "Nom requis."),
   quantity: z.union([z.number().positive("Quantité > 0."), z.nan()]).optional(),
   unit: z.string().min(1, "Unité requise."),
+  aisle: z.enum(AISLES),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -31,11 +34,16 @@ type FormValues = z.infer<typeof schema>;
 export function EditItemDialog({
   item,
   trigger,
+  canEditIngredient = false,
 }: {
   item: ShoppingListItem;
   trigger: ReactElement;
+  canEditIngredient?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const ingredientId = item.source === "DERIVED" ? item.ingredientId : null;
+  // Le rayon d'un article issu des plats est celui de son ingrédient : seul l'admin le corrige.
+  const aisleEditable = !ingredientId || canEditIngredient;
   const {
     register,
     handleSubmit,
@@ -47,6 +55,7 @@ export function EditItemDialog({
       name: item.name,
       quantity: item.quantity ?? undefined,
       unit: item.unit ?? "",
+      aisle: item.aisle ?? "OTHER",
     },
   });
 
@@ -57,6 +66,7 @@ export function EditItemDialog({
         name: item.name,
         quantity: item.quantity ?? undefined,
         unit: item.unit ?? "",
+        aisle: item.aisle ?? "OTHER",
       });
     }
   }
@@ -67,7 +77,14 @@ export function EditItemDialog({
       quantity: values.quantity && !Number.isNaN(values.quantity) ? values.quantity : undefined,
       unit: values.unit,
     };
-    const res = await updateItem(item.id, patch);
+    const aisleChanged = values.aisle !== (item.aisle ?? "OTHER");
+    if (!ingredientId && aisleChanged) patch.aisle = values.aisle;
+    const res =
+      ingredientId && aisleChanged && canEditIngredient
+        ? await updateIngredientAisle(ingredientId, values.aisle).then((r) =>
+            r.ok ? updateItem(item.id, patch) : r,
+          )
+        : await updateItem(item.id, patch);
     if (res.ok) {
       toast.success("Article mis à jour");
       setOpen(false);
@@ -107,6 +124,17 @@ export function EditItemDialog({
               <UnitSelect id="edit-item-unit" current={item.unit ?? ""} {...register("unit")} />
             </div>
           </div>
+          {aisleEditable ? (
+            <div className="space-y-2">
+              <Label htmlFor="edit-item-aisle">Rayon</Label>
+              <AisleSelect id="edit-item-aisle" {...register("aisle")} />
+              {ingredientId ? (
+                <p className="text-xs text-muted-foreground">
+                  Vaut pour cet ingrédient dans toutes les listes suivantes.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           {errors.quantity?.message ? (
             <p className="text-sm text-destructive">{errors.quantity.message}</p>
           ) : null}

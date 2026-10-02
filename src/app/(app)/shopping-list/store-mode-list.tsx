@@ -4,16 +4,19 @@ import { useRef } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ShoppingListItem } from "@/lib/models";
-import { quantityLabel } from "./shopping-list-utils";
+import { type Aisle, aisleLabel } from "@/lib/aisles";
+import { groupByAisle, quantityLabel, sortItems } from "./shopping-list-utils";
 
 // Une ligne cochée laisse sa place à la suivante : sans ce délai, un double tap coche les deux.
 const TAP_GUARD_MS = 400;
 
 export function StoreModeList({
   items,
+  aisleOrder,
   onSetChecked,
 }: {
   items: ShoppingListItem[];
+  aisleOrder: Aisle[];
   onSetChecked: (item: ShoppingListItem, checked: boolean) => void;
 }) {
   const lastTap = useRef(0);
@@ -23,19 +26,29 @@ export function StoreModeList({
     lastTap.current = now;
     onSetChecked(item, checked);
   }
-  const toBuy = items.filter((i) => !i.checked);
-  const inCart = items.filter((i) => i.checked);
+  const toBuy = groupByAisle(
+    items.filter((i) => !i.checked),
+    aisleOrder,
+  );
+  const inCart = sortItems(items.filter((i) => i.checked));
 
   return (
     <div className="space-y-4">
       {toBuy.length === 0 ? (
         <p className="py-6 text-center text-lg text-muted-foreground">Tout est dans le panier.</p>
       ) : (
-        <ul className="divide-y rounded-md border">
-          {toBuy.map((item) => (
-            <StoreRow key={item.id} item={item} onSetChecked={tap} />
-          ))}
-        </ul>
+        toBuy.map((section) => (
+          <section key={section.aisle} aria-label={aisleLabel(section.aisle)}>
+            <h2 className="sticky top-14 z-[5] bg-background py-1.5 text-sm font-medium text-muted-foreground">
+              {aisleLabel(section.aisle)}
+            </h2>
+            <ul className="divide-y rounded-md border">
+              {section.items.map((item) => (
+                <StoreRow key={item.id} item={item} onSetChecked={tap} />
+              ))}
+            </ul>
+          </section>
+        ))
       )}
       {inCart.length > 0 ? (
         <details className="group rounded-md border">
