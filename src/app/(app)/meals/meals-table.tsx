@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
-import { ChefHat, Pencil, Star, Trash2 } from "lucide-react";
+import { ChefHat, Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { inputClassName } from "@/components/ui/input";
 import {
@@ -32,12 +32,11 @@ export function MealsTable({ meals, isAdmin }: { meals: MealSummary[]; isAdmin: 
   const [optimisticMeals, patchOptimistic] = useOptimistic(meals, stateReducer);
   const [, startTransition] = useTransition();
 
-  function updateState(mealId: string, patch: UpdateMealStateInput, success?: string) {
+  function updateState(mealId: string, patch: UpdateMealStateInput) {
     startTransition(async () => {
       patchOptimistic({ mealId, patch });
       const res = await setMealState(mealId, patch);
       if (!res.ok) toast.error(res.error);
-      else if (success) toast.success(success);
     });
   }
 
@@ -65,37 +64,11 @@ export function MealsTable({ meals, isAdmin }: { meals: MealSummary[]; isAdmin: 
             key={meal.id}
             meal={meal}
             isAdmin={isAdmin}
-            onToggleFavorite={() =>
-              updateState(
-                meal.id,
-                { isFavorite: !meal.isFavorite },
-                meal.isFavorite ? "Retiré des favoris" : "Ajouté aux favoris",
-              )
-            }
             onRate={(rating) => updateState(meal.id, { rating })}
           />
         ))}
       </TableBody>
     </Table>
-  );
-}
-
-function FavoriteToggle({ isFavorite, onToggle }: { isFavorite: boolean; onToggle: () => void }) {
-  const label = isFavorite ? "Retirer des favoris" : "Ajouter aux favoris";
-
-  return (
-    <Button
-      variant="ghost"
-      size="icon-sm"
-      onClick={onToggle}
-      aria-pressed={isFavorite}
-      aria-label={label}
-      title={label}
-    >
-      <Star
-        className={cn("size-4", isFavorite ? "fill-current text-accent" : "text-muted-foreground")}
-      />
-    </Button>
   );
 }
 
@@ -128,12 +101,10 @@ function RatingSelect({
 function MealRow({
   meal,
   isAdmin,
-  onToggleFavorite,
   onRate,
 }: {
   meal: MealSummary;
   isAdmin: boolean;
-  onToggleFavorite: () => void;
   onRate: (rating: number | null) => void;
 }) {
   const [pending, startTransition] = useTransition();
@@ -150,7 +121,6 @@ function MealRow({
     <TableRow>
       <TableCell className="font-medium">
         <span className="flex items-center gap-1">
-          <FavoriteToggle isFavorite={meal.isFavorite} onToggle={onToggleFavorite} />
           {meal.name}
           <RatingSelect mealName={meal.name} rating={meal.rating} onRate={onRate} />
         </span>
