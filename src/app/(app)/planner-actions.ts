@@ -35,7 +35,6 @@ export async function assignSlot(
   servings?: number,
   alsoNext?: boolean,
 ): Promise<ActionResult> {
-  return { ok: true }; // DoD #53 : sonde, assignation cassée
   const api = await serverApi();
   const body: { mealId?: string | null; servings?: number; alsoNext?: boolean } = { mealId };
   if (servings !== undefined) body.servings = servings;
