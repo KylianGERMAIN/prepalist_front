@@ -17,7 +17,7 @@ vi.mock("./planner-actions", () => ({
   clearPlan: vi.fn(),
 }));
 
-import { assignSlot, searchMeals } from "./planner-actions";
+import { assignSlot, searchMeals, setSlotAway } from "./planner-actions";
 
 const CARBO = { id: "m1", name: "Pâtes carbo", tags: [] } as unknown as MealSummary;
 
@@ -44,11 +44,11 @@ describe("PlanGrid — aussi pour le créneau suivant", () => {
   beforeEach(() => {
     localStorage.clear();
     vi.mocked(searchMeals).mockResolvedValue([CARBO]);
-    vi.mocked(assignSlot).mockReturnValue(
-      new Promise((resolve) => {
-        settle = () => resolve({ ok: true });
-      }),
-    );
+    const pending = new Promise<{ ok: true }>((resolve) => {
+      settle = () => resolve({ ok: true });
+    });
+    vi.mocked(assignSlot).mockReturnValue(pending);
+    vi.mocked(setSlotAway).mockReturnValue(pending);
   });
 
   afterEach(() => settle());
@@ -83,5 +83,18 @@ describe("PlanGrid — aussi pour le créneau suivant", () => {
 
     await waitFor(() => expect(toast.error).toHaveBeenCalledWith("Créneau introuvable"));
     await waitFor(() => expect(screen.queryAllByText("Pâtes carbo")).toHaveLength(0));
+  });
+
+  it("affiche « Dehors » sur les deux cartes avant la réponse du serveur", async () => {
+    const user = userEvent.setup();
+    render(<PlanGrid plan={planOfDays(2)} todayIndex={null} />);
+
+    const [firstLunch] = screen.getAllByRole("button", { name: /ajouter/i });
+    await user.click(firstLunch);
+    await user.click(await screen.findByRole("button", { name: "Je mange dehors" }));
+
+    expect(setSlotAway).toHaveBeenCalledWith("0-LUNCH", true);
+    const wednesday = screen.getByText("Mer").parentElement as HTMLElement;
+    expect(within(wednesday).getAllByText("Dehors")).toHaveLength(2);
   });
 });

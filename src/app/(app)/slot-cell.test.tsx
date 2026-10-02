@@ -28,7 +28,7 @@ const EMPTY_SLOT = {
   away: false,
 } as unknown as PlanSlot;
 
-const NEXT: NextSlotInfo = { label: "mercredi soir", occupant: null };
+const NEXT: NextSlotInfo = { label: "mercredi soir", occupant: null, away: false };
 
 function renderCell(next: NextSlotInfo | null = NEXT, canCreateMeals = false) {
   const onAssign = vi.fn();
@@ -100,7 +100,7 @@ describe("SlotCell", () => {
 
   it("annonce le créneau suivant et le repas qu’il remplacerait", async () => {
     const user = userEvent.setup();
-    renderCell({ label: "mercredi soir", occupant: { id: "m2", name: "Wraps" } });
+    renderCell({ label: "mercredi soir", occupant: { id: "m2", name: "Wraps" }, away: false });
     await user.click(screen.getByRole("button", { name: /ajouter/i }));
 
     const option = await screen.findByRole("checkbox", { name: /Aussi mercredi soir/ });

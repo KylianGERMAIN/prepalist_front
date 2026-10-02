@@ -64,12 +64,27 @@ export function PlanGrid({
 
   function handleAway(slot: PlanSlot, alsoNext: boolean) {
     const next = alsoNext ? nextSlotOf(optimisticSlots, slot) : undefined;
+    // Repas effacés par « dehors », pour que « Annuler » les remette.
+    const erased = [slot, next].filter(
+      (s): s is PlanSlot & { meal: MealSummary } => !!s?.meal,
+    );
     startTransition(async () => {
       dispatch({ type: "setAway", slotId: slot.id });
       if (next) dispatch({ type: "setAway", slotId: next.id });
       const res = await setSlotAway(slot.id, !!next);
-      if (res.ok) toast.success(next ? "Deux repas dehors" : "Repas dehors");
-      else toast.error(res.error);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success(next ? "Deux repas dehors" : "Repas dehors", {
+        action:
+          erased.length > 0
+            ? {
+                label: "Annuler",
+                onClick: () => erased.forEach((s) => handleUndo(s.id, s.meal, s.servings)),
+              }
+            : undefined,
+      });
     });
   }
 
@@ -107,7 +122,8 @@ export function PlanGrid({
     const moment = next.slot === "LUNCH" ? "midi" : "soir";
     return {
       label: `${dayName(plan.startDate, next.dayIndex)} ${moment}`,
-      occupant: next.meal ?? (next.away ? { id: "", name: "« dehors »" } : null),
+      occupant: next.meal ?? null,
+      away: next.away,
     };
   }
 

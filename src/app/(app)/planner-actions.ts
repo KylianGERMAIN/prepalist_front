@@ -65,7 +65,7 @@ export async function setSlotAway(slotId: string, alsoNext: boolean): Promise<Ac
   const api = await serverApi();
   const { error } = await api.PATCH("/plan/slots/{slotId}", {
     params: { path: { slotId } },
-    body: alsoNext ? { away: true, alsoNext: true } : { away: true },
+    body: { away: true, alsoNext },
   });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/");

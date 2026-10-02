@@ -25,6 +25,7 @@ const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
 export type NextSlotInfo = {
   label: string;
   occupant: Pick<MealSummary, "id" | "name"> | null;
+  away: boolean;
 };
 
 export function SlotCell({
@@ -89,10 +90,10 @@ export function SlotCell({
               type="button"
               className={cn(
                 "flex h-full min-h-16 w-full flex-col items-start justify-center gap-0.5 rounded-md p-2 text-left text-sm transition-colors",
-                meal
-                  ? "border border-l-4 border-border border-l-accent bg-card shadow-sm hover:bg-muted/40"
-                  : slot.away
-                    ? "border border-transparent bg-muted text-muted-foreground hover:bg-muted/70"
+                slot.away
+                  ? "border border-transparent bg-muted text-muted-foreground hover:bg-muted/70"
+                  : meal
+                    ? "border border-l-4 border-border border-l-accent bg-card shadow-sm hover:bg-muted/40"
                     : "border border-dashed border-border text-muted-foreground hover:border-l-4 hover:border-l-accent hover:bg-muted/40",
               )}
             >
@@ -211,6 +212,7 @@ export function SlotCell({
                 {next ? (
                   <>
                     Aussi {next.label}
+                    {next.away && <span className="text-muted-foreground"> (prévu dehors)</span>}
                     {next.occupant && (
                       <span className="text-muted-foreground">
                         {next.occupant.id === selected?.id
