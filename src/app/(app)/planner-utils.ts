@@ -3,12 +3,26 @@ import type { MealSummary, PlanSlot } from "@/lib/models";
 export type SlotAction =
   | { type: "clear"; slotId: string }
   | { type: "setAway"; slotId: string }
+  | { type: "move"; slotId: string; targetSlotId: string }
   | { type: "assign"; slotId: string; meal: MealSummary; servings: number };
 
 export function slotsReducer(
   state: PlanSlot[],
   action: SlotAction,
 ): PlanSlot[] {
+  if (action.type === "move") {
+    const source = state.find((s) => s.id === action.slotId);
+    const target = state.find((s) => s.id === action.targetSlotId);
+    if (!source || !target || source === target) return state;
+    const contentOf = ({ meal, mealId, servings, away }: PlanSlot) => ({ meal, mealId, servings, away });
+    return state.map((s) =>
+      s.id === source.id
+        ? { ...s, ...contentOf(target) }
+        : s.id === target.id
+          ? { ...s, ...contentOf(source) }
+          : s,
+    );
+  }
   return state.map((s) => {
     if (s.id !== action.slotId) return s;
     if (action.type === "clear") return { ...s, meal: null, mealId: null, away: false };

@@ -73,6 +73,18 @@ export async function setSlotAway(slotId: string, alsoNext: boolean): Promise<Ac
   return { ok: true };
 }
 
+/** Cible occupée : les deux créneaux échangent leur contenu, en une transaction. */
+export async function moveSlot(slotId: string, targetSlotId: string): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.POST("/plan/slots/{slotId}/move", {
+    params: { path: { slotId } },
+    body: { targetSlotId },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/");
+  return { ok: true };
+}
+
 export async function searchMeals(name: string): Promise<MealSummary[]> {
   const api = await serverApi();
   const { data } = await api.GET("/meals", {

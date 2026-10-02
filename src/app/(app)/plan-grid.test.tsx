@@ -12,12 +12,13 @@ vi.mock("./meals/actions", () => ({ getMeal: vi.fn() }));
 vi.mock("./planner-actions", () => ({
   assignSlot: vi.fn(),
   setSlotAway: vi.fn(),
+  moveSlot: vi.fn(),
   searchMeals: vi.fn(),
   generatePlan: vi.fn(),
   clearPlan: vi.fn(),
 }));
 
-import { assignSlot, searchMeals, setSlotAway } from "./planner-actions";
+import { assignSlot, moveSlot, searchMeals, setSlotAway } from "./planner-actions";
 
 const CARBO = { id: "m1", name: "Pâtes carbo", tags: [] } as unknown as MealSummary;
 
@@ -49,6 +50,7 @@ describe("PlanGrid — aussi pour le créneau suivant", () => {
     });
     vi.mocked(assignSlot).mockReturnValue(pending);
     vi.mocked(setSlotAway).mockReturnValue(pending);
+    vi.mocked(moveSlot).mockReturnValue(pending);
   });
 
   afterEach(() => settle());
@@ -96,5 +98,49 @@ describe("PlanGrid — aussi pour le créneau suivant", () => {
     expect(setSlotAway).toHaveBeenCalledWith("0-LUNCH", true);
     const wednesday = screen.getByText("Mer").parentElement as HTMLElement;
     expect(within(wednesday).getAllByText("Dehors")).toHaveLength(2);
+  });
+
+  function planWithCarbo(): Plan {
+    const plan = planOfDays(2);
+    const lunch = plan.slots.find((x) => x.id === "0-LUNCH");
+    if (lunch) Object.assign(lunch, { mealId: CARBO.id, meal: CARBO, servings: 2 });
+    return plan;
+  }
+
+  it("ouvre toujours la modale d'une carte remplie sur un clic court", async () => {
+    const user = userEvent.setup();
+    render(<PlanGrid plan={planWithCarbo()} todayIndex={null} />);
+
+    await user.click(screen.getByText("Pâtes carbo"));
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("déplace un repas depuis la modale, avant la réponse du serveur", async () => {
+    const user = userEvent.setup();
+    render(<PlanGrid plan={planWithCarbo()} todayIndex={null} />);
+
+    await user.click(screen.getByText("Pâtes carbo"));
+    await user.selectOptions(await screen.findByLabelText("Déplacer vers"), "jeudi soir (vide)");
+    expect(moveSlot).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Déplacer" }));
+
+    expect(moveSlot).toHaveBeenCalledWith("0-LUNCH", "1-DINNER");
+    const thursday = screen.getByText("Jeu").parentElement as HTMLElement;
+    expect(within(thursday).getByText("Pâtes carbo")).toBeInTheDocument();
+    const wednesday = screen.getByText("Mer").parentElement as HTMLElement;
+    expect(within(wednesday).queryByText("Pâtes carbo")).not.toBeInTheDocument();
+  });
+
+  it("ouvre la modale d'une carte remplie au clavier, la poignée portant seule le glisser", async () => {
+    const user = userEvent.setup();
+    render(<PlanGrid plan={planWithCarbo()} todayIndex={null} />);
+
+    expect(screen.getByRole("button", { name: "Déplacer mercredi midi (Pâtes carbo)" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Déplacer jeudi/ })).not.toBeInTheDocument();
+    screen.getByText("Pâtes carbo").closest("button")?.focus();
+    await user.keyboard("{Enter}");
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
   });
 });

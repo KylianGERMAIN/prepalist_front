@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, inputClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { MealSummary, PlanSlot } from "@/lib/models";
@@ -32,8 +32,10 @@ export function SlotCell({
   slot,
   next,
   canCreateMeals = false,
+  moveTargets,
   onAssign,
   onAway,
+  onMove,
   onClear,
 }: {
   slot: PlanSlot;
@@ -42,18 +44,23 @@ export function SlotCell({
   next?: NextSlotInfo;
   onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
   onAway: (slot: PlanSlot, alsoNext: boolean) => void;
+  /** Alternative au glisser-déposer : sur petit écran ou au clavier. */
+  moveTargets: { id: string; label: string }[];
+  onMove: (slotId: string, targetSlotId: string) => void;
   onClear: (slot: PlanSlot) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<MealSummary | null>(slot.meal ?? null);
   const [servings, setServings] = useState(slot.servings);
   const [alsoNext, setAlsoNext] = useState(true);
+  const [moveTo, setMoveTo] = useState("");
   const submitRef = useRef<HTMLButtonElement>(null);
 
   function reset() {
     setSelected(slot.meal ?? null);
     setServings(slot.servings);
     setAlsoNext(readAlsoNext());
+    setMoveTo("");
   }
 
   const meal = slot.meal;
@@ -111,7 +118,7 @@ export function SlotCell({
                   >
                     {meal.name}
                   </span>
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pr-6 text-xs text-muted-foreground">
                     <MomentIcon className="size-3.5 shrink-0" />
                     <span>
                       <span className="tnum">{slot.servings}</span> portion(s)
@@ -226,6 +233,42 @@ export function SlotCell({
                 )}
               </span>
             </label>
+
+            {meal || slot.away ? (
+              <div className="space-y-2">
+                <Label htmlFor={`move-${slot.id}`}>Déplacer vers</Label>
+                {/* Validation par bouton : sur Windows, une flèche sur un select fermé
+                    change déjà sa valeur. */}
+                <div className="flex gap-2">
+                  <select
+                    id={`move-${slot.id}`}
+                    value={moveTo}
+                    onChange={(e) => setMoveTo(e.target.value)}
+                    className={cn(inputClassName, "flex-1")}
+                  >
+                    <option value="">Choisir un créneau…</option>
+                    {moveTargets
+                      .filter((t) => t.id !== slot.id)
+                      .map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.label}
+                        </option>
+                      ))}
+                  </select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!moveTo}
+                    onClick={() => {
+                      setOpen(false);
+                      onMove(slot.id, moveTo);
+                    }}
+                  >
+                    Déplacer
+                  </Button>
+                </div>
+              </div>
+            ) : null}
 
             <DialogFooter className="gap-2 sm:justify-between">
               <Button
