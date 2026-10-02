@@ -90,16 +90,6 @@ describe("MealDialog — unité par défaut de l’ingrédient", () => {
   }
 
   beforeEach(() => {
-    // cmdk mesure et fait défiler sa liste, deux API absentes de jsdom.
-    vi.stubGlobal(
-      "ResizeObserver",
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      },
-    );
-    Element.prototype.scrollIntoView = vi.fn();
     vi.mocked(searchIngredients).mockResolvedValue([
       { id: "i2", name: "Tomate", defaultUnit: "g" },
       { id: "i4", name: "Tomme", defaultUnit: "tranche" },
@@ -108,8 +98,6 @@ describe("MealDialog — unité par défaut de l’ingrédient", () => {
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals();
-    delete (Element.prototype as Partial<Element>).scrollIntoView;
     vi.mocked(searchIngredients).mockResolvedValue([]);
   });
 
