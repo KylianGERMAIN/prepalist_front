@@ -198,7 +198,7 @@ export function ShoppingListView({
                 title="Vider la liste ?"
                 description="Tous les articles sont retirés. Ceux issus des plats reviennent avec Restaurer."
                 confirmLabel="Vider"
-                onConfirm={() => run({ type: "clear" }, () => clearList("all"), "Liste vidée")}
+                onConfirm={() => run({ type: "clear" }, () => clearList(), "Liste vidée")}
                 trigger={
                   <Button variant="ghost" size="sm">
                     <Eraser className="mr-2 size-4" />

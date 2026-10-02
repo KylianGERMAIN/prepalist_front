@@ -79,7 +79,7 @@ export function IngredientCombobox({
           </Button>
         }
       />
-      <PopoverContent className="w-(--anchor-width) p-0" align="start">
+      <PopoverContent className="w-(--anchor-width) max-w-(--available-width) min-w-72 p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput placeholder="Rechercher un ingrédient…" value={query} onValueChange={setQuery} />
           <CommandList>

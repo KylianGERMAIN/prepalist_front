@@ -4,11 +4,7 @@ import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
 import type { Aisle } from "@/lib/aisles";
-import type {
-  AddShoppingItemInput,
-  ClearScope,
-  UpdateShoppingItemInput,
-} from "@/lib/models";
+import type { AddShoppingItemInput, UpdateShoppingItemInput } from "@/lib/models";
 
 export async function toggleChecked(
   itemId: string,
@@ -86,10 +82,10 @@ export async function deleteItems(itemIds: string[]): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function clearList(scope: ClearScope): Promise<ActionResult> {
+export async function clearList(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.DELETE("/plan/shopping-list/items", {
-    params: { query: { scope } },
+    params: { query: { scope: "all" } },
   });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/shopping-list");

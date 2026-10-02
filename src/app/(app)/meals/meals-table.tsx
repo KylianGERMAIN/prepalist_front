@@ -119,7 +119,7 @@ function MealRow({
             trigger={
               <button
                 type="button"
-                className="rounded-sm text-left underline-offset-4 hover:underline focus-visible:outline-2 focus-visible:outline-ring"
+                className="rounded-sm text-left underline-offset-4 hover:underline focus-visible:outline-2 [@media(hover:none)]:underline focus-visible:outline-ring"
               >
                 {meal.name}
               </button>

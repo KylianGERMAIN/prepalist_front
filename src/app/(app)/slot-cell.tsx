@@ -45,7 +45,7 @@ export function SlotCell({
   next?: NextSlotInfo;
   onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
   onAway: (slot: PlanSlot, alsoNext: boolean) => void;
-  /** Alternative au glisser-déposer : sur petit écran ou au clavier. */
+  /** Alternative au glisser-déposer sans glisser : seul moyen de changer de jour sur mobile. */
   moveTargets: { id: string; label: string }[];
   onMove: (slotId: string, targetSlotId: string) => void;
   onClear: (slot: PlanSlot) => void;
@@ -55,6 +55,7 @@ export function SlotCell({
   const [servings, setServings] = useState(slot.servings);
   const [alsoNext, setAlsoNext] = useState(true);
   const [moveTo, setMoveTo] = useState("");
+  const [showMove, setShowMove] = useState(false);
   const submitRef = useRef<HTMLButtonElement>(null);
 
   function reset() {
@@ -62,6 +63,7 @@ export function SlotCell({
     setServings(slot.servings);
     setAlsoNext(readAlsoNext());
     setMoveTo("");
+    setShowMove(false);
   }
 
   const meal = slot.meal;
@@ -235,10 +237,19 @@ export function SlotCell({
               </span>
             </label>
 
+            {(meal || slot.away) && !showMove ? (
+              <button
+                type="button"
+                onClick={() => setShowMove(true)}
+                className="hidden text-xs text-muted-foreground underline-offset-4 hover:underline sm:inline"
+              >
+                Déplacer vers un autre créneau…
+              </button>
+            ) : null}
             {meal || slot.away ? (
-              // Mobile seulement : ailleurs le glisser-déposer suffit, mais en vue jour par
-              // jour il ne passe pas d'un jour à l'autre.
-              <div className="space-y-2 sm:hidden">
+              // Toujours visible sur mobile, où le glisser-déposer ne change pas de jour ;
+              // replié ailleurs, mais gardé pour qui ne peut pas glisser (WCAG 2.5.7).
+              <div className={cn("space-y-2", !showMove && "sm:hidden")}>
                 <Label htmlFor={`move-${slot.id}`}>Déplacer vers</Label>
                 {/* Validation par bouton : sur Windows, une flèche sur un select fermé
                     change déjà sa valeur. */}
