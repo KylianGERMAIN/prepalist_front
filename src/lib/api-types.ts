@@ -108,6 +108,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ingredients/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Corrige le rayon ou l’unité par défaut d’un ingrédient (admin uniquement) */
+        patch: operations["IngredientsController_update"];
+        trace?: never;
+    };
     "/meals": {
         parameters: {
             query?: never;
@@ -391,9 +408,19 @@ export interface components {
             name: string;
             /** @enum {string|null} */
             defaultUnit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c" | null;
+            /** @enum {string|null} */
+            aisle: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
         };
         CreateIngredientDto: {
             name: string;
+            /** @enum {string|null} */
+            defaultUnit?: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c" | null;
+            /** @enum {string|null} */
+            aisle?: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
+        };
+        UpdateIngredientDto: {
+            /** @enum {string|null} */
+            aisle?: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
             /** @enum {string|null} */
             defaultUnit?: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c" | null;
         };
@@ -514,6 +541,11 @@ export interface components {
             unit: string | null;
             quantity: number | null;
             checked: boolean;
+            /**
+             * @description Celui de l’ingrédient pour un article issu des plats ; null = « Autre ».
+             * @enum {string|null}
+             */
+            aisle: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
         };
         IncompleteMealDto: {
             id: string;
@@ -528,12 +560,19 @@ export interface components {
             dismissedCount: number;
             /** @description Repas planifiés sans ingrédient : la liste ne les couvre pas. */
             incompleteMeals: components["schemas"]["IncompleteMealDto"][];
+            /** @description Ordre de parcours des rayons, celui du tri de `items`. */
+            aisleOrder: ("PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER")[];
         };
         CreateShoppingListItemDto: {
             name: string;
             quantity?: number;
             /** @enum {string} */
             unit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c";
+            /**
+             * @description Rayon d’un article manuel. null = « Autre ».
+             * @enum {string|null}
+             */
+            aisle?: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
         };
         RemoveShoppingListItemsDto: {
             /** @description Les ids hors de la liste de l’appelant sont ignorés. */
@@ -544,6 +583,11 @@ export interface components {
             name?: string;
             quantity?: number;
             unit?: string;
+            /**
+             * @description Rayon d’un article manuel. Sur un article issu des plats, 400 s’il diffère du rayon de son ingrédient.
+             * @enum {string|null}
+             */
+            aisle?: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
         };
     };
     responses: never;
@@ -720,6 +764,31 @@ export interface operations {
         };
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ingredient"];
+                };
+            };
+        };
+    };
+    IngredientsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateIngredientDto"];
+            };
+        };
+        responses: {
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };

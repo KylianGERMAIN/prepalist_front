@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
+import type { Aisle } from "@/lib/aisles";
 import type {
   AddShoppingItemInput,
   ClearScope,
@@ -43,6 +44,21 @@ export async function updateItem(
   const { error } = await api.PATCH("/plan/shopping-list/items/{itemId}", {
     params: { path: { itemId } },
     body: patch,
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
+/** Admin : vaut pour toutes les listes, l'article issu des plats suivant le rayon de son ingrédient. */
+export async function updateIngredientAisle(
+  ingredientId: string,
+  aisle: Aisle,
+): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.PATCH("/ingredients/{id}", {
+    params: { path: { id: ingredientId } },
+    body: { aisle },
   });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/shopping-list");

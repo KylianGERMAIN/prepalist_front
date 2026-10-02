@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ShoppingListItem } from "@/lib/models";
-import { formatListAsText, shoppingItemsReducer, sortItems } from "./shopping-list-utils";
+import { AISLES } from "@/lib/aisles";
+import { formatListAsText, groupByAisle, shoppingItemsReducer, sortItems } from "./shopping-list-utils";
 
 function item(overrides: Partial<ShoppingListItem> = {}): ShoppingListItem {
   return {
@@ -11,6 +12,7 @@ function item(overrides: Partial<ShoppingListItem> = {}): ShoppingListItem {
     unit: "g",
     quantity: 500,
     checked: false,
+    aisle: null,
     ...overrides,
   };
 }
@@ -131,5 +133,43 @@ describe("formatListAsText", () => {
   it("dit qu'il n'y a rien à acheter quand tout est coché", () => {
     expect(formatListAsText([item({ checked: true })])).toBe("Courses — rien à acheter");
     expect(formatListAsText([])).toBe("Courses — rien à acheter");
+  });
+});
+
+describe("groupByAisle", () => {
+  const sections = (items: ShoppingListItem[]) =>
+    groupByAisle(items, AISLES).map((s) => [s.aisle, s.items.map((i) => i.name), s.remaining]);
+
+  it("suit l'ordre de parcours et range un rayon inconnu avec « Autre »", () => {
+    expect(
+      sections([
+        item({ id: "1", name: "Lait", aisle: "DAIRY" }),
+        item({ id: "2", name: "Sel", aisle: null }),
+        item({ id: "3", name: "Pommes", aisle: "PRODUCE" }),
+        item({ id: "4", name: "Éponge", aisle: "OTHER" }),
+      ]),
+    ).toEqual([
+      ["PRODUCE", ["Pommes"], 1],
+      ["DAIRY", ["Lait"], 1],
+      ["OTHER", ["Éponge", "Sel"], 2],
+    ]);
+  });
+
+  it("met les achetés en bas de leur rayon", () => {
+    expect(
+      sections([
+        item({ id: "1", name: "Ail", aisle: "PRODUCE", checked: true }),
+        item({ id: "2", name: "Poireaux", aisle: "PRODUCE" }),
+      ]),
+    ).toEqual([["PRODUCE", ["Poireaux", "Ail"], 1]]);
+  });
+
+  it("descend en bas un rayon entièrement acheté", () => {
+    expect(
+      sections([
+        item({ id: "1", name: "Pommes", aisle: "PRODUCE", checked: true }),
+        item({ id: "2", name: "Lait", aisle: "DAIRY" }),
+      ]).map(([aisle]) => aisle),
+    ).toEqual(["DAIRY", "PRODUCE"]);
   });
 });

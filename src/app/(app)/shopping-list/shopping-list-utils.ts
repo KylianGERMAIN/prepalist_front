@@ -1,5 +1,6 @@
 import type { ClearScope, ShoppingListItem } from "@/lib/models";
 import { formatUnit } from "@/lib/units";
+import type { Aisle } from "@/lib/aisles";
 
 export type ShoppingItemAction =
   | { type: "setChecked"; itemId: string; checked: boolean }
@@ -41,6 +42,33 @@ export function sortItems(items: ShoppingListItem[]): ShoppingListItem[] {
   return [...items].sort(
     (a, b) => Number(a.checked) - Number(b.checked) || a.name.localeCompare(b.name, "fr"),
   );
+}
+
+export type AisleSection = { aisle: Aisle; items: ShoppingListItem[]; remaining: number };
+
+/**
+ * Sections dans l'ordre de parcours, sections terminées en bas ; dans chacune,
+ * à acheter d'abord puis par nom. `null` → « Autre ».
+ */
+export function groupByAisle(items: ShoppingListItem[], order: readonly Aisle[]): AisleSection[] {
+  const byAisle = new Map<Aisle, ShoppingListItem[]>();
+  for (const item of items) {
+    const aisle = item.aisle ?? "OTHER";
+    const list = byAisle.get(aisle);
+    if (list) list.push(item);
+    else byAisle.set(aisle, [item]);
+  }
+  const rank = (aisle: Aisle) => {
+    const i = order.indexOf(aisle);
+    return i === -1 ? order.length : i;
+  };
+  return [...byAisle]
+    .map(([aisle, list]) => ({
+      aisle,
+      items: sortItems(list),
+      remaining: list.filter((i) => !i.checked).length,
+    }))
+    .sort((a, b) => Number(a.remaining === 0) - Number(b.remaining === 0) || rank(a.aisle) - rank(b.aisle));
 }
 
 const STORE_MODE_KEY = "prepalist:store-mode";

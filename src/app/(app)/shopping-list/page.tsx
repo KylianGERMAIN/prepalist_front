@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { serverApi } from "@/lib/api";
+import { getCurrentUser } from "@/lib/auth";
 import { LiveRefresh } from "./live-refresh";
 import { ShoppingListView } from "./shopping-list-view";
 import { SyncButton } from "./sync-button";
@@ -7,7 +8,10 @@ import { SyncButton } from "./sync-button";
 export default async function ShoppingListPage() {
   // Le back crée le plan au premier GET : pas d'état vide à distinguer d'une erreur.
   const api = await serverApi();
-  const { data: list } = await api.GET("/plan/shopping-list", {});
+  const [{ data: list }, user] = await Promise.all([
+    api.GET("/plan/shopping-list", {}),
+    getCurrentUser(),
+  ]);
 
   // `LiveRefresh` reste monté : après une erreur passagère, le tick suivant
   // ramène la liste sans rechargement manuel.
@@ -43,7 +47,11 @@ export default async function ShoppingListPage() {
           </Link>
         </p>
       ) : null}
-      <ShoppingListView items={list.items} />
+      <ShoppingListView
+        items={list.items}
+        aisleOrder={list.aisleOrder}
+        canEditIngredients={user?.role === "ADMIN"}
+      />
       <LiveRefresh />
     </div>
   );
