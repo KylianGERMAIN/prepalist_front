@@ -18,7 +18,6 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { PlanSlot } from "@/lib/models";
 import { assignSlot } from "./planner-actions";
-import { cookedRecently } from "./planner-utils";
 import { MealCombobox } from "./meal-combobox";
 
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
@@ -58,7 +57,6 @@ export function SlotCell({
   }
 
   const meal = slot.meal;
-  const recent = meal ? cookedRecently(meal.lastCookedAt) : false;
   const firstTag = meal?.tags[0];
   const MomentIcon = slot.slot === "LUNCH" ? Sun : Moon;
 
@@ -129,14 +127,6 @@ export function SlotCell({
                         <Star className="size-3 fill-current" />
                         <span className="tnum">{meal.rating}</span>
                       </span>
-                    )}
-                    {recent && (
-                      <span
-                        role="img"
-                        aria-label="Cuisiné récemment"
-                        title="Cuisiné récemment"
-                        className="size-1.5 rounded-full bg-accent"
-                      />
                     )}
                     {firstTag && (
                       <Badge

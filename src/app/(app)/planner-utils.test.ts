@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MealSummary, PlanSlot } from "@/lib/models";
-import {
-  cookedRecently,
-  dayIndexOf,
-  dayLabel,
-  slotsReducer,
-} from "./planner-utils";
-
-const DAY = 86_400_000;
+import { dayIndexOf, dayLabel, slotsReducer } from "./planner-utils";
 
 function meal(overrides: Partial<MealSummary> = {}): MealSummary {
   return {
@@ -107,29 +100,5 @@ describe("dayIndexOf", () => {
   it("reste exact autour des changements d'heure", () => {
     expect(dayIndexOf("2026-03-27", "2026-03-30", 7)).toBe(3); // +1 h
     expect(dayIndexOf("2026-10-23", "2026-10-26", 7)).toBe(3); // −1 h
-  });
-});
-
-describe("cookedRecently", () => {
-  it("false si jamais cuisiné (null)", () => {
-    expect(cookedRecently(null)).toBe(false);
-  });
-
-  it("true si cuisiné il y a moins de 7 jours", () => {
-    expect(cookedRecently(new Date(Date.now() - 3 * DAY).toISOString())).toBe(
-      true,
-    );
-  });
-
-  it("false si cuisiné il y a plus de 7 jours", () => {
-    expect(cookedRecently(new Date(Date.now() - 8 * DAY).toISOString())).toBe(
-      false,
-    );
-  });
-
-  it("false pour une date future (horloge/saisie incohérente)", () => {
-    expect(cookedRecently(new Date(Date.now() + DAY).toISOString())).toBe(
-      false,
-    );
   });
 });

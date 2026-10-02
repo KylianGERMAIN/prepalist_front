@@ -42,11 +42,3 @@ export function dayIndexOf(
     86_400_000;
   return diff >= 0 && diff < dayCount ? diff : null;
 }
-
-export const RECENT_DAYS = 7;
-
-export function cookedRecently(iso: string | null): boolean {
-  if (!iso) return false;
-  const days = (Date.now() - new Date(iso).getTime()) / 86_400_000;
-  return days >= 0 && days < RECENT_DAYS;
-}
