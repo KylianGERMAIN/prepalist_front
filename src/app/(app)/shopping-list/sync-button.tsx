@@ -16,7 +16,7 @@ export function SyncButton() {
         </Button>
       }
       title="Resynchroniser la liste ?"
-      description="Les articles issus des plats sont recalculés : leurs coches et modifications sont perdues. Les articles ajoutés à la main sont conservés."
+      description="Les articles issus des plats que tu as supprimés reviennent. Les coches et les articles ajoutés à la main sont conservés."
       confirmLabel="Synchroniser"
       onConfirm={async () => {
         const res = await syncShoppingList();
