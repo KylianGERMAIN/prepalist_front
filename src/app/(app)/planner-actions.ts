@@ -60,6 +60,19 @@ export async function createQuickMeal(
   return { ok: true, meal: data };
 }
 
+/** Vide le créneau et le marque « dehors » ; `alsoNext` le reporte sur le suivant. */
+export async function setSlotAway(slotId: string, alsoNext: boolean): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.PATCH("/plan/slots/{slotId}", {
+    params: { path: { slotId } },
+    body: { away: true, alsoNext },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/");
+  revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
 export async function searchMeals(name: string): Promise<MealSummary[]> {
   const api = await serverApi();
   const { data } = await api.GET("/meals", {

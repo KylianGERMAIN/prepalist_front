@@ -230,6 +230,23 @@ export interface paths {
         patch: operations["PlanController_updateSlot"];
         trace?: never;
     };
+    "/plan/slots/{slotId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Déplace le contenu d’un créneau vers un autre, en l’échangeant si la cible est occupée */
+        post: operations["PlanController_moveSlot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/plan/slots": {
         parameters: {
             query?: never;
@@ -463,6 +480,7 @@ export interface components {
             mealId: string | null;
             meal: components["schemas"]["MealSummaryDto"] | null;
             servings: number;
+            away: boolean;
         };
         PlanDto: {
             id: string;
@@ -478,8 +496,14 @@ export interface components {
             /** @description Repas à assigner, ou null pour vider le créneau */
             mealId?: string | null;
             servings?: number;
-            /** @description Recopie le repas et les portions du créneau, une fois le patch appliqué, sur le suivant (midi → soir, soir → midi du lendemain), en l’écrasant. 400 après le dernier dîner, ou si le créneau est vide. */
+            /** @description true vide le créneau et le marque « dehors » ; assigner un repas le retire. Incompatible avec un mealId non nul. */
+            away?: boolean;
+            /** @description Recopie le résultat du patch sur le créneau suivant (midi → soir, soir → midi du lendemain), en l’écrasant : le repas et les portions, ou l’état « dehors » (sans portions). 400 après le dernier dîner, ou si le créneau n’a ni repas ni état « dehors ». */
             alsoNext?: boolean;
+        };
+        MoveSlotDto: {
+            /** @description Créneau de destination. Occupé, les deux créneaux échangent leur contenu. */
+            targetSlotId: string;
         };
         ShoppingListItemDto: {
             id: string;
@@ -915,6 +939,31 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateSlotDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDto"];
+                };
+            };
+        };
+    };
+    PlanController_moveSlot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveSlotDto"];
             };
         };
         responses: {

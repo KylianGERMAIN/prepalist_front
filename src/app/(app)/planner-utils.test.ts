@@ -23,6 +23,7 @@ function slot(overrides: Partial<PlanSlot> = {}): PlanSlot {
     slot: "LUNCH",
     mealId: null,
     meal: null,
+    away: false,
     servings: 2,
     ...overrides,
   };
@@ -126,5 +127,20 @@ describe("dayName", () => {
   it("donne le nom complet en minuscules, suffixé au-delà de 7 jours", () => {
     expect(dayName("2026-09-30", 1)).toBe("jeudi");
     expect(dayName("2026-09-30", 8)).toBe("jeudi +1");
+  });
+});
+
+describe("slotsReducer — dehors", () => {
+  it("marque le créneau dehors en retirant le repas", () => {
+    const filled = slot({ id: "s1", mealId: "m1", meal: { id: "m1" } as MealSummary });
+    const [next] = slotsReducer([filled], { type: "setAway", slotId: "s1" });
+    expect(next).toMatchObject({ away: true, mealId: null, meal: null });
+  });
+
+  it("sort du mode dehors quand on assigne un repas", () => {
+    const away = slot({ id: "s1", away: true });
+    const meal = { id: "m1" } as MealSummary;
+    const [next] = slotsReducer([away], { type: "assign", slotId: "s1", meal, servings: 2 });
+    expect(next).toMatchObject({ away: false, mealId: "m1" });
   });
 });

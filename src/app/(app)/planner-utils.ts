@@ -2,6 +2,7 @@ import type { MealSummary, PlanSlot } from "@/lib/models";
 
 export type SlotAction =
   | { type: "clear"; slotId: string }
+  | { type: "setAway"; slotId: string }
   | { type: "assign"; slotId: string; meal: MealSummary; servings: number };
 
 export function slotsReducer(
@@ -10,12 +11,14 @@ export function slotsReducer(
 ): PlanSlot[] {
   return state.map((s) => {
     if (s.id !== action.slotId) return s;
-    if (action.type === "clear") return { ...s, meal: null, mealId: null };
+    if (action.type === "clear") return { ...s, meal: null, mealId: null, away: false };
+    if (action.type === "setAway") return { ...s, meal: null, mealId: null, away: true };
     return {
       ...s,
       meal: action.meal,
       mealId: action.meal.id,
       servings: action.servings,
+      away: false,
     };
   });
 }

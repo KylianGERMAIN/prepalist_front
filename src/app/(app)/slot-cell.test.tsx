@@ -25,9 +25,10 @@ const EMPTY_SLOT = {
   mealId: null,
   meal: null,
   servings: 2,
+  away: false,
 } as unknown as PlanSlot;
 
-const NEXT: NextSlotInfo = { label: "mercredi soir", occupant: null };
+const NEXT: NextSlotInfo = { label: "mercredi soir", occupant: null, away: false };
 
 function renderCell(next: NextSlotInfo | null = NEXT, canCreateMeals = false) {
   const onAssign = vi.fn();
@@ -37,6 +38,7 @@ function renderCell(next: NextSlotInfo | null = NEXT, canCreateMeals = false) {
       next={next ?? undefined}
       canCreateMeals={canCreateMeals}
       onAssign={onAssign}
+      onAway={vi.fn()}
       onClear={vi.fn()}
     />,
   );
@@ -98,7 +100,7 @@ describe("SlotCell", () => {
 
   it("annonce le créneau suivant et le repas qu’il remplacerait", async () => {
     const user = userEvent.setup();
-    renderCell({ label: "mercredi soir", occupant: { id: "m2", name: "Wraps" } });
+    renderCell({ label: "mercredi soir", occupant: { id: "m2", name: "Wraps" }, away: false });
     await user.click(screen.getByRole("button", { name: /ajouter/i }));
 
     const option = await screen.findByRole("checkbox", { name: /Aussi mercredi soir/ });
@@ -210,7 +212,7 @@ async function openDialogAndPickAgain(user: ReturnType<typeof userEvent.setup>) 
 describe("SlotCell — repas à compléter", () => {
   function renderFilled(ingredientCount: number) {
     const slot = { ...EMPTY_SLOT, mealId: "m1", meal: { ...CARBO, ingredientCount } } as PlanSlot;
-    render(<SlotCell slot={slot} next={NEXT} onAssign={vi.fn()} onClear={vi.fn()} />);
+    render(<SlotCell slot={slot} next={NEXT} onAssign={vi.fn()} onAway={vi.fn()} onClear={vi.fn()} />);
   }
 
   it("signale un repas sans ingrédient sur la carte", () => {
@@ -221,5 +223,33 @@ describe("SlotCell — repas à compléter", () => {
   it("ne signale rien pour un repas complet", () => {
     renderFilled(2);
     expect(screen.queryByRole("img", { name: "Ingrédients à compléter" })).not.toBeInTheDocument();
+  });
+});
+
+describe("SlotCell — dehors", () => {
+  it("marque le créneau dehors depuis la modale, et le reporte si l'option est cochée", async () => {
+    const onAway = vi.fn();
+    const user = userEvent.setup();
+    render(<SlotCell slot={EMPTY_SLOT} next={NEXT} onAssign={vi.fn()} onAway={onAway} onClear={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /ajouter/i }));
+    await user.click(await screen.findByRole("button", { name: "Je mange dehors" }));
+
+    expect(onAway).toHaveBeenCalledWith(EMPTY_SLOT, true);
+  });
+
+  it("affiche un créneau dehors comme décidé", () => {
+    render(
+      <SlotCell
+        slot={{ ...EMPTY_SLOT, away: true }}
+        next={NEXT}
+        onAssign={vi.fn()}
+        onAway={vi.fn()}
+        onClear={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("Dehors")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Vider le créneau" })).toBeInTheDocument();
   });
 });
