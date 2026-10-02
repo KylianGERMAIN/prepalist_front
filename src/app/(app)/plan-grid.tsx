@@ -19,7 +19,7 @@ import type { MealSummary, Plan, PlanSlot } from "@/lib/models";
 import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
 import { SlotCell, type NextSlotInfo } from "./slot-cell";
 import { DndSlot, slotKeyboardCoordinates } from "./planner-dnd";
-import { DayStrip, useVisibleDay } from "./day-strip";
+import { DayStrip, useIsMobile, useVisibleDay } from "./day-strip";
 import { assignSlot, moveSlot, setSlotAway } from "./planner-actions";
 import { dayLabel, dayName, nextSlotOf, slotsReducer } from "./planner-utils";
 
@@ -212,6 +212,7 @@ export function PlanGrid({
   const days = Array.from({ length: plan.dayCount }, (_, i) => i);
   const daysRef = useRef<HTMLDivElement>(null);
   const [visibleDay, showDay] = useVisibleDay(daysRef, todayIndex ?? 0);
+  const isMobile = useIsMobile();
   const stripDays = days.map((dayIndex) => ({
     index: dayIndex,
     label: dayLabel(plan.startDate, dayIndex),
@@ -234,6 +235,8 @@ export function PlanGrid({
       <DndContext
         id="plan-grid"
         sensors={sensors}
+        // Sur mobile, glisser change de jour : l'autoscroll ferait sauter d'un jour à l'autre.
+        autoScroll={!isMobile}
         accessibility={{
           announcements,
           screenReaderInstructions: {
@@ -249,7 +252,6 @@ export function PlanGrid({
         }}
         onDragEnd={onDragEnd}
       >
-        {/* Mobile : un jour par écran, glissement natif (scroll-snap) ; grille à partir de `sm`. */}
         <div
           ref={daysRef}
           className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-7"
@@ -263,6 +265,10 @@ export function PlanGrid({
                 key={dayIndex}
                 id={`day-${dayIndex}`}
                 data-day={dayIndex}
+                role={isMobile ? "tabpanel" : undefined}
+                aria-labelledby={isMobile ? `day-tab-${dayIndex}` : undefined}
+                // Jours hors écran sortis du focus : Tab depuis le bandeau entre dans le jour choisi.
+                inert={isMobile && dayIndex !== visibleDay}
                 className={cn(
                   "flex h-full w-full shrink-0 snap-start flex-col gap-2 rounded-lg border border-transparent p-1.5 sm:w-auto",
                   isToday && "border-primary/20 bg-primary/5",

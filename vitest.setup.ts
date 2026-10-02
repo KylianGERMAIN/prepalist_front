@@ -11,5 +11,13 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 };
 Element.prototype.scrollIntoView ??= function () {};
-// Absent de jsdom, appelé par le défilement du planning mobile.
-Element.prototype.scrollTo ??= function () {};
+globalThis.IntersectionObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+} as unknown as typeof IntersectionObserver;
+window.matchMedia ??= (query: string) =>
+  ({ matches: false, media: query, addEventListener() {}, removeEventListener() {} }) as unknown as MediaQueryList;

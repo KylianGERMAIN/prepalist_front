@@ -1,27 +1,44 @@
 "use client";
 
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
 import { cn } from "@/lib/utils";
 
 export type StripDay = { index: number; label: string; filled: number; isToday: boolean };
 
+const MOBILE = "(max-width: 639px)";
+
+/** Vrai sous le point de rupture `sm`, où le planning affiche un jour par écran. */
+export function useIsMobile(): boolean {
+  return useSyncExternalStore(
+    (onChange) => {
+      const mql = window.matchMedia(MOBILE);
+      mql.addEventListener("change", onChange);
+      return () => mql.removeEventListener("change", onChange);
+    },
+    () => window.matchMedia(MOBILE).matches,
+    () => false,
+  );
+}
+
 /**
- * Suit le jour visible d'un conteneur à défilement horizontal (mobile) et y
- * place `initialDay` au montage. Les jours portent `data-day={index}`.
+ * Suit le jour visible d'un conteneur à défilement horizontal et y place
+ * `initialDay` au montage. Les jours portent `data-day={index}`.
  */
 export function useVisibleDay(container: RefObject<HTMLElement | null>, initialDay: number) {
   const [visible, setVisible] = useState(initialDay);
+  // Pendant un défilement lancé par `show`, les jours traversés ne doivent pas s'allumer.
+  const scriptedUntil = useRef(0);
 
   useEffect(() => {
     const root = container.current;
     if (!root) return;
-    const start = root.querySelector<HTMLElement>(`[data-day="${initialDay}"]`);
-    if (start) root.scrollTo({ left: start.offsetLeft - root.offsetLeft });
-    if (typeof IntersectionObserver === "undefined") return;
+    root.querySelector(`[data-day="${initialDay}"]`)?.scrollIntoView({ inline: "start", block: "nearest" });
     const observer = new IntersectionObserver(
       (entries) => {
+        if (Date.now() < scriptedUntil.current) return;
         for (const entry of entries) {
-          if (entry.isIntersecting) setVisible(Number((entry.target as HTMLElement).dataset.day));
+          // `isIntersecting` vaut true dès un pixel visible : le voisin l'emporterait.
+          if (entry.intersectionRatio >= 0.6) setVisible(Number((entry.target as HTMLElement).dataset.day));
         }
       },
       { root, threshold: 0.6 },
@@ -31,11 +48,11 @@ export function useVisibleDay(container: RefObject<HTMLElement | null>, initialD
   }, [container, initialDay]);
 
   function show(day: number) {
-    const root = container.current;
-    const el = root?.querySelector<HTMLElement>(`[data-day="${day}"]`);
-    if (!root || !el) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    root.scrollTo({ left: el.offsetLeft - root.offsetLeft, behavior: reduce ? "auto" : "smooth" });
+    scriptedUntil.current = Date.now() + (reduce ? 0 : 700);
+    container.current
+      ?.querySelector(`[data-day="${day}"]`)
+      ?.scrollIntoView({ inline: "start", block: "nearest", behavior: reduce ? "auto" : "smooth" });
     setVisible(day);
   }
 
@@ -63,21 +80,28 @@ export function DayStrip({
   }
 
   return (
-    <div role="tablist" aria-label="Jours" onKeyDown={onKeyDown} className="grid grid-cols-7 gap-1 sm:hidden">
+    <div
+      role="tablist"
+      aria-label="Jours"
+      onKeyDown={onKeyDown}
+      className="grid auto-cols-fr grid-flow-col gap-1 sm:hidden"
+    >
       {days.map((day) => (
         <button
           key={day.index}
           ref={(el) => {
             tabs.current[day.index] = el;
           }}
+          id={`day-tab-${day.index}`}
           type="button"
           role="tab"
           aria-selected={day.index === active}
           aria-controls={`day-${day.index}`}
+          aria-current={day.isToday ? "date" : undefined}
           tabIndex={day.index === active ? 0 : -1}
           onClick={() => onSelect(day.index)}
           className={cn(
-            "flex flex-col items-center gap-1 rounded-md py-1.5 text-xs",
+            "flex flex-col items-center gap-1 rounded-md py-2 text-xs",
             day.index === active ? "bg-primary text-primary-foreground" : "text-muted-foreground",
             day.isToday && day.index !== active && "font-medium text-primary",
           )}
@@ -87,11 +111,13 @@ export function DayStrip({
             {[0, 1].map((i) => (
               <span
                 key={i}
-                className={cn("size-1 rounded-full", i < day.filled ? "bg-current" : "bg-current opacity-25")}
+                className={cn("size-1 rounded-full bg-current", i >= day.filled && "opacity-25")}
               />
             ))}
           </span>
-          <span className="sr-only">{day.filled} repas sur 2</span>
+          <span className="sr-only">
+            , {day.filled} repas sur 2{day.isToday ? ", aujourd’hui" : ""}
+          </span>
         </button>
       ))}
     </div>
