@@ -1,4 +1,4 @@
-import type { components } from "./api-types";
+import type { components, operations } from "./api-types";
 
 // Module purement typé, sans runtime : importable côté Server comme côté Client.
 
@@ -25,5 +25,6 @@ export type ShoppingList = components["schemas"]["ShoppingListDto"];
 export type ShoppingListItem = components["schemas"]["ShoppingListItemDto"];
 /** DERIVED = issu d'un plat, MANUAL = ajouté à la main. */
 export type ShoppingItemSource = ShoppingListItem["source"];
+export type ClearScope = operations["ShoppingListController_clear"]["parameters"]["query"]["scope"];
 export type AddShoppingItemInput = components["schemas"]["CreateShoppingListItemDto"];
 export type UpdateShoppingItemInput = components["schemas"]["UpdateShoppingListItemDto"];

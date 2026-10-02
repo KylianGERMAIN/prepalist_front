@@ -49,11 +49,53 @@ describe("shoppingItemsReducer", () => {
   });
 });
 
+describe("shoppingItemsReducer — suppressions et quantité", () => {
+  const state = [
+    item({ id: "a", checked: true }),
+    item({ id: "b" }),
+    item({ id: "c", checked: true }),
+  ];
+
+  it("retire les items sélectionnés", () => {
+    const next = shoppingItemsReducer(state, { type: "remove", itemIds: ["a", "c"] });
+    expect(next.map((i) => i.id)).toEqual(["b"]);
+  });
+
+  it("retire seulement les achetés", () => {
+    const next = shoppingItemsReducer(state, { type: "clear", scope: "checked" });
+    expect(next.map((i) => i.id)).toEqual(["b"]);
+  });
+
+  it("vide tout", () => {
+    expect(shoppingItemsReducer(state, { type: "clear", scope: "all" })).toEqual([]);
+  });
+
+  it("change la quantité de l'item ciblé", () => {
+    const next = shoppingItemsReducer(state, {
+      type: "setQuantity",
+      itemId: "b",
+      quantity: 3,
+    });
+    expect(next[1].quantity).toBe(3);
+    expect(next[0]).toBe(state[0]);
+  });
+});
+
 describe("sortItems", () => {
   it("trie par nom (fr) sans muter l'entrée", () => {
     const input = [item({ id: "a", name: "Œufs" }), item({ id: "b", name: "Ail" })];
     const sorted = sortItems(input);
     expect(sorted.map((i) => i.name)).toEqual(["Ail", "Œufs"]);
     expect(input[0].name).toBe("Œufs");
+  });
+
+  it("range les achetés en bas, chaque groupe par ordre alphabétique", () => {
+    const sorted = sortItems([
+      item({ id: "1", name: "Ail", checked: true }),
+      item({ id: "2", name: "Œufs" }),
+      item({ id: "3", name: "Beurre" }),
+      item({ id: "4", name: "Crème", checked: true }),
+    ]);
+    expect(sorted.map((i) => i.name)).toEqual(["Beurre", "Œufs", "Ail", "Crème"]);
   });
 });
