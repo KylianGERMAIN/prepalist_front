@@ -37,6 +37,12 @@ function planOfDays(dayCount: number): Plan {
   return { id: "p1", startDate: "2026-09-30", dayCount, slots } as unknown as Plan;
 }
 
+// Le libellé du jour figure aussi dans le bandeau mobile.
+function dayColumn(label: string): HTMLElement {
+  const el = screen.getAllByText(label).find((e) => !e.closest('[role="tablist"]'));
+  return el!.parentElement as HTMLElement;
+}
+
 describe("PlanGrid — aussi pour le créneau suivant", () => {
   // React 19 regroupe les transitions asynchrones en cours : une action jamais
   // résolue retiendrait le retour optimiste des tests suivants.
@@ -67,7 +73,7 @@ describe("PlanGrid — aussi pour le créneau suivant", () => {
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
 
     expect(assignSlot).toHaveBeenCalledWith("0-LUNCH", "m1", 1, true);
-    const wednesday = screen.getByText("Mer").parentElement as HTMLElement;
+    const wednesday = dayColumn("Mer");
     expect(within(wednesday).getAllByText("Pâtes carbo")).toHaveLength(2);
   });
 
@@ -96,7 +102,7 @@ describe("PlanGrid — aussi pour le créneau suivant", () => {
     await user.click(await screen.findByRole("button", { name: "Je mange dehors" }));
 
     expect(setSlotAway).toHaveBeenCalledWith("0-LUNCH", true);
-    const wednesday = screen.getByText("Mer").parentElement as HTMLElement;
+    const wednesday = dayColumn("Mer");
     expect(within(wednesday).getAllByText("Dehors")).toHaveLength(2);
   });
 
@@ -126,9 +132,9 @@ describe("PlanGrid — aussi pour le créneau suivant", () => {
     await user.click(screen.getByRole("button", { name: "Déplacer" }));
 
     expect(moveSlot).toHaveBeenCalledWith("0-LUNCH", "1-DINNER");
-    const thursday = screen.getByText("Jeu").parentElement as HTMLElement;
+    const thursday = dayColumn("Jeu");
     expect(within(thursday).getByText("Pâtes carbo")).toBeInTheDocument();
-    const wednesday = screen.getByText("Mer").parentElement as HTMLElement;
+    const wednesday = dayColumn("Mer");
     expect(within(wednesday).queryByText("Pâtes carbo")).not.toBeInTheDocument();
   });
 

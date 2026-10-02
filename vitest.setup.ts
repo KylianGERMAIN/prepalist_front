@@ -11,3 +11,5 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 };
 Element.prototype.scrollIntoView ??= function () {};
+// Absent de jsdom, appelé par le défilement du planning mobile.
+Element.prototype.scrollTo ??= function () {};
