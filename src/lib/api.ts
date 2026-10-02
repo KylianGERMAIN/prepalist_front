@@ -5,6 +5,7 @@ import createClient, { type Middleware } from "openapi-fetch";
 import type { paths } from "./api-types";
 import { ACCESS_COOKIE } from "./cookies";
 import { API_URL } from "./env";
+import { requestId } from "./request-id";
 
 const baseUrl = API_URL;
 
@@ -27,6 +28,7 @@ const handle401: Middleware = {
 export async function serverApi() {
   const token = (await cookies()).get(ACCESS_COOKIE)?.value;
   const client = createClient<paths>({ baseUrl });
+  client.use(requestId);
   if (token) {
     const auth: Middleware = {
       onRequest({ request }) {
