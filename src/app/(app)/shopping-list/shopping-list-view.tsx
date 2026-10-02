@@ -26,6 +26,7 @@ import {
 } from "./shopping-list-utils";
 import { AddItemForm } from "./add-item-form";
 import { EditItemDialog } from "./edit-item-dialog";
+import { ShareButton } from "./share-button";
 
 export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
   const [optimisticItems, dispatch] = useOptimistic(items, shoppingItemsReducer);
@@ -116,6 +117,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
           </p>
           {optimisticItems.length > 0 && !selecting ? (
             <div className="flex flex-wrap items-center gap-1">
+              <ShareButton items={optimisticItems} />
               <Button ref={selectButtonRef} variant="ghost" size="sm" onClick={() => setSelecting(true)}>
                 <ListChecks className="mr-2 size-4" />
                 Sélectionner

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { ShoppingListItem } from "@/lib/models";
-import { shoppingItemsReducer, sortItems } from "./shopping-list-utils";
+import { formatListAsText, shoppingItemsReducer, sortItems } from "./shopping-list-utils";
 
 function item(overrides: Partial<ShoppingListItem> = {}): ShoppingListItem {
   return {
@@ -103,5 +103,33 @@ describe("sortItems", () => {
       item({ id: "4", name: "Crème", checked: true }),
     ]);
     expect(sorted.map((i) => i.name)).toEqual(["Beurre", "Œufs", "Ail", "Crème"]);
+  });
+});
+
+describe("formatListAsText", () => {
+  it("liste les articles à acheter, triés, quantités au format français", () => {
+    const text = formatListAsText([
+      item({ id: "1", name: "Oignon", quantity: 0.5, unit: "pièce" }),
+      item({ id: "2", name: "Crème", quantity: 20, unit: "c.à.s" }),
+      item({ id: "3", name: "Beurre", checked: true }),
+      item({ id: "4", name: "Sel", quantity: null, unit: "pièce", source: "MANUAL" }),
+      item({ id: "5", name: "Tomate", quantity: 1.999, unit: "pièce" }),
+    ]);
+
+    expect(text).toBe(
+      [
+        "Courses — 4 articles",
+        "",
+        "- Crème — 20 c.à.s",
+        "- Oignon — 0,5 pièce",
+        "- Sel",
+        "- Tomate — 2 pièces",
+      ].join("\n"),
+    );
+  });
+
+  it("dit qu'il n'y a rien à acheter quand tout est coché", () => {
+    expect(formatListAsText([item({ checked: true })])).toBe("Courses — rien à acheter");
+    expect(formatListAsText([])).toBe("Courses — rien à acheter");
   });
 });
