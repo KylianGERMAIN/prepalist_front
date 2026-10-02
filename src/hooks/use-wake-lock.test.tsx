@@ -71,4 +71,24 @@ describe("useWakeLock", () => {
 
     expect(result.current).toBe(false);
   });
+
+  it("relâche un verrou obtenu après la sortie", async () => {
+    let grant!: (lock: ReturnType<typeof sentinel>) => void;
+    request.mockImplementationOnce(() => new Promise((resolve) => (grant = resolve)));
+    const { unmount } = renderHook(() => useWakeLock(true));
+
+    unmount();
+    const late = sentinel();
+    grant(late);
+
+    await waitFor(() => expect(late.release).toHaveBeenCalled());
+  });
+
+  it("signale un verrou refusé par le navigateur", async () => {
+    request.mockRejectedValueOnce(new Error("NotAllowedError"));
+
+    const { result } = renderHook(() => useWakeLock(true));
+
+    await waitFor(() => expect(result.current).toBe(false));
+  });
 });

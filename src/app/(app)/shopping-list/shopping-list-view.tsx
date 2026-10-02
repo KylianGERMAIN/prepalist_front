@@ -22,6 +22,7 @@ import {
 } from "./shopping-list-actions";
 import {
   type ShoppingItemAction,
+  quantityLabel,
   readStoreMode,
   shoppingItemsReducer,
   sortItems,
@@ -115,6 +116,8 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
     if (checked) {
       toast.success(`« ${item.name} » dans le panier`, {
         duration: 4000,
+        // En bas, il recouvrirait « Terminer » à chaque coche.
+        position: "top-center",
         action: { label: "Annuler", onClick: () => setChecked(item, false) },
       });
     }
@@ -146,7 +149,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
             <span className="tnum">{checkedCount}</span> / <span className="tnum">{optimisticItems.length}</span>{" "}
             dans le panier
           </span>
-          <Button size="lg" onClick={() => writeStoreMode(false)}>
+          <Button size="lg" className="h-12 px-6 text-base" onClick={() => writeStoreMode(false)}>
             Terminer
           </Button>
         </div>
@@ -328,7 +331,7 @@ function QuantityEditor({
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const label = [item.quantity, formatUnit(item.quantity, item.unit)].filter(Boolean).join(" ");
+  const label = quantityLabel(item);
 
   function close() {
     setEditing(false);

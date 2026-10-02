@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 
 const noSubscribe = () => () => {};
 
 /**
  * Garde l'écran allumé tant que `active`. Renvoie `false` si le navigateur n'a pas
- * la Screen Wake Lock API : l'écran peut alors se mettre en veille.
+ * la Screen Wake Lock API ou refuse le verrou : l'écran peut alors se mettre en veille.
  */
 export function useWakeLock(active: boolean): boolean {
   const supported = useSyncExternalStore(noSubscribe, () => "wakeLock" in navigator, () => true);
+  const [refused, setRefused] = useState(false);
 
   useEffect(() => {
     if (!active || !supported) return;
@@ -24,8 +25,10 @@ export function useWakeLock(active: boolean): boolean {
         const lock = await navigator.wakeLock.request("screen");
         if (cancelled) void lock.release();
         else sentinel = lock;
+        if (!cancelled) setRefused(false);
       } catch {
-        // Refus (batterie faible, onglet caché) : on retente au retour au premier plan.
+        // Refus (économiseur de batterie, onglet caché) : on retente au retour au premier plan.
+        if (!cancelled) setRefused(true);
       } finally {
         pending = false;
       }
@@ -44,5 +47,5 @@ export function useWakeLock(active: boolean): boolean {
     };
   }, [active, supported]);
 
-  return supported;
+  return supported && !(active && refused);
 }

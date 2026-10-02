@@ -32,6 +32,10 @@ export function shoppingItemsReducer(
   }
 }
 
+export function quantityLabel(item: ShoppingListItem): string {
+  return [item.quantity, formatUnit(item.quantity, item.unit)].filter(Boolean).join(" ");
+}
+
 /** À acheter d'abord, achetés en bas ; ordre alphabétique dans chaque groupe. */
 export function sortItems(items: ShoppingListItem[]): ShoppingListItem[] {
   return [...items].sort(
@@ -41,8 +45,9 @@ export function sortItems(items: ShoppingListItem[]): ShoppingListItem[] {
 
 const STORE_MODE_KEY = "prepalist:store-mode";
 const storeModeListeners = new Set<() => void>();
-// Copie en mémoire : localStorage peut lever (navigation privée, stockage bloqué),
-// le mode marche alors sans être mémorisé.
+// sessionStorage : le mode survit à un rechargement en magasin, pas à la réouverture
+// de l'onglet chez soi, où il garderait l'écran allumé. Copie en mémoire car
+// le stockage peut lever (navigation privée, stockage bloqué).
 let storeMode: boolean | undefined;
 
 export function subscribeStoreMode(listener: () => void): () => void {
@@ -53,7 +58,7 @@ export function subscribeStoreMode(listener: () => void): () => void {
 export function readStoreMode(): boolean {
   if (storeMode === undefined) {
     try {
-      storeMode = localStorage.getItem(STORE_MODE_KEY) === "true";
+      storeMode = sessionStorage.getItem(STORE_MODE_KEY) === "true";
     } catch {
       storeMode = false;
     }
@@ -64,7 +69,7 @@ export function readStoreMode(): boolean {
 export function writeStoreMode(value: boolean): void {
   storeMode = value;
   try {
-    localStorage.setItem(STORE_MODE_KEY, String(value));
+    sessionStorage.setItem(STORE_MODE_KEY, String(value));
   } catch {}
   storeModeListeners.forEach((listener) => listener());
 }

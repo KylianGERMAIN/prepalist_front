@@ -159,7 +159,7 @@ describe("ShoppingListView", () => {
     expect(document.body).toHaveAttribute("data-store-mode");
     expect(screen.queryByRole("button", { name: /Retirer/ })).not.toBeInTheDocument();
     expect(screen.getByText(/Dans le panier \(/)).toHaveTextContent("Dans le panier (1)");
-    await user.click(screen.getByRole("button", { name: /Beurre/ }));
+    await user.click(screen.getByRole("checkbox", { name: /Beurre/ }));
     expect(toggleChecked).toHaveBeenCalledWith("1", true);
 
     await user.click(screen.getByRole("button", { name: "Terminer" }));

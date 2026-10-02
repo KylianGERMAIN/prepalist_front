@@ -1,9 +1,13 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { useRef } from "react";
+import { Check, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatUnit } from "@/lib/units";
 import type { ShoppingListItem } from "@/lib/models";
+import { quantityLabel } from "./shopping-list-utils";
+
+// Une ligne cochée laisse sa place à la suivante : sans ce délai, un double tap coche les deux.
+const TAP_GUARD_MS = 400;
 
 export function StoreModeList({
   items,
@@ -12,6 +16,13 @@ export function StoreModeList({
   items: ShoppingListItem[];
   onSetChecked: (item: ShoppingListItem, checked: boolean) => void;
 }) {
+  const lastTap = useRef(0);
+  function tap(item: ShoppingListItem, checked: boolean) {
+    const now = Date.now();
+    if (now - lastTap.current < TAP_GUARD_MS) return;
+    lastTap.current = now;
+    onSetChecked(item, checked);
+  }
   const toBuy = items.filter((i) => !i.checked);
   const inCart = items.filter((i) => i.checked);
 
@@ -22,18 +33,21 @@ export function StoreModeList({
       ) : (
         <ul className="divide-y rounded-md border">
           {toBuy.map((item) => (
-            <StoreRow key={item.id} item={item} onSetChecked={onSetChecked} />
+            <StoreRow key={item.id} item={item} onSetChecked={tap} />
           ))}
         </ul>
       )}
       {inCart.length > 0 ? (
-        <details className="rounded-md border">
-          <summary className="flex min-h-14 cursor-pointer items-center px-4 text-base text-muted-foreground">
-            Dans le panier (<span className="tnum">{inCart.length}</span>)
+        <details className="group rounded-md border">
+          <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between px-4 text-base text-muted-foreground">
+            <span>
+              Dans le panier (<span className="tnum">{inCart.length}</span>)
+            </span>
+            <ChevronDown className="size-5 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
           </summary>
           <ul className="divide-y border-t">
             {inCart.map((item) => (
-              <StoreRow key={item.id} item={item} onSetChecked={onSetChecked} />
+              <StoreRow key={item.id} item={item} onSetChecked={tap} />
             ))}
           </ul>
         </details>
@@ -49,14 +63,15 @@ function StoreRow({
   item: ShoppingListItem;
   onSetChecked: (item: ShoppingListItem, checked: boolean) => void;
 }) {
-  const quantity = [item.quantity, formatUnit(item.quantity, item.unit)].filter(Boolean).join(" ");
+  const quantity = quantityLabel(item);
   return (
     <li>
       <button
         type="button"
-        aria-pressed={item.checked}
+        role="checkbox"
+        aria-checked={item.checked}
         onClick={() => onSetChecked(item, !item.checked)}
-        className="flex min-h-14 w-full items-center gap-4 px-4 py-3 text-left text-lg active:bg-muted"
+        className="flex min-h-14 w-full touch-manipulation items-center gap-4 px-4 py-3 text-left text-lg active:bg-muted"
       >
         <span
           aria-hidden
