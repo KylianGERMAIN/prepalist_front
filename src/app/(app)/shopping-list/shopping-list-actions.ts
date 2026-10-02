@@ -8,9 +8,6 @@ import type {
   UpdateShoppingItemInput,
 } from "@/lib/models";
 
-// `toggleChecked`, `updateItem` et `deleteItem` valent pour un item DERIVED comme
-// pour un MANUAL : le back n'oppose les deux sources qu'à la synchro.
-
 export async function toggleChecked(
   itemId: string,
   checked: boolean,
@@ -61,7 +58,7 @@ export async function deleteItem(itemId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Réécrit les items dérivés depuis les plats (coches et éditions perdues) ; les manuels sont conservés. */
+/** Ramène les items dérivés supprimés à la main ; coches et items manuels sont conservés. */
 export async function syncShoppingList(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/shopping-list/sync", {});

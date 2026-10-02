@@ -7,32 +7,14 @@ import type { MealSummary } from "@/lib/models";
 
 /**
  * Ne remplit que les créneaux vides : une assignation manuelle n'est jamais écrasée.
- *
- * Synchronise ensuite la liste explicitement, car l'init paresseuse du back n'agit
- * que sur une liste vide : un seul item manuel survivant masquerait le nouveau plan.
+ * Le back met la liste de courses à jour dans la même transaction.
  */
 export async function generatePlan(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/generate", {});
   if (error) return { ok: false, error: errorText(error) };
-
-  // La génération est déjà acquise en base : un rejet réseau de la synchro (back
-  // tombé entre les deux appels) ne doit pas remonter jusqu'à error.tsx.
-  const synced = await api
-    .POST("/plan/shopping-list/sync", {})
-    .then((res) => !res.error)
-    .catch(() => false);
-
   revalidatePath("/");
   revalidatePath("/shopping-list");
-
-  if (!synced) {
-    return {
-      ok: true,
-      warning:
-        "Plan généré, mais la liste de courses n'a pas pu être resynchronisée. Lance Synchroniser depuis la liste.",
-    };
-  }
   return { ok: true };
 }
 
