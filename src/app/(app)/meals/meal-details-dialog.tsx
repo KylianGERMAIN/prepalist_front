@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactElement } from "react";
+import { useRef, useState, type ReactElement } from "react";
 import { Loader2 } from "lucide-react";
 import {
   Dialog,
@@ -14,7 +14,7 @@ import { formatUnit } from "@/lib/units";
 import type { Meal } from "@/lib/models";
 import { getMeal } from "./actions";
 
-/** Fiche en lecture, ouverte à tous les comptes : la liste ne porte qu'un résumé. */
+/** Fiche en lecture, ouverte à tous les comptes. */
 export function MealDetailsDialog({
   mealId,
   trigger,
@@ -25,12 +25,18 @@ export function MealDetailsDialog({
   const [open, setOpen] = useState(false);
   const [meal, setMeal] = useState<Meal | null>(null);
   const [failed, setFailed] = useState(false);
+  const requested = useRef<string | null>(null);
 
+  // Chargée à l'ouverture : la liste ne porte qu'un résumé, sans ingrédients.
   async function handleOpenChange(next: boolean) {
     setOpen(next);
     if (!next) return;
+    const id = mealId;
+    requested.current = id;
     setFailed(false);
-    const full = await getMeal(mealId);
+    const full = await getMeal(id).catch(() => null);
+    // Réponse d'une ouverture précédente, arrivée après celle-ci.
+    if (requested.current !== id) return;
     setMeal(full);
     setFailed(!full);
   }

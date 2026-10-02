@@ -41,4 +41,26 @@ describe("MealDetailsDialog", () => {
 
     expect(await screen.findByText("Repas introuvable.")).toBeInTheDocument();
   });
+
+  it("ignore une réponse arrivée après une ouverture plus récente", async () => {
+    let answerFirst: (meal: Meal | null) => void = () => {};
+    vi.mocked(getMeal)
+      .mockReturnValueOnce(new Promise((resolve) => (answerFirst = resolve)))
+      .mockResolvedValueOnce({ ...MEAL, id: "m2", name: "Wraps" } as Meal);
+    const user = userEvent.setup();
+    const { rerender } = render(
+      <MealDetailsDialog mealId="m1" trigger={<button type="button">Ouvrir</button>} />,
+    );
+    await user.click(screen.getByRole("button", { name: "Ouvrir" }));
+    await user.keyboard("{Escape}");
+
+    rerender(<MealDetailsDialog mealId="m2" trigger={<button type="button">Ouvrir</button>} />);
+    await user.click(screen.getByRole("button", { name: "Ouvrir" }));
+    expect(await screen.findByRole("heading", { name: "Wraps" })).toBeInTheDocument();
+
+    answerFirst(null);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.getByRole("heading", { name: "Wraps" })).toBeInTheDocument();
+    expect(screen.queryByText("Repas introuvable.")).not.toBeInTheDocument();
+  });
 });

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type ReactElement } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -99,6 +99,7 @@ export function MealDialog({
     defaultValues: EMPTY,
   });
   const lines = useFieldArray({ control, name: "ingredients" });
+  const descriptionLength = useWatch({ control, name: "description" })?.length ?? 0;
   // Unité posée par le préremplissage, par ligne : elle suit l'ingrédient tant
   // que l'utilisateur ne l'a pas changée lui-même.
   const prefilledUnits = useRef(new Map<string, string>());
@@ -193,10 +194,14 @@ export function MealDialog({
               <Textarea
                 id="meal-description"
                 placeholder="Procédé, cuisson, astuces…"
-                maxLength={5000}
                 className="max-h-60 resize-y"
                 {...register("description")}
               />
+              {descriptionLength >= 4500 ? (
+                <p className="text-right text-xs tabular-nums text-muted-foreground">
+                  {descriptionLength} / 5000
+                </p>
+              ) : null}
               <FieldError message={errors.description?.message} />
             </div>
 
