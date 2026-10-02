@@ -117,9 +117,6 @@ export function SlotCell({
                     className="flex w-full items-start gap-1 pr-6 font-medium text-foreground"
                     title={meal.name}
                   >
-                    {meal.isFavorite && (
-                      <Star className="mt-0.5 size-3.5 shrink-0 fill-current text-accent" />
-                    )}
                     <span className="break-words">{meal.name}</span>
                   </span>
                   <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
