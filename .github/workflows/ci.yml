@@ -36,6 +36,99 @@ jobs:
 
       - run: pnpm typecheck
 
+      # Contrat : les types doivent sortir à l'identique de l'openapi.json de l'API (develop).
+      - name: API types match the API contract
+        run: |
+          pnpm gen:api
+          git diff --exit-code src/lib/api-types.ts || { echo "::error::api-types.ts est périmé : lancer pnpm gen:api et commiter."; exit 1; }
+
       - run: pnpm test
 
       - run: pnpm build
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: prepalist
+          POSTGRES_PASSWORD: prepalist
+          POSTGRES_DB: prepalist
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U prepalist -d prepalist"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      API_URL: http://localhost:3000
+      NODE_ENV: local
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_USERNAME: prepalist
+      DB_PASSWORD: prepalist
+      DB_NAME: prepalist
+      DB_SSL: "false"
+      JWT_ACCESS_SECRET: e2e-access-secret
+      JWT_REFRESH_SECRET: e2e-refresh-secret
+      # psql du global-setup (promotion admin).
+      PGHOST: localhost
+      PGUSER: prepalist
+      PGPASSWORD: prepalist
+      PGDATABASE: prepalist
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: KylianGERMAIN/prepalist_api
+          ref: develop
+          path: api
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: |
+            pnpm-lock.yaml
+            api/pnpm-lock.yaml
+
+      - name: Start API (migrated)
+        working-directory: api
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          pnpm migration:run:prod
+          nohup node dist/main > ../api.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:3000/health && exit 0; sleep 1; done
+          cat ../api.log; exit 1
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+        env:
+          NODE_ENV: production
+
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - run: pnpm test:e2e
+        env:
+          NODE_ENV: production
+
+      - if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright
+          path: |
+            playwright-report/
+            test-results/
+            api.log
+          retention-days: 7
