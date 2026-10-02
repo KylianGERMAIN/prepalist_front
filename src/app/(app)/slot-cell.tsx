@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Copy, Moon, Plus, Star, Sun, X } from "lucide-react";
 import {
@@ -37,6 +37,7 @@ export function SlotCell({
   const [mealName, setMealName] = useState<string | undefined>(slot.meal?.name);
   const [servings, setServings] = useState(slot.servings);
   const [pending, startTransition] = useTransition();
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   function reset() {
     setMealId(slot.meal?.id ?? null);
@@ -167,7 +168,13 @@ export function SlotCell({
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (mealId && !pending) save(mealId);
+            }}
+          >
             <div className="space-y-2">
               <Label>Repas</Label>
               <MealCombobox
@@ -177,6 +184,7 @@ export function SlotCell({
                   setMealId(m.id);
                   setMealName(m.name);
                 }}
+                focusAfterSelect={submitRef}
               />
             </div>
             <div className="space-y-2">
@@ -193,28 +201,24 @@ export function SlotCell({
                 className="w-24"
               />
             </div>
-          </div>
 
-          <DialogFooter className="gap-2 sm:justify-between">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setOpen(false);
-                onClear(slot);
-              }}
-              disabled={pending || !meal}
-            >
-              Vider
-            </Button>
-            <Button
-              type="button"
-              onClick={() => mealId && save(mealId)}
-              disabled={pending || !mealId}
-            >
-              {pending ? "Enregistrement…" : "Enregistrer"}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="gap-2 sm:justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setOpen(false);
+                  onClear(slot);
+                }}
+                disabled={pending || !meal}
+              >
+                Vider
+              </Button>
+              <Button ref={submitRef} type="submit" disabled={pending || !mealId}>
+                {pending ? "Enregistrement…" : "Enregistrer"}
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

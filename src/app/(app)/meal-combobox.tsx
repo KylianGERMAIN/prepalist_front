@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition, type RefObject } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -20,12 +20,15 @@ export function MealCombobox({
   value,
   label,
   onSelect,
+  focusAfterSelect,
 }: {
   value?: string;
   label?: string;
   onSelect: (meal: MealSummary) => void;
+  focusAfterSelect?: RefObject<HTMLElement | null>;
 }) {
   const [open, setOpen] = useState(false);
+  const selected = useRef(false);
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MealSummary[]>([]);
   const [pending, startTransition] = useTransition();
@@ -47,7 +50,13 @@ export function MealCombobox({
   }, [query, open]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover
+      open={open}
+      onOpenChange={(next) => {
+        if (next) selected.current = false;
+        setOpen(next);
+      }}
+    >
       <PopoverTrigger
         render={
           <Button type="button" variant="outline" role="combobox" className="w-full justify-between font-normal">
@@ -56,7 +65,11 @@ export function MealCombobox({
           </Button>
         }
       />
-      <PopoverContent className="w-[280px] p-0" align="start">
+      <PopoverContent
+        className="w-[280px] p-0"
+        align="start"
+        finalFocus={() => (selected.current && focusAfterSelect?.current) || true}
+      >
         <Command shouldFilter={false}>
           <CommandInput placeholder="Rechercher un repas…" value={query} onValueChange={setQuery} />
           <CommandList>
@@ -67,6 +80,7 @@ export function MealCombobox({
                   key={meal.id}
                   value={meal.id}
                   onSelect={() => {
+                    selected.current = true;
                     onSelect(meal);
                     setOpen(false);
                   }}
