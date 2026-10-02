@@ -1,8 +1,7 @@
 "use client";
 
-import { useRef, useState, useTransition } from "react";
-import { toast } from "sonner";
-import { Copy, Moon, Plus, Star, Sun, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { Moon, Plus, Star, Sun, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,44 +15,39 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import type { PlanSlot } from "@/lib/models";
-import { assignSlot } from "./planner-actions";
+import type { MealSummary, PlanSlot } from "@/lib/models";
 import { MealCombobox } from "./meal-combobox";
+import { readAlsoNext, writeAlsoNext } from "./planner-utils";
 
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
 
+export type NextSlotInfo = {
+  label: string;
+  occupant: Pick<MealSummary, "id" | "name"> | null;
+};
+
 export function SlotCell({
   slot,
+  next,
+  onAssign,
   onClear,
-  onDuplicate,
 }: {
   slot: PlanSlot;
+  /** Absent : dernier créneau du plan, rien après. */
+  next?: NextSlotInfo;
+  onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
   onClear: (slot: PlanSlot) => void;
-  onDuplicate?: (slot: PlanSlot) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [mealId, setMealId] = useState<string | null>(slot.meal?.id ?? null);
-  const [mealName, setMealName] = useState<string | undefined>(slot.meal?.name);
+  const [selected, setSelected] = useState<MealSummary | null>(slot.meal ?? null);
   const [servings, setServings] = useState(slot.servings);
-  const [pending, startTransition] = useTransition();
+  const [alsoNext, setAlsoNext] = useState(true);
   const submitRef = useRef<HTMLButtonElement>(null);
 
   function reset() {
-    setMealId(slot.meal?.id ?? null);
-    setMealName(slot.meal?.name);
+    setSelected(slot.meal ?? null);
     setServings(slot.servings);
-  }
-
-  function save(nextMealId: string) {
-    startTransition(async () => {
-      const res = await assignSlot(slot.id, nextMealId, servings);
-      if (res.ok) {
-        setOpen(false);
-        toast.success("Créneau mis à jour");
-      } else {
-        toast.error(res.error);
-      }
-    });
+    setAlsoNext(readAlsoNext());
   }
 
   const meal = slot.meal;
@@ -64,20 +58,6 @@ export function SlotCell({
     <div className="group relative flex-1">
       {meal && (
         <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-md bg-card/95 p-0.5 opacity-0 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-70">
-          {onDuplicate && (
-            <button
-              type="button"
-              aria-label="Reporter au midi du lendemain"
-              title="Reporter au midi du lendemain"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDuplicate(slot);
-              }}
-              className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              <Copy className="size-3.5" />
-            </button>
-          )}
           <button
             type="button"
             aria-label="Vider le créneau"
@@ -159,18 +139,17 @@ export function SlotCell({
             className="space-y-4"
             onSubmit={(e) => {
               e.preventDefault();
-              if (mealId && !pending) save(mealId);
+              if (!selected) return;
+              setOpen(false);
+              onAssign(slot, selected, servings, alsoNext && !!next);
             }}
           >
             <div className="space-y-2">
               <Label>Repas</Label>
               <MealCombobox
-                value={mealId ?? undefined}
-                label={mealName}
-                onSelect={(m) => {
-                  setMealId(m.id);
-                  setMealName(m.name);
-                }}
+                value={selected?.id}
+                label={selected?.name}
+                onSelect={setSelected}
                 focusAfterSelect={submitRef}
               />
             </div>
@@ -188,6 +167,34 @@ export function SlotCell({
                 className="w-24"
               />
             </div>
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={alsoNext && !!next}
+                disabled={!next}
+                onChange={(e) => {
+                  setAlsoNext(e.target.checked);
+                  writeAlsoNext(e.target.checked);
+                }}
+                className="mt-0.5 size-4 accent-accent"
+              />
+              <span className={cn(!next && "text-muted-foreground")}>
+                {next ? (
+                  <>
+                    Aussi {next.label}
+                    {next.occupant && (
+                      <span className="text-muted-foreground">
+                        {next.occupant.id === selected?.id
+                          ? " (déjà prévu)"
+                          : ` (remplace ${next.occupant.name})`}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  "Dernier créneau du plan : rien après"
+                )}
+              </span>
+            </label>
 
             <DialogFooter className="gap-2 sm:justify-between">
               <Button
@@ -197,12 +204,12 @@ export function SlotCell({
                   setOpen(false);
                   onClear(slot);
                 }}
-                disabled={pending || !meal}
+                disabled={!meal}
               >
                 Vider
               </Button>
-              <Button ref={submitRef} type="submit" disabled={pending || !mealId}>
-                {pending ? "Enregistrement…" : "Enregistrer"}
+              <Button ref={submitRef} type="submit" disabled={!selected}>
+                Enregistrer
               </Button>
             </DialogFooter>
           </form>

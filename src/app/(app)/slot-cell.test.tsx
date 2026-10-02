@@ -2,14 +2,14 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MealSummary, PlanSlot } from "@/lib/models";
-import { SlotCell } from "./slot-cell";
+import { SlotCell, type NextSlotInfo } from "./slot-cell";
 
 vi.mock("./planner-actions", () => ({
-  assignSlot: vi.fn().mockResolvedValue({ ok: true }),
+  assignSlot: vi.fn(),
   searchMeals: vi.fn(),
 }));
 
-import { assignSlot, searchMeals } from "./planner-actions";
+import { searchMeals } from "./planner-actions";
 
 const CARBO = { id: "m1", name: "Pâtes carbo", tags: [] } as unknown as MealSummary;
 
@@ -22,8 +22,17 @@ const EMPTY_SLOT = {
   servings: 2,
 } as unknown as PlanSlot;
 
+const NEXT: NextSlotInfo = { label: "mercredi soir", occupant: null };
+
+function renderCell(next: NextSlotInfo | null = NEXT) {
+  const onAssign = vi.fn();
+  render(
+    <SlotCell slot={EMPTY_SLOT} next={next ?? undefined} onAssign={onAssign} onClear={vi.fn()} />,
+  );
+  return onAssign;
+}
+
 async function openDialogAndPick(user: ReturnType<typeof userEvent.setup>) {
-  render(<SlotCell slot={EMPTY_SLOT} onClear={vi.fn()} />);
   await user.click(screen.getByRole("button", { name: /ajouter/i }));
   await user.click(await screen.findByRole("combobox"));
   await user.type(screen.getByPlaceholderText("Rechercher un repas…"), "carbo");
@@ -31,14 +40,15 @@ async function openDialogAndPick(user: ReturnType<typeof userEvent.setup>) {
   await user.keyboard("{Enter}");
 }
 
-describe("SlotCell — validation au clavier", () => {
+describe("SlotCell", () => {
   beforeEach(() => {
-    vi.mocked(assignSlot).mockClear();
+    localStorage.clear();
     vi.mocked(searchMeals).mockResolvedValue([CARBO]);
   });
 
   it("enregistre avec Entrée pour choisir puis Entrée pour valider", async () => {
     const user = userEvent.setup();
+    const onAssign = renderCell();
     await openDialogAndPick(user);
 
     await waitFor(() =>
@@ -46,24 +56,24 @@ describe("SlotCell — validation au clavier", () => {
     );
     await user.keyboard("{Enter}");
 
-    await waitFor(() => expect(assignSlot).toHaveBeenCalledTimes(1));
-    expect(assignSlot).toHaveBeenCalledWith("s1", "m1", 2);
+    expect(onAssign).toHaveBeenCalledTimes(1);
+    expect(onAssign).toHaveBeenCalledWith(EMPTY_SLOT, CARBO, 2, true);
   });
 
   it("soumet avec Entrée depuis le champ Portions", async () => {
     const user = userEvent.setup();
+    const onAssign = renderCell();
     await openDialogAndPick(user);
 
-    const servings = screen.getByLabelText("Portions");
-    await user.tripleClick(servings);
+    await user.tripleClick(screen.getByLabelText("Portions"));
     await user.keyboard("3{Enter}");
 
-    await waitFor(() => expect(assignSlot).toHaveBeenCalledWith("s1", "m1", 3));
+    expect(onAssign).toHaveBeenCalledWith(EMPTY_SLOT, CARBO, 3, true);
   });
 
   it("rend le focus au déclencheur quand on ferme la liste avec Échap", async () => {
     const user = userEvent.setup();
-    render(<SlotCell slot={EMPTY_SLOT} onClear={vi.fn()} />);
+    const onAssign = renderCell();
     await user.click(screen.getByRole("button", { name: /ajouter/i }));
     const trigger = await screen.findByRole("combobox");
     await user.click(trigger);
@@ -72,6 +82,40 @@ describe("SlotCell — validation au clavier", () => {
     await user.keyboard("{Escape}");
 
     await waitFor(() => expect(trigger).toHaveFocus());
-    expect(assignSlot).not.toHaveBeenCalled();
+    expect(onAssign).not.toHaveBeenCalled();
+  });
+
+  it("annonce le créneau suivant et le repas qu’il remplacerait", async () => {
+    const user = userEvent.setup();
+    renderCell({ label: "mercredi soir", occupant: { id: "m2", name: "Wraps" } });
+    await user.click(screen.getByRole("button", { name: /ajouter/i }));
+
+    const option = await screen.findByRole("checkbox", { name: /Aussi mercredi soir/ });
+    expect(option).toBeChecked();
+    expect(option).toHaveAccessibleName(/remplace Wraps/);
+  });
+
+  it("mémorise le choix d’une ouverture à l’autre", async () => {
+    const user = userEvent.setup();
+    const onAssign = renderCell();
+    await user.click(screen.getByRole("button", { name: /ajouter/i }));
+    await user.click(await screen.findByRole("checkbox", { name: /Aussi mercredi/ }));
+    await user.keyboard("{Escape}");
+
+    await openDialogAndPick(user);
+    expect(screen.getByRole("checkbox", { name: /Aussi mercredi/ })).not.toBeChecked();
+    await user.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    expect(onAssign).toHaveBeenCalledWith(EMPTY_SLOT, CARBO, 2, false);
+  });
+
+  it("désactive l’option sur le dernier créneau du plan", async () => {
+    const user = userEvent.setup();
+    const onAssign = renderCell(null);
+    await openDialogAndPick(user);
+
+    expect(screen.getByRole("checkbox", { name: /Dernier créneau/ })).toBeDisabled();
+    await user.click(screen.getByRole("button", { name: "Enregistrer" }));
+    expect(onAssign).toHaveBeenCalledWith(EMPTY_SLOT, CARBO, 2, false);
   });
 });
