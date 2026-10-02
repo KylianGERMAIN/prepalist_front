@@ -115,7 +115,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste paginée du catalogue de repas (filtres favorite/tag/name) */
+        /** Liste paginée du catalogue de repas (filtres tag/name) */
         get: operations["MealsController_findAll"];
         put?: never;
         /** Crée un repas (admin uniquement) */
@@ -158,25 +158,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Favori et note du repas pour le compte appelant */
+        /** Note du repas pour le compte appelant */
         patch: operations["MealsController_updateState"];
-        trace?: never;
-    };
-    "/meals/{id}/cooked": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Marque un repas comme cuisiné par le compte appelant */
-        post: operations["MealsController_markCooked"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/plan": {
@@ -254,7 +237,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste de courses matérialisée du plan (init paresseuse) */
+        /** Liste de courses du plan, tenue à jour à chaque écriture sur le plan */
         get: operations["ShoppingListController_forPlan"];
         put?: never;
         post?: never;
@@ -273,7 +256,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Resynchronise les items dérivés depuis les plats */
+        /** Recalcule les items dérivés et ramène ceux supprimés à la main (coches conservées) */
         post: operations["ShoppingListController_sync"];
         delete?: never;
         options?: never;
@@ -292,6 +275,27 @@ export interface paths {
         put?: never;
         /** Ajoute un item manuel à la liste */
         post: operations["ShoppingListController_addItem"];
+        /** Vide la liste, ou seulement les items cochés */
+        delete: operations["ShoppingListController_clear"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plan/shopping-list/items/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Supprime plusieurs items de la liste
+         * @description POST et non DELETE : certains proxies ignorent le body d’un DELETE.
+         */
+        post: operations["ShoppingListController_removeItems"];
         delete?: never;
         options?: never;
         head?: never;
@@ -367,10 +371,6 @@ export interface components {
             /** @enum {string} */
             status: "PRIVATE" | "PENDING" | "PUBLISHED";
             rating: number | null;
-            isFavorite: boolean;
-            /** Format: date-time */
-            lastCookedAt: string | null;
-            timesCooked: number;
             tags: string[];
             /** Format: date-time */
             createdAt: string;
@@ -390,6 +390,8 @@ export interface components {
         CreateMealDto: {
             name: string;
             tags?: string[];
+            /** @description Procédé, astuces. Espaces de bord retirés ; une chaîne vide ou blanche vaut null. */
+            description?: string | null;
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
         MealIngredient: {
@@ -408,22 +410,20 @@ export interface components {
             /** @enum {string} */
             status: "PRIVATE" | "PENDING" | "PUBLISHED";
             rating: number | null;
-            isFavorite: boolean;
-            /** Format: date-time */
-            lastCookedAt: string | null;
-            timesCooked: number;
             tags: string[];
             /** Format: date-time */
             createdAt: string;
+            description: string | null;
             ingredients: components["schemas"]["MealIngredient"][];
         };
         UpdateMealDto: {
             name?: string;
             tags?: string[];
+            /** @description Procédé, astuces. Espaces de bord retirés ; une chaîne vide ou blanche vaut null. */
+            description?: string | null;
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
         UpdateMealStateDto: {
-            isFavorite?: boolean;
             rating?: number | null;
         };
         PlanSlotDto: {
@@ -450,6 +450,8 @@ export interface components {
             /** @description Repas à assigner, ou null pour vider le créneau */
             mealId?: string | null;
             servings?: number;
+            /** @description Recopie le repas et les portions du créneau, une fois le patch appliqué, sur le suivant (midi → soir, soir → midi du lendemain), en l’écrasant. 400 après le dernier dîner, ou si le créneau est vide. */
+            alsoNext?: boolean;
         };
         ShoppingListItemDto: {
             id: string;
@@ -466,12 +468,18 @@ export interface components {
             /** @description Premier jour du plan (YYYY-MM-DD) */
             startDate: string;
             items: components["schemas"]["ShoppingListItemDto"][];
+            /** @description Articles issus des plats que l’utilisateur a supprimés de la liste ; la synchro les ramène */
+            dismissedCount: number;
         };
         CreateShoppingListItemDto: {
             name: string;
             quantity?: number;
             /** @enum {string} */
             unit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c";
+        };
+        RemoveShoppingListItemsDto: {
+            /** @description Les ids hors de la liste de l’appelant sont ignorés. */
+            itemIds: string[];
         };
         UpdateShoppingListItemDto: {
             checked?: boolean;
@@ -668,7 +676,6 @@ export interface operations {
             query?: {
                 page?: number;
                 limit?: number;
-                favorite?: boolean;
                 /** @description Filtre par tag exact */
                 tag?: string;
                 /** @description Filtre par nom (ILike) */
@@ -794,27 +801,6 @@ export interface operations {
         };
         responses: {
             200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MealDto"];
-                };
-            };
-        };
-    };
-    MealsController_markCooked: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -963,6 +949,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShoppingListItemDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_clear: {
+        parameters: {
+            query: {
+                scope: "all" | "checked";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_removeItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveShoppingListItemsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListDto"];
                 };
             };
         };
