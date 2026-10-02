@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import type { MealSummary, Plan, PlanSlot } from "@/lib/models";
 import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
 import { SlotCell, type NextSlotInfo } from "./slot-cell";
-import { assignSlot } from "./planner-actions";
+import { assignSlot, setSlotAway } from "./planner-actions";
 import { dayLabel, dayName, nextSlotOf, slotsReducer } from "./planner-utils";
 
 // Inatteignable en pratique : le back crée toujours les deux créneaux d'un jour.
@@ -45,22 +45,31 @@ export function PlanGrid({
   }
 
   function handleClear(slot: PlanSlot) {
-    if (!slot.meal) return;
+    if (!slot.meal && !slot.away) return;
     const meal = slot.meal;
     const servings = slot.servings;
     startTransition(async () => {
       dispatch({ type: "clear", slotId: slot.id });
       const res = await assignSlot(slot.id, null);
-      if (res.ok) {
+      if (!res.ok) toast.error(res.error);
+      else if (meal) {
         toast.success("Créneau vidé", {
-          action: {
-            label: "Annuler",
-            onClick: () => handleUndo(slot.id, meal, servings),
-          },
+          action: { label: "Annuler", onClick: () => handleUndo(slot.id, meal, servings) },
         });
       } else {
-        toast.error(res.error);
+        toast.success("Créneau vidé");
       }
+    });
+  }
+
+  function handleAway(slot: PlanSlot, alsoNext: boolean) {
+    const next = alsoNext ? nextSlotOf(optimisticSlots, slot) : undefined;
+    startTransition(async () => {
+      dispatch({ type: "setAway", slotId: slot.id });
+      if (next) dispatch({ type: "setAway", slotId: next.id });
+      const res = await setSlotAway(slot.id, !!next);
+      if (res.ok) toast.success(next ? "Deux repas dehors" : "Repas dehors");
+      else toast.error(res.error);
     });
   }
 
@@ -98,7 +107,7 @@ export function PlanGrid({
     const moment = next.slot === "LUNCH" ? "midi" : "soir";
     return {
       label: `${dayName(plan.startDate, next.dayIndex)} ${moment}`,
-      occupant: next.meal ?? null,
+      occupant: next.meal ?? (next.away ? { id: "", name: "« dehors »" } : null),
     };
   }
 
@@ -146,6 +155,7 @@ export function PlanGrid({
                     next={nextInfo(lunch)}
                     canCreateMeals={canCreateMeals}
                     onAssign={handleAssign}
+                    onAway={handleAway}
                     onClear={handleClear}
                   />
                 ) : (
@@ -157,6 +167,7 @@ export function PlanGrid({
                     next={nextInfo(dinner)}
                     canCreateMeals={canCreateMeals}
                     onAssign={handleAssign}
+                    onAway={handleAway}
                     onClear={handleClear}
                   />
                 ) : (

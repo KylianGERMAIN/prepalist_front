@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { CircleAlert, Moon, Plus, Star, Sun, X } from "lucide-react";
+import { CircleAlert, MapPin, Moon, Plus, Star, Sun, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +32,7 @@ export function SlotCell({
   next,
   canCreateMeals = false,
   onAssign,
+  onAway,
   onClear,
 }: {
   slot: PlanSlot;
@@ -39,6 +40,7 @@ export function SlotCell({
   /** Absent : dernier créneau du plan, rien après. */
   next?: NextSlotInfo;
   onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
+  onAway: (slot: PlanSlot, alsoNext: boolean) => void;
   onClear: (slot: PlanSlot) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -59,7 +61,7 @@ export function SlotCell({
 
   return (
     <div className="group relative flex-1">
-      {meal && (
+      {(meal || slot.away) && (
         <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-md bg-card/95 p-0.5 opacity-0 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-70">
           <button
             type="button"
@@ -89,10 +91,18 @@ export function SlotCell({
                 "flex h-full min-h-16 w-full flex-col items-start justify-center gap-0.5 rounded-md p-2 text-left text-sm transition-colors",
                 meal
                   ? "border border-l-4 border-border border-l-accent bg-card shadow-sm hover:bg-muted/40"
-                  : "border border-dashed border-border text-muted-foreground hover:border-l-4 hover:border-l-accent hover:bg-muted/40",
+                  : slot.away
+                    ? "border border-transparent bg-muted text-muted-foreground hover:bg-muted/70"
+                    : "border border-dashed border-border text-muted-foreground hover:border-l-4 hover:border-l-accent hover:bg-muted/40",
               )}
             >
-              {meal ? (
+              {slot.away ? (
+                <span className="flex items-center gap-1 pr-6">
+                  <MomentIcon className="size-3.5 shrink-0" />
+                  <MapPin className="size-3.5 shrink-0" />
+                  Dehors
+                </span>
+              ) : meal ? (
                 <>
                   <span
                     className="w-full break-words pr-6 font-medium text-foreground"
@@ -223,9 +233,21 @@ export function SlotCell({
                   setOpen(false);
                   onClear(slot);
                 }}
-                disabled={!meal}
+                disabled={!meal && !slot.away}
               >
                 Vider
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setOpen(false);
+                  onAway(slot, alsoNext && !!next);
+                }}
+                disabled={slot.away}
+              >
+                <MapPin className="mr-2 size-4" />
+                Je mange dehors
               </Button>
               <Button ref={submitRef} type="submit" disabled={!selected}>
                 Enregistrer

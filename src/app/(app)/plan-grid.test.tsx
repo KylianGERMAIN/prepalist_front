@@ -11,6 +11,7 @@ vi.mock("./meals/actions", () => ({ getMeal: vi.fn() }));
 
 vi.mock("./planner-actions", () => ({
   assignSlot: vi.fn(),
+  setSlotAway: vi.fn(),
   searchMeals: vi.fn(),
   generatePlan: vi.fn(),
   clearPlan: vi.fn(),
@@ -29,6 +30,7 @@ function planOfDays(dayCount: number): Plan {
       mealId: null,
       meal: null,
       servings: 1,
+      away: false,
     })),
   ).flat();
   return { id: "p1", startDate: "2026-09-30", dayCount, slots } as unknown as Plan;
