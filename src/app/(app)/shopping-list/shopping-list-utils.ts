@@ -1,4 +1,5 @@
 import type { ClearScope, ShoppingListItem } from "@/lib/models";
+import { formatUnit } from "@/lib/units";
 
 export type ShoppingItemAction =
   | { type: "setChecked"; itemId: string; checked: boolean }
@@ -36,4 +37,23 @@ export function sortItems(items: ShoppingListItem[]): ShoppingListItem[] {
   return [...items].sort(
     (a, b) => Number(a.checked) - Number(b.checked) || a.name.localeCompare(b.name, "fr"),
   );
+}
+
+const QUANTITY = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
+
+/** Texte à partager : articles encore à acheter seulement, quantités au format français. */
+export function formatListAsText(items: ShoppingListItem[]): string {
+  const toBuy = sortItems(items).filter((item) => !item.checked);
+  if (toBuy.length === 0) return "Courses — rien à acheter";
+  const lines = toBuy.map((item) => {
+    const amount = [
+      item.quantity != null ? QUANTITY.format(item.quantity) : null,
+      formatUnit(item.quantity, item.unit) || null,
+    ]
+      .filter(Boolean)
+      .join(" ");
+    return amount ? `- ${item.name} — ${amount}` : `- ${item.name}`;
+  });
+  const count = toBuy.length === 1 ? "1 article" : `${toBuy.length} articles`;
+  return [`Courses — ${count}`, "", ...lines].join("\n");
 }
