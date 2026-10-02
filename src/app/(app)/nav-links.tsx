@@ -44,7 +44,7 @@ export function NavLinks() {
 export function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 border-t border-sidebar-border bg-sidebar md:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-10 grid grid-cols-3 border-t border-sidebar-border bg-sidebar md:hidden store:hidden">
       {LINKS.map(({ href, label, icon: Icon }) => {
         const active = isActive(pathname, href);
         return (

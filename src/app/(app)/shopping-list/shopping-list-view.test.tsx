@@ -148,4 +148,22 @@ describe("ShoppingListView", () => {
 
     expect(updateItem).not.toHaveBeenCalled();
   });
+
+  it("en mode magasin, coche d'un tap sur la ligne et masque la navigation", async () => {
+    vi.mocked(toggleChecked).mockReturnValue(pending());
+    const user = userEvent.setup();
+    render(<ShoppingListView items={[item(), item({ id: "2", name: "Crème", checked: true })]} />);
+
+    await user.click(screen.getByRole("button", { name: /Mode magasin/ }));
+
+    expect(document.body).toHaveAttribute("data-store-mode");
+    expect(screen.queryByRole("button", { name: /Retirer/ })).not.toBeInTheDocument();
+    expect(screen.getByText(/Dans le panier \(/)).toHaveTextContent("Dans le panier (1)");
+    await user.click(screen.getByRole("checkbox", { name: /Beurre/ }));
+    expect(toggleChecked).toHaveBeenCalledWith("1", true);
+
+    await user.click(screen.getByRole("button", { name: "Terminer" }));
+    expect(document.body).not.toHaveAttribute("data-store-mode");
+    expect(screen.getByRole("button", { name: /Mode magasin/ })).toBeInTheDocument();
+  });
 });

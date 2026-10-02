@@ -32,11 +32,46 @@ export function shoppingItemsReducer(
   }
 }
 
+export function quantityLabel(item: ShoppingListItem): string {
+  return [item.quantity, formatUnit(item.quantity, item.unit)].filter(Boolean).join(" ");
+}
+
 /** À acheter d'abord, achetés en bas ; ordre alphabétique dans chaque groupe. */
 export function sortItems(items: ShoppingListItem[]): ShoppingListItem[] {
   return [...items].sort(
     (a, b) => Number(a.checked) - Number(b.checked) || a.name.localeCompare(b.name, "fr"),
   );
+}
+
+const STORE_MODE_KEY = "prepalist:store-mode";
+const storeModeListeners = new Set<() => void>();
+// sessionStorage : le mode survit à un rechargement en magasin, pas à la réouverture
+// de l'onglet chez soi, où il garderait l'écran allumé. Copie en mémoire car
+// le stockage peut lever (navigation privée, stockage bloqué).
+let storeMode: boolean | undefined;
+
+export function subscribeStoreMode(listener: () => void): () => void {
+  storeModeListeners.add(listener);
+  return () => storeModeListeners.delete(listener);
+}
+
+export function readStoreMode(): boolean {
+  if (storeMode === undefined) {
+    try {
+      storeMode = sessionStorage.getItem(STORE_MODE_KEY) === "true";
+    } catch {
+      storeMode = false;
+    }
+  }
+  return storeMode;
+}
+
+export function writeStoreMode(value: boolean): void {
+  storeMode = value;
+  try {
+    sessionStorage.setItem(STORE_MODE_KEY, String(value));
+  } catch {}
+  storeModeListeners.forEach((listener) => listener());
 }
 
 const QUANTITY = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
