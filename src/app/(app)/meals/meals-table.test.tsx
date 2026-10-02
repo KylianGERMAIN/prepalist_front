@@ -55,6 +55,8 @@ describe("MealsTable", () => {
   });
 
   it("affiche la note avant la réponse du serveur", async () => {
+    // La valeur optimiste ne survit pas à la résolution de l'action : sans promesse
+    // en attente, React réconcilie sur la prop `meals` et la note revient.
     vi.mocked(setMealState).mockReturnValue(new Promise(() => {}));
     render(<MealsTable meals={[meal()]} isAdmin={false} />);
     const select = screen.getByRole("combobox", { name: "Note de Chili" });
