@@ -28,8 +28,13 @@ test("un repas planifié arrive dans la liste de courses, et la coche tient", as
   const row = page.getByRole("listitem").filter({ hasText: ingredient });
   await expect(row).toBeVisible();
   await row.getByRole("checkbox").check();
-  await expect(row.getByRole("checkbox")).toBeChecked();
 
+  // Son rayon terminé se replie : la case n'est plus visible, d'où `includeHidden`.
+  const checkbox = page
+    .getByRole("listitem", { includeHidden: true })
+    .filter({ hasText: ingredient })
+    .getByRole("checkbox", { includeHidden: true });
+  await expect(checkbox).toBeChecked();
   await page.reload();
-  await expect(page.getByRole("listitem").filter({ hasText: ingredient }).getByRole("checkbox")).toBeChecked();
+  await expect(checkbox).toBeChecked();
 });
