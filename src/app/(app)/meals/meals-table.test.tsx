@@ -59,6 +59,38 @@ describe("MealsTable", () => {
     );
   });
 
+  it("envoie la note choisie", async () => {
+    vi.mocked(setMealState).mockResolvedValue({ ok: true });
+    render(<MealsTable meals={[meal()]} isAdmin={false} />);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Note de Chili" }), {
+      target: { value: "4" },
+    });
+
+    await waitFor(() => expect(setMealState).toHaveBeenCalledWith("m1", { rating: 4 }));
+  });
+
+  it("efface la note avec null, pas avec une note par défaut", async () => {
+    vi.mocked(setMealState).mockResolvedValue({ ok: true });
+    render(<MealsTable meals={[meal({ rating: 2 })]} isAdmin={false} />);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Note de Chili" }), {
+      target: { value: "" },
+    });
+
+    await waitFor(() => expect(setMealState).toHaveBeenCalledWith("m1", { rating: null }));
+  });
+
+  it("affiche la note avant la réponse du serveur", async () => {
+    vi.mocked(setMealState).mockReturnValue(new Promise(() => {}));
+    render(<MealsTable meals={[meal()]} isAdmin={false} />);
+    const select = screen.getByRole("combobox", { name: "Note de Chili" });
+
+    fireEvent.change(select, { target: { value: "5" } });
+
+    await waitFor(() => expect(select).toHaveValue("5"));
+  });
+
   it("n’invite pas un compte sans droit de création à créer un repas", () => {
     render(<MealsTable meals={[]} isAdmin={false} />);
 
