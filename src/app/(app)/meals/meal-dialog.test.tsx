@@ -21,6 +21,7 @@ function mealWith(unit: string): Meal {
     status: "PUBLISHED",
     rating: null,
     tags: [],
+    description: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     ingredients: [
       {
