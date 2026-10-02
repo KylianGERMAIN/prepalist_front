@@ -7,6 +7,7 @@ import type {
   AddShoppingItemInput,
   UpdateShoppingItemInput,
 } from "@/lib/models";
+import type { ClearScope } from "./shopping-list-utils";
 
 export async function toggleChecked(
   itemId: string,
@@ -52,6 +53,27 @@ export async function deleteItem(itemId: string): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.DELETE("/plan/shopping-list/items/{itemId}", {
     params: { path: { itemId } },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
+/** Les ids qui ne sont pas dans la liste du compte sont ignorés par le back. */
+export async function deleteItems(itemIds: string[]): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.POST("/plan/shopping-list/items/delete", {
+    body: { itemIds },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
+export async function clearList(scope: ClearScope): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.DELETE("/plan/shopping-list/items", {
+    params: { query: { scope } },
   });
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/shopping-list");
