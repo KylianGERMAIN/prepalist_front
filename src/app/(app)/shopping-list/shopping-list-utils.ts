@@ -39,6 +39,36 @@ export function sortItems(items: ShoppingListItem[]): ShoppingListItem[] {
   );
 }
 
+const STORE_MODE_KEY = "prepalist:store-mode";
+const storeModeListeners = new Set<() => void>();
+// Copie en mémoire : localStorage peut lever (navigation privée, stockage bloqué),
+// le mode marche alors sans être mémorisé.
+let storeMode: boolean | undefined;
+
+export function subscribeStoreMode(listener: () => void): () => void {
+  storeModeListeners.add(listener);
+  return () => storeModeListeners.delete(listener);
+}
+
+export function readStoreMode(): boolean {
+  if (storeMode === undefined) {
+    try {
+      storeMode = localStorage.getItem(STORE_MODE_KEY) === "true";
+    } catch {
+      storeMode = false;
+    }
+  }
+  return storeMode;
+}
+
+export function writeStoreMode(value: boolean): void {
+  storeMode = value;
+  try {
+    localStorage.setItem(STORE_MODE_KEY, String(value));
+  } catch {}
+  storeModeListeners.forEach((listener) => listener());
+}
+
 const QUANTITY = new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 2 });
 
 /** Texte à partager : articles encore à acheter seulement, quantités au format français. */

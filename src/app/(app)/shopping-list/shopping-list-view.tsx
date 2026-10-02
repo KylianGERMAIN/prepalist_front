@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
-import { CheckSquare, Eraser, ListChecks, Pencil, Trash2, X } from "lucide-react";
+import { CheckSquare, Eraser, ListChecks, Pencil, ShoppingCart, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { asUnit, formatUnit } from "@/lib/units";
 import type { ShoppingListItem } from "@/lib/models";
@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { useWakeLock } from "@/hooks/use-wake-lock";
 import {
   addManualItem,
   clearList,
@@ -21,12 +22,16 @@ import {
 } from "./shopping-list-actions";
 import {
   type ShoppingItemAction,
+  readStoreMode,
   shoppingItemsReducer,
   sortItems,
+  subscribeStoreMode,
+  writeStoreMode,
 } from "./shopping-list-utils";
 import { AddItemForm } from "./add-item-form";
 import { EditItemDialog } from "./edit-item-dialog";
 import { ShareButton } from "./share-button";
+import { StoreModeList } from "./store-mode-list";
 
 export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
   const [optimisticItems, dispatch] = useOptimistic(items, shoppingItemsReducer);
@@ -35,6 +40,14 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const selectButtonRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const storeMode = useSyncExternalStore(subscribeStoreMode, readStoreMode, () => false);
+  const wakeLockSupported = useWakeLock(storeMode);
+
+  // L'attribut masque la navigation du layout (variante `store:`) ; il part avec la page.
+  useEffect(() => {
+    document.body.toggleAttribute("data-store-mode", storeMode);
+    return () => document.body.removeAttribute("data-store-mode");
+  }, [storeMode]);
 
   const sorted = sortItems(optimisticItems);
   // Un autre appareil peut retirer un article sélectionné pendant la sélection.
@@ -93,6 +106,20 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
     });
   }
 
+  function setChecked(item: ShoppingListItem, checked: boolean) {
+    run({ type: "setChecked", itemId: item.id, checked }, () => toggleChecked(item.id, checked));
+  }
+
+  function checkInStore(item: ShoppingListItem, checked: boolean) {
+    setChecked(item, checked);
+    if (checked) {
+      toast.success(`« ${item.name} » dans le panier`, {
+        duration: 4000,
+        action: { label: "Annuler", onClick: () => setChecked(item, false) },
+      });
+    }
+  }
+
   function toggleSelected(itemId: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -107,6 +134,26 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
     run({ type: "remove", itemIds }, () => deleteItems(itemIds), `${itemIds.length} article(s) retiré(s)`);
   }
 
+  if (storeMode) {
+    return (
+      <div className="space-y-3">
+        {wakeLockSupported ? null : (
+          <p className="text-sm text-muted-foreground">L’écran peut se mettre en veille sur ce navigateur.</p>
+        )}
+        <StoreModeList items={sorted} onSetChecked={checkInStore} />
+        <div className="sticky bottom-2 z-10 flex items-center justify-between gap-3 rounded-md border bg-card p-2 shadow-sm">
+          <span className="px-2 text-base text-muted-foreground">
+            <span className="tnum">{checkedCount}</span> / <span className="tnum">{optimisticItems.length}</span>{" "}
+            dans le panier
+          </span>
+          <Button size="lg" onClick={() => writeStoreMode(false)}>
+            Terminer
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
@@ -117,6 +164,10 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
           </p>
           {optimisticItems.length > 0 && !selecting ? (
             <div className="flex flex-wrap items-center gap-1">
+              <Button variant="ghost" size="sm" onClick={() => writeStoreMode(true)}>
+                <ShoppingCart className="mr-2 size-4" />
+                Mode magasin
+              </Button>
               <ShareButton items={optimisticItems} />
               <Button ref={selectButtonRef} variant="ghost" size="sm" onClick={() => setSelecting(true)}>
                 <ListChecks className="mr-2 size-4" />
@@ -178,11 +229,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
                   <input
                     type="checkbox"
                     checked={item.checked}
-                    onChange={() =>
-                      run({ type: "setChecked", itemId: item.id, checked: !item.checked }, () =>
-                        toggleChecked(item.id, !item.checked),
-                      )
-                    }
+                    onChange={() => setChecked(item, !item.checked)}
                     className="size-4 accent-accent"
                   />
                 )}

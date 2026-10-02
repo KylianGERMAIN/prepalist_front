@@ -22,7 +22,7 @@ async function fetchApiVersion(): Promise<string | null> {
 export async function Footer() {
   const apiVersion = await fetchApiVersion();
   return (
-    <footer className="mx-auto w-full max-w-5xl px-4 pb-20 pt-2 text-center text-xs text-muted-foreground sm:px-6 md:pb-4">
+    <footer className="mx-auto w-full max-w-5xl px-4 pb-20 pt-2 text-center text-xs text-muted-foreground sm:px-6 md:pb-4 store:hidden">
       {/* Version API en infobulle : bonus desktop (title natif, pas de survol sur mobile). */}
       <span title={apiVersion ? `API v${apiVersion}` : undefined}>
         PrepaList v{FRONT_VERSION}

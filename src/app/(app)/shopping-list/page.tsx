@@ -28,10 +28,12 @@ export default async function ShoppingListPage() {
         <h1 className="font-heading text-2xl font-medium tracking-tight">
           Liste de courses
         </h1>
-        <SyncButton dismissedCount={list.dismissedCount} />
+        <div className="store:hidden">
+          <SyncButton dismissedCount={list.dismissedCount} />
+        </div>
       </div>
       {list.incompleteMeals.length > 0 ? (
-        <p role="status" className="rounded-md bg-warning px-3 py-2 text-sm text-warning-foreground">
+        <p role="status" className="rounded-md bg-warning px-3 py-2 text-sm text-warning-foreground store:hidden">
           {list.incompleteMeals.length === 1
             ? "1 repas planifié n’a pas d’ingrédients et manque à cette liste : "
             : `${list.incompleteMeals.length} repas planifiés n’ont pas d’ingrédients et manquent à cette liste : `}
