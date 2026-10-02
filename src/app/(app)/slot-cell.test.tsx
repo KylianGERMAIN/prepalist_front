@@ -22,7 +22,7 @@ const EMPTY_SLOT = {
   servings: 2,
 } as unknown as PlanSlot;
 
-const NEXT: NextSlotInfo = { label: "Mer soir", occupant: null };
+const NEXT: NextSlotInfo = { label: "mercredi soir", occupant: null };
 
 function renderCell(next: NextSlotInfo | null = NEXT) {
   const onAssign = vi.fn();
@@ -87,10 +87,10 @@ describe("SlotCell", () => {
 
   it("annonce le créneau suivant et le repas qu’il remplacerait", async () => {
     const user = userEvent.setup();
-    renderCell({ label: "Mer soir", occupant: "Wraps" });
+    renderCell({ label: "mercredi soir", occupant: { id: "m2", name: "Wraps" } });
     await user.click(screen.getByRole("button", { name: /ajouter/i }));
 
-    const option = await screen.findByRole("checkbox", { name: /Aussi pour Mer soir/ });
+    const option = await screen.findByRole("checkbox", { name: /Aussi mercredi soir/ });
     expect(option).toBeChecked();
     expect(option).toHaveAccessibleName(/remplace Wraps/);
   });
@@ -99,11 +99,11 @@ describe("SlotCell", () => {
     const user = userEvent.setup();
     const onAssign = renderCell();
     await user.click(screen.getByRole("button", { name: /ajouter/i }));
-    await user.click(await screen.findByRole("checkbox", { name: /Aussi pour/ }));
+    await user.click(await screen.findByRole("checkbox", { name: /Aussi mercredi/ }));
     await user.keyboard("{Escape}");
 
     await openDialogAndPick(user);
-    expect(screen.getByRole("checkbox", { name: /Aussi pour/ })).not.toBeChecked();
+    expect(screen.getByRole("checkbox", { name: /Aussi mercredi/ })).not.toBeChecked();
     await user.click(screen.getByRole("button", { name: "Enregistrer" }));
 
     expect(onAssign).toHaveBeenCalledWith(EMPTY_SLOT, CARBO, 2, false);

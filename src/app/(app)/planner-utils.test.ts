@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MealSummary, PlanSlot } from "@/lib/models";
-import { dayIndexOf, dayLabel, nextSlotOf, slotsReducer } from "./planner-utils";
+import { dayIndexOf, dayLabel, dayName, nextSlotOf, slotsReducer } from "./planner-utils";
 
 function meal(overrides: Partial<MealSummary> = {}): MealSummary {
   return {
@@ -118,5 +118,12 @@ describe("nextSlotOf", () => {
 
   it("n’a rien après le dernier dîner", () => {
     expect(nextSlotOf(slots, at("1-DINNER"))).toBeUndefined();
+  });
+});
+
+describe("dayName", () => {
+  it("donne le nom complet en minuscules, suffixé au-delà de 7 jours", () => {
+    expect(dayName("2026-09-30", 1)).toBe("jeudi");
+    expect(dayName("2026-09-30", 8)).toBe("jeudi +1");
   });
 });

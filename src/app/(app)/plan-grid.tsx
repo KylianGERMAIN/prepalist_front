@@ -8,7 +8,7 @@ import type { MealSummary, Plan, PlanSlot } from "@/lib/models";
 import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
 import { SlotCell, type NextSlotInfo } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
-import { dayLabel, nextSlotOf, slotsReducer } from "./planner-utils";
+import { dayLabel, dayName, nextSlotOf, slotsReducer } from "./planner-utils";
 
 // Inatteignable en pratique : le back crée toujours les deux créneaux d'un jour.
 // N'existe que parce que `Map.get` rend `PlanSlot | undefined`.
@@ -69,12 +69,24 @@ export function PlanGrid({
     alsoNext: boolean,
   ) {
     const next = alsoNext ? nextSlotOf(optimisticSlots, slot) : undefined;
+    const replaced = next?.meal && next.meal.id !== meal.id ? next.meal : null;
+    const replacedServings = next?.servings ?? 1;
     startTransition(async () => {
       dispatch({ type: "assign", slotId: slot.id, meal, servings });
       if (next) dispatch({ type: "assign", slotId: next.id, meal, servings });
       const res = await assignSlot(slot.id, meal.id, servings, !!next);
-      if (res.ok) toast.success(next ? "Créneaux mis à jour" : "Créneau mis à jour");
-      else toast.error(res.error);
+      if (!res.ok) {
+        toast.error(res.error);
+      } else if (next && replaced) {
+        toast.success(`« ${replaced.name} » remplacé`, {
+          action: {
+            label: "Annuler",
+            onClick: () => handleUndo(next.id, replaced, replacedServings),
+          },
+        });
+      } else {
+        toast.success(next ? "Créneaux mis à jour" : "Créneau mis à jour");
+      }
     });
   }
 
@@ -83,8 +95,8 @@ export function PlanGrid({
     if (!next) return undefined;
     const moment = next.slot === "LUNCH" ? "midi" : "soir";
     return {
-      label: `${dayLabel(plan.startDate, next.dayIndex)} ${moment}`,
-      occupant: next.meal?.name ?? null,
+      label: `${dayName(plan.startDate, next.dayIndex)} ${moment}`,
+      occupant: next.meal ?? null,
     };
   }
 

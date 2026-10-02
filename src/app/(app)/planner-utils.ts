@@ -21,13 +21,23 @@ export function slotsReducer(
 }
 
 const DAY_LABELS = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
+const DAY_NAMES = ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"];
+
+function dayOf(names: string[], startDate: string, dayIndex: number): string {
+  const startDay = new Date(`${startDate}T00:00:00`).getDay();
+  const name = names[(startDay + dayIndex) % 7];
+  const lap = Math.floor(dayIndex / 7);
+  return lap === 0 ? name : `${name} +${lap}`;
+}
 
 /** Au-delà de 7 jours, le tour est suffixé (« Mar +1 ») pour lever l'ambiguïté. */
 export function dayLabel(startDate: string, dayIndex: number): string {
-  const startDay = new Date(`${startDate}T00:00:00`).getDay();
-  const name = DAY_LABELS[(startDay + dayIndex) % 7];
-  const lap = Math.floor(dayIndex / 7);
-  return lap === 0 ? name : `${name} +${lap}`;
+  return dayOf(DAY_LABELS, startDate, dayIndex);
+}
+
+/** Nom complet en minuscules, pour une phrase (« jeudi soir »). */
+export function dayName(startDate: string, dayIndex: number): string {
+  return dayOf(DAY_NAMES, startDate, dayIndex);
 }
 
 export function dayIndexOf(

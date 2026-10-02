@@ -21,8 +21,10 @@ import { readAlsoNext, writeAlsoNext } from "./planner-utils";
 
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
 
-/** `undefined` : dernier créneau du plan, rien après. */
-export type NextSlotInfo = { label: string; occupant: string | null };
+export type NextSlotInfo = {
+  label: string;
+  occupant: Pick<MealSummary, "id" | "name"> | null;
+};
 
 export function SlotCell({
   slot,
@@ -31,6 +33,7 @@ export function SlotCell({
   onClear,
 }: {
   slot: PlanSlot;
+  /** Absent : dernier créneau du plan, rien après. */
   next?: NextSlotInfo;
   onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
   onClear: (slot: PlanSlot) => void;
@@ -178,9 +181,13 @@ export function SlotCell({
               <span className={cn(!next && "text-muted-foreground")}>
                 {next ? (
                   <>
-                    Aussi pour {next.label}
+                    Aussi {next.label}
                     {next.occupant && (
-                      <span className="text-muted-foreground"> (remplace {next.occupant})</span>
+                      <span className="text-muted-foreground">
+                        {next.occupant.id === selected?.id
+                          ? " (déjà prévu)"
+                          : ` (remplace ${next.occupant.name})`}
+                      </span>
                     )}
                   </>
                 ) : (
