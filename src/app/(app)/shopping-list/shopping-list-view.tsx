@@ -36,6 +36,8 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
   const listRef = useRef<HTMLUListElement>(null);
 
   const sorted = sortItems(optimisticItems);
+  // Un autre appareil peut retirer un article sélectionné pendant la sélection.
+  const selectedIds = optimisticItems.filter((i) => selected.has(i.id)).map((i) => i.id);
   const checkedCount = optimisticItems.filter((i) => i.checked).length;
   const progress =
     optimisticItems.length === 0 ? 0 : Math.round((checkedCount / optimisticItems.length) * 100);
@@ -99,7 +101,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
   }
 
   function removeSelected() {
-    const itemIds = [...selected];
+    const itemIds = selectedIds;
     stopSelecting();
     run({ type: "remove", itemIds }, () => deleteItems(itemIds), `${itemIds.length} article(s) retiré(s)`);
   }
@@ -175,7 +177,9 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
                     type="checkbox"
                     checked={item.checked}
                     onChange={() =>
-                      run({ type: "toggle", itemId: item.id }, () => toggleChecked(item.id, !item.checked))
+                      run({ type: "setChecked", itemId: item.id, checked: !item.checked }, () =>
+                        toggleChecked(item.id, !item.checked),
+                      )
                     }
                     className="size-4 accent-accent"
                   />
@@ -237,7 +241,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
           className="sticky bottom-16 z-10 flex flex-wrap items-center justify-between gap-2 rounded-md border bg-card p-2 shadow-sm md:bottom-2"
         >
           <span className="px-2 text-sm text-muted-foreground">
-            <span className="tnum">{selected.size}</span> sélectionné(s)
+            <span className="tnum">{selectedIds.length}</span> sélectionné(s)
           </span>
           <div className="flex items-center gap-1">
             <Button
@@ -247,9 +251,9 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
             >
               Tout sélectionner
             </Button>
-            <Button variant="destructive" size="sm" disabled={selected.size === 0} onClick={removeSelected}>
+            <Button variant="destructive" size="sm" disabled={selectedIds.length === 0} onClick={removeSelected}>
               <Trash2 className="mr-2 size-4" />
-              Retirer ({selected.size})
+              Retirer ({selectedIds.length})
             </Button>
             <Button variant="ghost" size="sm" onClick={stopSelecting} aria-label="Annuler la sélection">
               <X className="size-4" />

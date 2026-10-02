@@ -1,7 +1,7 @@
 import type { ClearScope, ShoppingListItem } from "@/lib/models";
 
 export type ShoppingItemAction =
-  | { type: "toggle"; itemId: string }
+  | { type: "setChecked"; itemId: string; checked: boolean }
   | { type: "remove"; itemIds: string[] }
   | { type: "clear"; scope: ClearScope }
   | { type: "setQuantity"; itemId: string; quantity: number };
@@ -12,9 +12,11 @@ export function shoppingItemsReducer(
   action: ShoppingItemAction,
 ): ShoppingListItem[] {
   switch (action.type) {
-    case "toggle":
+    // Valeur posée, pas inversée : rejouée sur une liste rafraîchie entre-temps,
+    // une bascule annulerait la coche qu'un autre appareil vient de faire.
+    case "setChecked":
       return state.map((item) =>
-        item.id === action.itemId ? { ...item, checked: !item.checked } : item,
+        item.id === action.itemId ? { ...item, checked: action.checked } : item,
       );
     case "remove": {
       const ids = new Set(action.itemIds);

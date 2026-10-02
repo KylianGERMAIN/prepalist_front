@@ -8,11 +8,16 @@ export default async function ShoppingListPage() {
   const api = await serverApi();
   const { data: list } = await api.GET("/plan/shopping-list", {});
 
+  // `LiveRefresh` reste monté : après une erreur passagère, le tick suivant
+  // ramène la liste sans rechargement manuel.
   if (!list) {
     return (
-      <p className="text-destructive">
-        Impossible de charger la liste de courses.
-      </p>
+      <>
+        <p className="text-destructive">
+          Impossible de charger la liste de courses.
+        </p>
+        <LiveRefresh />
+      </>
     );
   }
 

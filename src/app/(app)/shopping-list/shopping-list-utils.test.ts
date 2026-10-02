@@ -16,35 +16,41 @@ function item(overrides: Partial<ShoppingListItem> = {}): ShoppingListItem {
 }
 
 describe("shoppingItemsReducer", () => {
-  it("coche l'item ciblé (toggle depuis false)", () => {
+  it("coche l'item ciblé", () => {
     const state = [item({ id: "i1", checked: false })];
-    const next = shoppingItemsReducer(state, { type: "toggle", itemId: "i1" });
+    const next = shoppingItemsReducer(state, { type: "setChecked", itemId: "i1", checked: true });
     expect(next[0].checked).toBe(true);
   });
 
-  it("décoche l'item ciblé (toggle depuis true)", () => {
+  it("décoche l'item ciblé", () => {
     const state = [item({ id: "i1", checked: true })];
-    const next = shoppingItemsReducer(state, { type: "toggle", itemId: "i1" });
+    const next = shoppingItemsReducer(state, { type: "setChecked", itemId: "i1", checked: false });
     expect(next[0].checked).toBe(false);
+  });
+
+  it("pose la valeur même si l'item a déjà changé ailleurs", () => {
+    const state = [item({ id: "i1", checked: true })];
+    const next = shoppingItemsReducer(state, { type: "setChecked", itemId: "i1", checked: true });
+    expect(next[0].checked).toBe(true);
   });
 
   it("laisse les autres items inchangés (même référence)", () => {
     const other = item({ id: "i2" });
     const state = [item({ id: "i1" }), other];
-    const next = shoppingItemsReducer(state, { type: "toggle", itemId: "i1" });
+    const next = shoppingItemsReducer(state, { type: "setChecked", itemId: "i1", checked: true });
     expect(next[1]).toBe(other);
   });
 
   it("ne mute pas l'état d'origine (immutabilité)", () => {
     const original = item({ id: "i1", checked: false });
     const state = [original];
-    shoppingItemsReducer(state, { type: "toggle", itemId: "i1" });
+    shoppingItemsReducer(state, { type: "setChecked", itemId: "i1", checked: true });
     expect(original.checked).toBe(false);
   });
 
   it("ne touche à rien si l'itemId est inconnu", () => {
     const state = [item({ id: "i1", checked: false })];
-    const next = shoppingItemsReducer(state, { type: "toggle", itemId: "zzz" });
+    const next = shoppingItemsReducer(state, { type: "setChecked", itemId: "zzz", checked: true });
     expect(next[0].checked).toBe(false);
   });
 });
