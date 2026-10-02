@@ -28,15 +28,17 @@ export async function clearPlan(): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** `mealId` à `null` vide le créneau. */
+/** `mealId` à `null` vide le créneau ; `alsoNext` recopie le résultat sur le créneau suivant. */
 export async function assignSlot(
   slotId: string,
   mealId: string | null,
   servings?: number,
+  alsoNext?: boolean,
 ): Promise<ActionResult> {
   const api = await serverApi();
-  const body: { mealId?: string | null; servings?: number } = { mealId };
+  const body: { mealId?: string | null; servings?: number; alsoNext?: boolean } = { mealId };
   if (servings !== undefined) body.servings = servings;
+  if (alsoNext) body.alsoNext = true;
   const { error } = await api.PATCH("/plan/slots/{slotId}", {
     params: { path: { slotId } },
     body,

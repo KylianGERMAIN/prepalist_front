@@ -6,9 +6,9 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { MealSummary, Plan, PlanSlot } from "@/lib/models";
 import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
-import { SlotCell } from "./slot-cell";
+import { SlotCell, type NextSlotInfo } from "./slot-cell";
 import { assignSlot } from "./planner-actions";
-import { dayLabel, slotsReducer } from "./planner-utils";
+import { dayLabel, nextSlotOf, slotsReducer } from "./planner-utils";
 
 // Inatteignable en pratique : le back crée toujours les deux créneaux d'un jour.
 // N'existe que parce que `Map.get` rend `PlanSlot | undefined`.
@@ -62,21 +62,30 @@ export function PlanGrid({
     });
   }
 
-  // Report des restes du dîner vers le déjeuner du lendemain.
-  function handleDuplicate(slot: PlanSlot) {
-    if (!slot.meal || slot.slot !== "DINNER") return;
-    const target = optimisticSlots.find(
-      (s) => s.dayIndex === slot.dayIndex + 1 && s.slot === "LUNCH",
-    );
-    if (!target) return;
-    const meal = slot.meal;
-    const servings = slot.servings;
+  function handleAssign(
+    slot: PlanSlot,
+    meal: MealSummary,
+    servings: number,
+    alsoNext: boolean,
+  ) {
+    const next = alsoNext ? nextSlotOf(optimisticSlots, slot) : undefined;
     startTransition(async () => {
-      dispatch({ type: "assign", slotId: target.id, meal, servings });
-      const res = await assignSlot(target.id, meal.id, servings);
-      if (res.ok) toast.success("Reporté au midi du lendemain");
+      dispatch({ type: "assign", slotId: slot.id, meal, servings });
+      if (next) dispatch({ type: "assign", slotId: next.id, meal, servings });
+      const res = await assignSlot(slot.id, meal.id, servings, !!next);
+      if (res.ok) toast.success(next ? "Créneaux mis à jour" : "Créneau mis à jour");
       else toast.error(res.error);
     });
+  }
+
+  function nextInfo(slot: PlanSlot): NextSlotInfo | undefined {
+    const next = nextSlotOf(optimisticSlots, slot);
+    if (!next) return undefined;
+    const moment = next.slot === "LUNCH" ? "midi" : "soir";
+    return {
+      label: `${dayLabel(plan.startDate, next.dayIndex)} ${moment}`,
+      occupant: next.meal?.name ?? null,
+    };
   }
 
   const byKey = new Map<string, PlanSlot>();
@@ -100,9 +109,6 @@ export function PlanGrid({
           const isToday = dayIndex === todayIndex;
           const lunch = byKey.get(`${dayIndex}_LUNCH`);
           const dinner = byKey.get(`${dayIndex}_DINNER`);
-          // Report proposé seulement vers un midi libre : pas d'écrasement silencieux.
-          const nextLunch = byKey.get(`${dayIndex + 1}_LUNCH`);
-          const canDuplicate = !!nextLunch && !nextLunch.meal;
           return (
             <div
               key={dayIndex}
@@ -121,15 +127,21 @@ export function PlanGrid({
               </div>
               <div className="flex flex-1 flex-col gap-2">
                 {lunch ? (
-                  <SlotCell slot={lunch} onClear={handleClear} />
+                  <SlotCell
+                    slot={lunch}
+                    next={nextInfo(lunch)}
+                    onAssign={handleAssign}
+                    onClear={handleClear}
+                  />
                 ) : (
                   <EmptySlot moment="LUNCH" />
                 )}
                 {dinner ? (
                   <SlotCell
                     slot={dinner}
+                    next={nextInfo(dinner)}
+                    onAssign={handleAssign}
                     onClear={handleClear}
-                    onDuplicate={canDuplicate ? handleDuplicate : undefined}
                   />
                 ) : (
                   <EmptySlot moment="DINNER" />

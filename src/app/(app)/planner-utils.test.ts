@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MealSummary, PlanSlot } from "@/lib/models";
-import { dayIndexOf, dayLabel, slotsReducer } from "./planner-utils";
+import { dayIndexOf, dayLabel, nextSlotOf, slotsReducer } from "./planner-utils";
 
 function meal(overrides: Partial<MealSummary> = {}): MealSummary {
   return {
@@ -97,5 +97,26 @@ describe("dayIndexOf", () => {
   it("reste exact autour des changements d'heure", () => {
     expect(dayIndexOf("2026-03-27", "2026-03-30", 7)).toBe(3); // +1 h
     expect(dayIndexOf("2026-10-23", "2026-10-26", 7)).toBe(3); // −1 h
+  });
+});
+
+describe("nextSlotOf", () => {
+  const slots = [0, 1].flatMap((dayIndex) =>
+    (["LUNCH", "DINNER"] as const).map(
+      (slot) => ({ id: `${dayIndex}-${slot}`, dayIndex, slot }) as unknown as PlanSlot,
+    ),
+  );
+  const at = (id: string) => slots.find((s) => s.id === id) as PlanSlot;
+
+  it("passe du midi au soir du même jour", () => {
+    expect(nextSlotOf(slots, at("0-LUNCH"))?.id).toBe("0-DINNER");
+  });
+
+  it("passe du soir au midi du lendemain", () => {
+    expect(nextSlotOf(slots, at("0-DINNER"))?.id).toBe("1-LUNCH");
+  });
+
+  it("n’a rien après le dernier dîner", () => {
+    expect(nextSlotOf(slots, at("1-DINNER"))).toBeUndefined();
   });
 });

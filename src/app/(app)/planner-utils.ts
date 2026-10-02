@@ -42,3 +42,30 @@ export function dayIndexOf(
     86_400_000;
   return diff >= 0 && diff < dayCount ? diff : null;
 }
+
+/** Midi → soir du même jour, soir → midi du lendemain : même règle que l'API. */
+export function nextSlotOf(slots: PlanSlot[], slot: PlanSlot): PlanSlot | undefined {
+  const [dayIndex, moment] =
+    slot.slot === "LUNCH" ? [slot.dayIndex, "DINNER"] : [slot.dayIndex + 1, "LUNCH"];
+  return slots.find((s) => s.dayIndex === dayIndex && s.slot === moment);
+}
+
+const ALSO_NEXT_KEY = "prepalist:also-next";
+
+// localStorage peut lever (navigation privée, stockage bloqué) : l'option reste
+// alors activée par défaut.
+export function readAlsoNext(): boolean {
+  try {
+    return localStorage.getItem(ALSO_NEXT_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
+
+export function writeAlsoNext(value: boolean): void {
+  try {
+    localStorage.setItem(ALSO_NEXT_KEY, String(value));
+  } catch {
+    // Préférence d'appareil : la perdre n'empêche pas l'enregistrement.
+  }
+}
