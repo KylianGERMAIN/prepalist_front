@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition, type RefObject } from "react";
+import { useEffect, useState, useTransition, type RefObject } from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -28,7 +28,7 @@ export function MealCombobox({
   focusAfterSelect?: RefObject<HTMLElement | null>;
 }) {
   const [open, setOpen] = useState(false);
-  const selected = useRef(false);
+  const [picked, setPicked] = useState(false);
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MealSummary[]>([]);
   const [pending, startTransition] = useTransition();
@@ -53,7 +53,7 @@ export function MealCombobox({
     <Popover
       open={open}
       onOpenChange={(next) => {
-        if (next) selected.current = false;
+        if (next) setPicked(false);
         setOpen(next);
       }}
     >
@@ -68,7 +68,9 @@ export function MealCombobox({
       <PopoverContent
         className="w-[280px] p-0"
         align="start"
-        finalFocus={() => (selected.current && focusAfterSelect?.current) || true}
+        // Une fonction court-circuiterait la garde de base-ui qui laisse le focus
+        // là où l'utilisateur l'a mis : seul le cas « sélection » le redirige.
+        finalFocus={picked && focusAfterSelect ? focusAfterSelect : true}
       >
         <Command shouldFilter={false}>
           <CommandInput placeholder="Rechercher un repas…" value={query} onValueChange={setQuery} />
@@ -80,7 +82,7 @@ export function MealCombobox({
                   key={meal.id}
                   value={meal.id}
                   onSelect={() => {
-                    selected.current = true;
+                    setPicked(true);
                     onSelect(meal);
                     setOpen(false);
                   }}

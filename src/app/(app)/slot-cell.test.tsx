@@ -60,4 +60,18 @@ describe("SlotCell — validation au clavier", () => {
 
     await waitFor(() => expect(assignSlot).toHaveBeenCalledWith("s1", "m1", 3));
   });
+
+  it("rend le focus au déclencheur quand on ferme la liste avec Échap", async () => {
+    const user = userEvent.setup();
+    render(<SlotCell slot={EMPTY_SLOT} onClear={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: /ajouter/i }));
+    const trigger = await screen.findByRole("combobox");
+    await user.click(trigger);
+    await screen.findByPlaceholderText("Rechercher un repas…");
+
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => expect(trigger).toHaveFocus());
+    expect(assignSlot).not.toHaveBeenCalled();
+  });
 });
