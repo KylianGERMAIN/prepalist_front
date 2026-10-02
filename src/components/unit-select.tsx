@@ -10,7 +10,7 @@ import { asUnit, UNITS } from "@/lib/units";
 export function UnitSelect({
   current,
   ...props
-}: ComponentProps<"select"> & { current?: string }) {
+}: ComponentProps<typeof NativeSelect> & { current?: string }) {
   const legacy = current && !asUnit(current) ? current : null;
 
   return (

@@ -69,7 +69,7 @@ export function SlotCell({
   const MomentIcon = slot.slot === "LUNCH" ? Sun : Moon;
 
   return (
-    <div className="group relative flex-1">
+    <div className="group relative min-w-0 flex-1">
       {(meal || slot.away) && (
         <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-md bg-card/95 p-0.5 opacity-0 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-70">
           <button
@@ -106,7 +106,7 @@ export function SlotCell({
               )}
             >
               {slot.away ? (
-                <span className="flex items-center gap-1 pr-6">
+                <span className="flex flex-wrap items-center gap-1 pr-6">
                   <MomentIcon className="size-3.5 shrink-0" />
                   <MapPin className="size-3.5 shrink-0" />
                   Dehors
@@ -236,7 +236,9 @@ export function SlotCell({
             </label>
 
             {meal || slot.away ? (
-              <div className="space-y-2">
+              // Mobile seulement : ailleurs le glisser-déposer suffit, mais en vue jour par
+              // jour il ne passe pas d'un jour à l'autre.
+              <div className="space-y-2 sm:hidden">
                 <Label htmlFor={`move-${slot.id}`}>Déplacer vers</Label>
                 {/* Validation par bouton : sur Windows, une flèche sur un select fermé
                     change déjà sa valeur. */}
@@ -292,7 +294,7 @@ export function SlotCell({
                 }}
                 disabled={slot.away}
               >
-                <MapPin className="mr-2 size-4" />
+                <MapPin className="size-4" />
                 Je mange dehors
               </Button>
               <Button ref={submitRef} type="submit" disabled={!selected}>

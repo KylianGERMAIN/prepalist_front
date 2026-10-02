@@ -68,7 +68,7 @@ export function DndSlot({
         setDropRef(node);
       }}
       className={cn(
-        "group/dnd relative flex flex-1 rounded-md",
+        "group/dnd relative flex min-w-0 flex-1 rounded-md",
         isDragging && "opacity-40",
         isOver && !isDragging && "ring-2 ring-accent",
       )}

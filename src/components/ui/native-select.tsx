@@ -16,10 +16,10 @@ function NativeSelect({
   return (
     <div data-slot="native-select" className={cn("relative w-full min-w-0", className)}>
       {/* Flèche native retirée : dessinée dans le padding, elle touchait la bordure. */}
-      <select className={cn(inputClassName, "appearance-none pr-8", selectClassName)} {...props} />
+      <select className={cn(inputClassName, "peer appearance-none pr-8", selectClassName)} {...props} />
       <ChevronDown
         aria-hidden
-        className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground"
+        className="pointer-events-none absolute top-1/2 right-2.5 size-4 -translate-y-1/2 text-muted-foreground peer-disabled:opacity-50"
       />
     </div>
   )

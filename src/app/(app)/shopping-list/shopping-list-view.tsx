@@ -2,7 +2,7 @@
 
 import { useEffect, useOptimistic, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { toast } from "sonner";
-import { CheckSquare, ChevronDown, Eraser, ListChecks, Pencil, ShoppingCart, Trash2, X } from "lucide-react";
+import { ChevronDown, Eraser, ListChecks, Pencil, ShoppingCart, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { asUnit, formatUnit } from "@/lib/units";
 import type { ShoppingListItem } from "@/lib/models";
@@ -194,23 +194,11 @@ export function ShoppingListView({
                 <ListChecks className="mr-2 size-4" />
                 Sélectionner
               </Button>
-              {checkedCount > 0 ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() =>
-                    run({ type: "clear", scope: "checked" }, () => clearList("checked"), "Articles achetés retirés")
-                  }
-                >
-                  <CheckSquare className="mr-2 size-4" />
-                  Retirer les achetés
-                </Button>
-              ) : null}
               <ConfirmDialog
                 title="Vider la liste ?"
                 description="Tous les articles sont retirés. Ceux issus des plats reviennent avec Restaurer."
                 confirmLabel="Vider"
-                onConfirm={() => run({ type: "clear", scope: "all" }, () => clearList("all"), "Liste vidée")}
+                onConfirm={() => run({ type: "clear" }, () => clearList("all"), "Liste vidée")}
                 trigger={
                   <Button variant="ghost" size="sm">
                     <Eraser className="mr-2 size-4" />
