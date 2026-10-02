@@ -8,6 +8,7 @@ vi.mock("./actions", () => ({
   createMeal: vi.fn(),
   updateMeal: vi.fn(),
   searchIngredients: vi.fn().mockResolvedValue([]),
+  listTags: vi.fn().mockResolvedValue([{ name: "hiver", count: 3 }]),
   createIngredient: vi.fn(),
 }));
 

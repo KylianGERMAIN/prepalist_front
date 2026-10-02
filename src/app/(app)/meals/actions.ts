@@ -56,6 +56,12 @@ export async function setMealState(
   return { ok: true };
 }
 
+export async function listTags(): Promise<{ name: string; count: number }[]> {
+  const api = await serverApi();
+  const { data } = await api.GET("/meals/tags", {});
+  return data ?? [];
+}
+
 export async function searchIngredients(search: string): Promise<Ingredient[]> {
   const api = await serverApi();
   const { data } = await api.GET("/ingredients", {

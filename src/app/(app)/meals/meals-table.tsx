@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
 import { Pencil, Trash2 } from "lucide-react";
@@ -132,7 +133,11 @@ function MealRow({
         <span className="flex flex-wrap gap-1">
           {meal.ingredientCount === 0 ? <IncompleteBadge /> : null}
           {meal.tags.map((tag) => (
-            <Badge key={tag} variant="secondary">
+            <Badge
+              key={tag}
+              variant="secondary"
+              render={<Link href={`/meals?tag=${encodeURIComponent(tag)}`} title={`Filtrer sur « ${tag} »`} />}
+            >
               {tag}
             </Badge>
           ))}

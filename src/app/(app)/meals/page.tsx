@@ -23,6 +23,7 @@ export default async function MealsPage({
   const isAdmin = user?.role === "ADMIN";
 
   const api = await serverApi();
+  const tagsPromise = api.GET("/meals/tags", {});
   const { data, error } = await api.GET("/meals", {
     params: {
       query: {
@@ -52,7 +53,7 @@ export default async function MealsPage({
         {isAdmin && <MealDialog mode="create" />}
       </div>
 
-      <MealsFilters />
+      <MealsFilters tags={(await tagsPromise).data ?? []} />
       <MealsTable meals={meals} isAdmin={isAdmin} />
 
       {totalPages > 1 ? (

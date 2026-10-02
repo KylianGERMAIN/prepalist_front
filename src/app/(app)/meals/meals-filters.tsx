@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Input } from "@/components/ui/input";
+import { Input, inputClassName } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 /** Pilote les query params que la page serveur relit (`?name=&tag=&incomplete=`). */
-export function MealsFilters() {
+export function MealsFilters({ tags }: { tags: { name: string; count: number }[] }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [name, setName] = useState(sp.get("name") ?? "");
@@ -38,12 +39,19 @@ export function MealsFilters() {
         onChange={(e) => setName(e.target.value)}
         className="max-w-[200px]"
       />
-      <Input
-        placeholder="Tag"
+      <select
+        aria-label="Tag"
         value={tag}
         onChange={(e) => setTag(e.target.value)}
-        className="max-w-[160px]"
-      />
+        className={cn(inputClassName, "w-auto max-w-[200px]")}
+      >
+        <option value="">Tous les tags</option>
+        {tags.map((t) => (
+          <option key={t.name} value={t.name}>
+            {t.name} ({t.count})
+          </option>
+        ))}
+      </select>
       <Button
         type="button"
         variant={incomplete ? "default" : "outline"}
