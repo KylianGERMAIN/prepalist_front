@@ -104,7 +104,8 @@ jobs:
       - name: Start API (migrated)
         working-directory: api
         run: |
-          pnpm install --frozen-lockfile
+          # `api/` est sous le workspace pnpm du front : sans ce flag, ses dépendances ne sont pas installées.
+          pnpm install --frozen-lockfile --ignore-workspace
           pnpm build
           pnpm migration:run:prod
           nohup node dist/main > ../api.log 2>&1 &
