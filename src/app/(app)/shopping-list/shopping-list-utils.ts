@@ -1,6 +1,4 @@
-import type { ShoppingListItem } from "@/lib/models";
-
-export type ClearScope = "all" | "checked";
+import type { ClearScope, ShoppingListItem } from "@/lib/models";
 
 export type ShoppingItemAction =
   | { type: "toggle"; itemId: string }

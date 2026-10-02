@@ -5,9 +5,9 @@ import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
 import type {
   AddShoppingItemInput,
+  ClearScope,
   UpdateShoppingItemInput,
 } from "@/lib/models";
-import type { ClearScope } from "./shopping-list-utils";
 
 export async function toggleChecked(
   itemId: string,

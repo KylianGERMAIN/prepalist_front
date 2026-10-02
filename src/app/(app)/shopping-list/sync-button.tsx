@@ -16,10 +16,11 @@ export function SyncButton({ dismissedCount }: { dismissedCount: number }) {
       variant="outline"
       size="sm"
       disabled={pending}
+      title="Ramène les articles retirés. Les quantités issues des plats sont recalculées."
       onClick={() =>
         startTransition(async () => {
           const res = await syncShoppingList();
-          if (res.ok) toast.success("Articles supprimés restaurés");
+          if (res.ok) toast.success("Articles restaurés, quantités recalculées depuis les plats");
           else toast.error(res.error);
         })
       }

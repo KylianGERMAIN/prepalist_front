@@ -106,7 +106,7 @@ describe("ShoppingListView", () => {
     await user.click(screen.getByRole("button", { name: "Sélectionner" }));
     await user.keyboard("{Escape}");
 
-    expect(screen.queryByRole("toolbar", { name: "Sélection" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Sélection" })).not.toBeInTheDocument();
     expect(deleteItems).not.toHaveBeenCalled();
   });
 
@@ -134,6 +134,7 @@ describe("ShoppingListView", () => {
     await user.clear(input);
     await user.type(input, "0,5{Enter}");
 
+    expect(updateItem).toHaveBeenCalledTimes(1);
     expect(updateItem).toHaveBeenCalledWith("1", { quantity: 0.5 });
     expect(screen.getByRole("button", { name: /Modifier la quantité de Beurre \(0.5 g\)/ })).toBeInTheDocument();
   });

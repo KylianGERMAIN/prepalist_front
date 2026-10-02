@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useOptimistic, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CheckSquare, Eraser, ListChecks, Pencil, Trash2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { formatUnit } from "@/lib/units";
+import { asUnit, formatUnit } from "@/lib/units";
 import type { ShoppingListItem } from "@/lib/models";
 import type { ActionResult } from "@/lib/action-result";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import {
+  addManualItem,
   clearList,
   deleteItem,
   deleteItems,
@@ -31,6 +32,8 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
   const [, startTransition] = useTransition();
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const selectButtonRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
 
   const sorted = sortItems(optimisticItems);
   const checkedCount = optimisticItems.filter((i) => i.checked).length;
@@ -39,6 +42,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
 
   useEffect(() => {
     if (!selecting) return;
+    listRef.current?.querySelector("input")?.focus();
     function onKeyDown(e: KeyboardEvent) {
       if (e.key === "Escape") stopSelecting();
     }
@@ -49,6 +53,32 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
   function stopSelecting() {
     setSelecting(false);
     setSelected(new Set());
+    // Le bouton est démonté pendant la sélection : il faut attendre son retour.
+    requestAnimationFrame(() => selectButtonRef.current?.focus());
+  }
+
+  function removeOne(item: ShoppingListItem) {
+    startTransition(async () => {
+      dispatch({ type: "remove", itemIds: [item.id] });
+      const res = await deleteItem(item.id);
+      if (!res.ok) {
+        toast.error(res.error);
+      } else if (item.source === "MANUAL") {
+        // Un article manuel supprimé ne revient pas avec Restaurer : seul ce toast le rattrape.
+        toast.success(`« ${item.name} » retiré`, {
+          action: {
+            label: "Annuler",
+            onClick: () => {
+              void addManualItem({
+                name: item.name,
+                unit: asUnit(item.unit ?? "") ?? "pièce",
+                ...(item.quantity != null ? { quantity: item.quantity } : {}),
+              });
+            },
+          },
+        });
+      }
+    });
   }
 
   function run(action: ShoppingItemAction, call: () => Promise<ActionResult>, success?: string) {
@@ -83,8 +113,8 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
             <span className="tnum">{optimisticItems.length}</span> achetés
           </p>
           {optimisticItems.length > 0 && !selecting ? (
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" onClick={() => setSelecting(true)}>
+            <div className="flex flex-wrap items-center gap-1">
+              <Button ref={selectButtonRef} variant="ghost" size="sm" onClick={() => setSelecting(true)}>
                 <ListChecks className="mr-2 size-4" />
                 Sélectionner
               </Button>
@@ -128,7 +158,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
           Liste vide. Planifie des repas ou ajoute un article.
         </p>
       ) : (
-        <ul className="divide-y rounded-md border">
+        <ul ref={listRef} className="divide-y rounded-md border">
           {sorted.map((item) => (
             <li key={item.id} className="flex items-center gap-2 pr-2 hover:bg-muted/50">
               <label className="flex flex-1 cursor-pointer items-center gap-3 px-4 py-2.5">
@@ -157,6 +187,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
                   )}
                 >
                   {item.name}
+                  {selecting && item.checked ? <span className="sr-only">(acheté)</span> : null}
                   {item.source === "MANUAL" ? (
                     <Badge variant="secondary" className="font-normal">
                       Manuel
@@ -188,7 +219,7 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
                     size="sm"
                     title="Retirer"
                     aria-label={`Retirer ${item.name}`}
-                    onClick={() => run({ type: "remove", itemIds: [item.id] }, () => deleteItem(item.id))}
+                    onClick={() => removeOne(item)}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -201,9 +232,9 @@ export function ShoppingListView({ items }: { items: ShoppingListItem[] }) {
 
       {selecting ? (
         <div
-          role="toolbar"
+          role="group"
           aria-label="Sélection"
-          className="sticky bottom-16 z-10 flex items-center justify-between gap-2 rounded-md border bg-card p-2 shadow-sm md:bottom-2"
+          className="sticky bottom-16 z-10 flex flex-wrap items-center justify-between gap-2 rounded-md border bg-card p-2 shadow-sm md:bottom-2"
         >
           <span className="px-2 text-sm text-muted-foreground">
             <span className="tnum">{selected.size}</span> sélectionné(s)
@@ -243,12 +274,22 @@ function QuantityEditor({
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState("");
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const label = [item.quantity, formatUnit(item.quantity, item.unit)].filter(Boolean).join(" ");
 
-  function commit() {
+  function close() {
     setEditing(false);
+    requestAnimationFrame(() => buttonRef.current?.focus());
+  }
+
+  function commit() {
+    close();
     const quantity = Number(draft.replace(",", "."));
-    if (Number.isFinite(quantity) && quantity > 0 && quantity !== item.quantity) onSave(quantity);
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      if (draft.trim() !== "") toast.error("Quantité invalide : un nombre supérieur à 0.");
+      return;
+    }
+    if (quantity !== item.quantity) onSave(quantity);
   }
 
   if (editing) {
@@ -266,7 +307,7 @@ function QuantityEditor({
             if (e.key === "Enter") commit();
             if (e.key === "Escape") {
               e.stopPropagation();
-              setEditing(false);
+              close();
             }
           }}
           className="h-7 w-16 text-right tabular-nums"
@@ -279,6 +320,7 @@ function QuantityEditor({
   if (!label) return null;
   return (
     <button
+      ref={buttonRef}
       type="button"
       disabled={disabled}
       aria-label={`Modifier la quantité de ${item.name} (${label})`}
