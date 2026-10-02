@@ -121,12 +121,26 @@ describe("PlanGrid — aussi pour le créneau suivant", () => {
     render(<PlanGrid plan={planWithCarbo()} todayIndex={null} />);
 
     await user.click(screen.getByText("Pâtes carbo"));
-    await user.selectOptions(await screen.findByLabelText("Déplacer vers"), "jeudi soir");
+    await user.selectOptions(await screen.findByLabelText("Déplacer vers"), "jeudi soir (vide)");
+    expect(moveSlot).not.toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Déplacer" }));
 
     expect(moveSlot).toHaveBeenCalledWith("0-LUNCH", "1-DINNER");
     const thursday = screen.getByText("Jeu").parentElement as HTMLElement;
     expect(within(thursday).getByText("Pâtes carbo")).toBeInTheDocument();
     const wednesday = screen.getByText("Mer").parentElement as HTMLElement;
     expect(within(wednesday).queryByText("Pâtes carbo")).not.toBeInTheDocument();
+  });
+
+  it("ouvre la modale d'une carte remplie au clavier, la poignée portant seule le glisser", async () => {
+    const user = userEvent.setup();
+    render(<PlanGrid plan={planWithCarbo()} todayIndex={null} />);
+
+    expect(screen.getByRole("button", { name: "Déplacer mercredi midi (Pâtes carbo)" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Déplacer jeudi/ })).not.toBeInTheDocument();
+    screen.getByText("Pâtes carbo").closest("button")?.focus();
+    await user.keyboard("{Enter}");
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
   });
 });

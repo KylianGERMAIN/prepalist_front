@@ -32,7 +32,7 @@ export function SlotCell({
   slot,
   next,
   canCreateMeals = false,
-  moveTargets = [],
+  moveTargets,
   onAssign,
   onAway,
   onMove,
@@ -45,20 +45,22 @@ export function SlotCell({
   onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
   onAway: (slot: PlanSlot, alsoNext: boolean) => void;
   /** Alternative au glisser-déposer : sur petit écran ou au clavier. */
-  moveTargets?: { id: string; label: string }[];
-  onMove?: (slotId: string, targetSlotId: string) => void;
+  moveTargets: { id: string; label: string }[];
+  onMove: (slotId: string, targetSlotId: string) => void;
   onClear: (slot: PlanSlot) => void;
 }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<MealSummary | null>(slot.meal ?? null);
   const [servings, setServings] = useState(slot.servings);
   const [alsoNext, setAlsoNext] = useState(true);
+  const [moveTo, setMoveTo] = useState("");
   const submitRef = useRef<HTMLButtonElement>(null);
 
   function reset() {
     setSelected(slot.meal ?? null);
     setServings(slot.servings);
     setAlsoNext(readAlsoNext());
+    setMoveTo("");
   }
 
   const meal = slot.meal;
@@ -232,28 +234,39 @@ export function SlotCell({
               </span>
             </label>
 
-            {onMove && (meal || slot.away) ? (
+            {meal || slot.away ? (
               <div className="space-y-2">
                 <Label htmlFor={`move-${slot.id}`}>Déplacer vers</Label>
-                <select
-                  id={`move-${slot.id}`}
-                  value=""
-                  onChange={(e) => {
-                    if (!e.target.value) return;
-                    setOpen(false);
-                    onMove(slot.id, e.target.value);
-                  }}
-                  className={cn(inputClassName, "w-full")}
-                >
-                  <option value="">Choisir un créneau…</option>
-                  {moveTargets
-                    .filter((t) => t.id !== slot.id)
-                    .map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.label}
-                      </option>
-                    ))}
-                </select>
+                {/* Validation par bouton : sur Windows, une flèche sur un select fermé
+                    change déjà sa valeur. */}
+                <div className="flex gap-2">
+                  <select
+                    id={`move-${slot.id}`}
+                    value={moveTo}
+                    onChange={(e) => setMoveTo(e.target.value)}
+                    className={cn(inputClassName, "flex-1")}
+                  >
+                    <option value="">Choisir un créneau…</option>
+                    {moveTargets
+                      .filter((t) => t.id !== slot.id)
+                      .map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.label}
+                        </option>
+                      ))}
+                  </select>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!moveTo}
+                    onClick={() => {
+                      setOpen(false);
+                      onMove(slot.id, moveTo);
+                    }}
+                  >
+                    Déplacer
+                  </Button>
+                </div>
               </div>
             ) : null}
 

@@ -1,14 +1,12 @@
 "use client";
 
-import { useOptimistic, useState, useTransition, type ReactNode } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import {
   DndContext,
   DragOverlay,
   KeyboardSensor,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
-  useDraggable,
-  useDroppable,
   useSensor,
   useSensors,
   type Announcements,
@@ -20,6 +18,7 @@ import { cn } from "@/lib/utils";
 import type { MealSummary, Plan, PlanSlot } from "@/lib/models";
 import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
 import { SlotCell, type NextSlotInfo } from "./slot-cell";
+import { DndSlot, slotKeyboardCoordinates } from "./planner-dnd";
 import { assignSlot, moveSlot, setSlotAway } from "./planner-actions";
 import { dayLabel, dayName, nextSlotOf, slotsReducer } from "./planner-utils";
 
@@ -129,13 +128,23 @@ export function PlanGrid({
     });
   }
 
-  function handleMove(slotId: string, targetSlotId: string) {
+  function handleMove(slotId: string, targetSlotId: string, undoable = true) {
     if (slotId === targetSlotId) return;
+    const target = slotById.get(targetSlotId);
+    const swapped = !!target?.meal || !!target?.away;
     startTransition(async () => {
       dispatch({ type: "move", slotId, targetSlotId });
       const res = await moveSlot(slotId, targetSlotId);
-      if (res.ok) toast.success("Repas déplacé");
-      else toast.error(res.error);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      // L'échange est symétrique : le refaire dans l'autre sens annule.
+      toast.success(swapped ? "Repas échangés" : "Repas déplacé", {
+        action: undoable
+          ? { label: "Annuler", onClick: () => handleMove(targetSlotId, slotId, false) }
+          : undefined,
+      });
     });
   }
 
@@ -144,8 +153,8 @@ export function PlanGrid({
   }
 
   const slotById = new Map(optimisticSlots.map((s) => [s.id, s]));
-  const describe = (id: string | number | undefined) => {
-    const slot = id === undefined ? undefined : slotById.get(String(id));
+  const describe = (id: string | number) => {
+    const slot = slotById.get(String(id));
     if (!slot) return "";
     const content = slot.meal?.name ?? (slot.away ? "Dehors" : "vide");
     return `${slotLabel(slot)} (${content})`;
@@ -160,23 +169,27 @@ export function PlanGrid({
     onDragCancel: () => "Déplacement annulé.",
   };
 
-  // Seuils d'activation : sans eux, un simple tap n'ouvrirait plus la modale et
-  // le défilement mobile serait capturé par le glisser.
+  // Souris et tactile séparés : un PointerSensor capterait aussi le doigt, sans
+  // le délai qui laisse un appui bref défiler la page.
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } }),
-    useSensor(KeyboardSensor),
+    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: slotKeyboardCoordinates }),
   );
   const [dragging, setDragging] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const draggedSlot = dragging ? slotById.get(dragging) : undefined;
+  const overSlot = overId && overId !== dragging ? slotById.get(overId) : undefined;
+  const overContent = overSlot?.meal?.name ?? (overSlot?.away ? "« dehors »" : null);
 
   function onDragEnd({ active, over }: DragEndEvent) {
     setDragging(null);
+    setOverId(null);
     if (over) handleMove(String(active.id), String(over.id));
   }
 
   const moveTargets = optimisticSlots
-    .map((s) => ({ id: s.id, label: slotLabel(s), order: s.dayIndex * 2 + (s.slot === "LUNCH" ? 0 : 1) }))
+    .map((s) => ({ id: s.id, label: describe(s.id), order: s.dayIndex * 2 + (s.slot === "LUNCH" ? 0 : 1) }))
     .sort((a, b) => a.order - b.order);
 
   function nextInfo(slot: PlanSlot): NextSlotInfo | undefined {
@@ -207,6 +220,7 @@ export function PlanGrid({
       </div>
 
       <DndContext
+        id="plan-grid"
         sensors={sensors}
         accessibility={{
           announcements,
@@ -216,104 +230,83 @@ export function PlanGrid({
           },
         }}
         onDragStart={({ active }) => setDragging(String(active.id))}
-        onDragCancel={() => setDragging(null)}
+        onDragOver={({ over }) => setOverId(over ? String(over.id) : null)}
+        onDragCancel={() => {
+          setDragging(null);
+          setOverId(null);
+        }}
         onDragEnd={onDragEnd}
       >
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
-        {days.map((dayIndex) => {
-          const isToday = dayIndex === todayIndex;
-          const lunch = byKey.get(`${dayIndex}_LUNCH`);
-          const dinner = byKey.get(`${dayIndex}_DINNER`);
-          return (
-            <div
-              key={dayIndex}
-              className={cn(
-                "flex h-full flex-col gap-2 rounded-lg border border-transparent p-1.5",
-                isToday && "border-primary/20 bg-primary/5",
-              )}
-            >
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
+          {days.map((dayIndex) => {
+            const isToday = dayIndex === todayIndex;
+            const lunch = byKey.get(`${dayIndex}_LUNCH`);
+            const dinner = byKey.get(`${dayIndex}_DINNER`);
+            return (
               <div
+                key={dayIndex}
                 className={cn(
-                  "text-center font-heading text-sm",
-                  isToday ? "font-medium text-primary" : "text-foreground",
+                  "flex h-full flex-col gap-2 rounded-lg border border-transparent p-1.5",
+                  isToday && "border-primary/20 bg-primary/5",
                 )}
               >
-                {dayLabel(plan.startDate, dayIndex)}
+                <div
+                  className={cn(
+                    "text-center font-heading text-sm",
+                    isToday ? "font-medium text-primary" : "text-foreground",
+                  )}
+                >
+                  {dayLabel(plan.startDate, dayIndex)}
+                </div>
+                <div className="flex flex-1 flex-col gap-2">
+                  {lunch ? (
+                    <DndSlot id={lunch.id} movable={!!lunch.meal || lunch.away} label={describe(lunch.id)}>
+                      <SlotCell
+                        slot={lunch}
+                        next={nextInfo(lunch)}
+                        canCreateMeals={canCreateMeals}
+                        moveTargets={moveTargets}
+                        onAssign={handleAssign}
+                        onAway={handleAway}
+                        onMove={handleMove}
+                        onClear={handleClear}
+                      />
+                    </DndSlot>
+                  ) : (
+                    <EmptySlot moment="LUNCH" />
+                  )}
+                  {dinner ? (
+                    <DndSlot id={dinner.id} movable={!!dinner.meal || dinner.away} label={describe(dinner.id)}>
+                      <SlotCell
+                        slot={dinner}
+                        next={nextInfo(dinner)}
+                        canCreateMeals={canCreateMeals}
+                        moveTargets={moveTargets}
+                        onAssign={handleAssign}
+                        onAway={handleAway}
+                        onMove={handleMove}
+                        onClear={handleClear}
+                      />
+                    </DndSlot>
+                  ) : (
+                    <EmptySlot moment="DINNER" />
+                  )}
+                </div>
               </div>
-              <div className="flex flex-1 flex-col gap-2">
-                {lunch ? (
-                  <DndSlot slot={lunch}>
-                    <SlotCell
-                      slot={lunch}
-                      next={nextInfo(lunch)}
-                      canCreateMeals={canCreateMeals}
-                      moveTargets={moveTargets}
-                      onAssign={handleAssign}
-                      onAway={handleAway}
-                      onMove={handleMove}
-                      onClear={handleClear}
-                    />
-                  </DndSlot>
-                ) : (
-                  <EmptySlot moment="LUNCH" />
-                )}
-                {dinner ? (
-                  <DndSlot slot={dinner}>
-                    <SlotCell
-                      slot={dinner}
-                      next={nextInfo(dinner)}
-                      canCreateMeals={canCreateMeals}
-                      moveTargets={moveTargets}
-                      onAssign={handleAssign}
-                      onAway={handleAway}
-                      onMove={handleMove}
-                      onClear={handleClear}
-                    />
-                  </DndSlot>
-                ) : (
-                  <EmptySlot moment="DINNER" />
-                )}
-              </div>
+            );
+          })}
+        </div>
+        <DragOverlay dropAnimation={null}>
+          {draggedSlot ? (
+            <div className="rounded-md border border-l-4 border-border border-l-accent bg-card p-2 text-sm shadow-lg motion-safe:scale-[1.02]">
+              <p className="font-medium">{draggedSlot.meal?.name ?? (draggedSlot.away ? "Dehors" : "")}</p>
+              {overContent ? (
+                <p className="text-xs text-muted-foreground">⇄ Échanger avec {overContent}</p>
+              ) : null}
             </div>
-          );
-        })}
-      </div>
-      <DragOverlay dropAnimation={null}>
-        {draggedSlot ? (
-          <div className="rounded-md border border-l-4 border-border border-l-accent bg-card p-2 text-sm font-medium shadow-lg motion-safe:scale-[1.02]">
-            {draggedSlot.meal?.name ?? (draggedSlot.away ? "Dehors" : "")}
-          </div>
-        ) : null}
-      </DragOverlay>
+          ) : null}
+        </DragOverlay>
       </DndContext>
     </div>
   );
 }
-
-/** Carte déplaçable si elle porte quelque chose ; tout créneau accepte un dépôt (échange s'il est occupé). */
-function DndSlot({ slot, children }: { slot: PlanSlot; children: ReactNode }) {
-  const movable = !!slot.meal || slot.away;
-  const drag = useDraggable({ id: slot.id, disabled: !movable });
-  const drop = useDroppable({ id: slot.id });
-  return (
-    <div
-      ref={(node) => {
-        drag.setNodeRef(node);
-        drop.setNodeRef(node);
-      }}
-      {...drag.attributes}
-      // La carte contient déjà un bouton : un role="button" de plus les imbriquerait.
-      role="group"
-      aria-label={movable ? undefined : "Créneau"}
-      {...drag.listeners}
-      className={cn(
-        "flex flex-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring/50",
-        drag.isDragging && "opacity-40",
-        drop.isOver && !drag.isDragging && "ring-2 ring-accent",
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
