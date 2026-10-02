@@ -1,6 +1,6 @@
 import type { ComponentProps } from "react";
 import { inputClassName } from "@/components/ui/input";
-import { UNITS, type Unit } from "@/lib/units";
+import { asUnit, UNITS } from "@/lib/units";
 
 /**
  * Un `<select>` sans option correspondante vide son affichage sans rien dire :
@@ -11,7 +11,7 @@ export function UnitSelect({
   current,
   ...props
 }: ComponentProps<"select"> & { current?: string }) {
-  const legacy = current && !UNITS.includes(current as Unit) ? current : null;
+  const legacy = current && !asUnit(current) ? current : null;
 
   return (
     <select aria-label="Unité" className={inputClassName} {...props}>

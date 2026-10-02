@@ -10,6 +10,7 @@ import type {
   UpdateMealInput,
   UpdateMealStateInput,
 } from "@/lib/models";
+import type { Unit } from "@/lib/units";
 
 export async function getMeal(id: string): Promise<Meal | null> {
   const api = await serverApi();
@@ -73,9 +74,10 @@ export async function searchIngredients(search: string): Promise<Ingredient[]> {
 
 export async function createIngredient(
   name: string,
+  defaultUnit?: Unit,
 ): Promise<{ ok: true; ingredient: Ingredient } | { ok: false; error: string }> {
   const api = await serverApi();
-  const { data, error } = await api.POST("/ingredients", { body: { name } });
+  const { data, error } = await api.POST("/ingredients", { body: { name, defaultUnit } });
   if (error || !data) return { ok: false, error: errorText(error) };
   return { ok: true, ingredient: data };
 }
