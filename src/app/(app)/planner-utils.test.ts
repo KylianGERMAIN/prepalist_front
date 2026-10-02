@@ -144,3 +144,27 @@ describe("slotsReducer — dehors", () => {
     expect(next).toMatchObject({ away: false, mealId: "m1" });
   });
 });
+
+describe("slotsReducer — déplacement", () => {
+  const meal = { id: "m1", name: "Carbo" } as MealSummary;
+  const a = slot({ id: "a", mealId: "m1", meal, servings: 3 });
+  const b = slot({ id: "b", away: true });
+  const c = slot({ id: "c" });
+
+  it("échange le contenu de deux créneaux", () => {
+    const [na, nb] = slotsReducer([a, b], { type: "move", slotId: "a", targetSlotId: "b" });
+    expect(na).toMatchObject({ id: "a", away: true, mealId: null });
+    expect(nb).toMatchObject({ id: "b", mealId: "m1", servings: 3, away: false });
+  });
+
+  it("déplace vers un créneau vide", () => {
+    const [na, nc] = slotsReducer([a, c], { type: "move", slotId: "a", targetSlotId: "c" });
+    expect(na.mealId).toBeNull();
+    expect(nc.mealId).toBe("m1");
+  });
+
+  it("ne change rien vers le même créneau", () => {
+    const state = [a, c];
+    expect(slotsReducer(state, { type: "move", slotId: "a", targetSlotId: "a" })).toBe(state);
+  });
+});

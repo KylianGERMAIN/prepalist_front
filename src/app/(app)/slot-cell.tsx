@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input, inputClassName } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { MealSummary, PlanSlot } from "@/lib/models";
@@ -32,8 +32,10 @@ export function SlotCell({
   slot,
   next,
   canCreateMeals = false,
+  moveTargets = [],
   onAssign,
   onAway,
+  onMove,
   onClear,
 }: {
   slot: PlanSlot;
@@ -42,6 +44,9 @@ export function SlotCell({
   next?: NextSlotInfo;
   onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
   onAway: (slot: PlanSlot, alsoNext: boolean) => void;
+  /** Alternative au glisser-déposer : sur petit écran ou au clavier. */
+  moveTargets?: { id: string; label: string }[];
+  onMove?: (slotId: string, targetSlotId: string) => void;
   onClear: (slot: PlanSlot) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -226,6 +231,31 @@ export function SlotCell({
                 )}
               </span>
             </label>
+
+            {onMove && (meal || slot.away) ? (
+              <div className="space-y-2">
+                <Label htmlFor={`move-${slot.id}`}>Déplacer vers</Label>
+                <select
+                  id={`move-${slot.id}`}
+                  value=""
+                  onChange={(e) => {
+                    if (!e.target.value) return;
+                    setOpen(false);
+                    onMove(slot.id, e.target.value);
+                  }}
+                  className={cn(inputClassName, "w-full")}
+                >
+                  <option value="">Choisir un créneau…</option>
+                  {moveTargets
+                    .filter((t) => t.id !== slot.id)
+                    .map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.label}
+                      </option>
+                    ))}
+                </select>
+              </div>
+            ) : null}
 
             <DialogFooter className="gap-2 sm:justify-between">
               <Button
