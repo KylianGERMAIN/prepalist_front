@@ -20,6 +20,7 @@ import type { MealSummary, UpdateMealStateInput } from "@/lib/models";
 import { deleteMeal, setMealState } from "./actions";
 import { MealDialog } from "./meal-dialog";
 import { MealDetailsDialog } from "./meal-details-dialog";
+import { IncompleteBadge } from "@/components/incomplete-badge";
 
 const RATINGS = [1, 2, 3, 4, 5];
 
@@ -129,6 +130,7 @@ function MealRow({
       </TableCell>
       <TableCell>
         <span className="flex flex-wrap gap-1">
+          {meal.ingredientCount === 0 ? <IncompleteBadge /> : null}
           {meal.tags.map((tag) => (
             <Badge key={tag} variant="secondary">
               {tag}

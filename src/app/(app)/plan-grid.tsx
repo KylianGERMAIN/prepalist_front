@@ -27,9 +27,11 @@ function EmptySlot({ moment }: { moment: PlanSlot["slot"] }) {
 export function PlanGrid({
   plan,
   todayIndex,
+  canCreateMeals = false,
 }: {
   plan: Plan;
   todayIndex: number | null;
+  canCreateMeals?: boolean;
 }) {
   const [optimisticSlots, dispatch] = useOptimistic(plan.slots, slotsReducer);
   const [, startTransition] = useTransition();
@@ -142,6 +144,7 @@ export function PlanGrid({
                   <SlotCell
                     slot={lunch}
                     next={nextInfo(lunch)}
+                    canCreateMeals={canCreateMeals}
                     onAssign={handleAssign}
                     onClear={handleClear}
                   />
@@ -152,6 +155,7 @@ export function PlanGrid({
                   <SlotCell
                     slot={dinner}
                     next={nextInfo(dinner)}
+                    canCreateMeals={canCreateMeals}
                     onAssign={handleAssign}
                     onClear={handleClear}
                   />

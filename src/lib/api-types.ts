@@ -115,11 +115,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste paginée du catalogue de repas (filtres tag/name) */
+        /** Liste paginée du catalogue de repas (filtres tag/name/incomplete) */
         get: operations["MealsController_findAll"];
         put?: never;
         /** Crée un repas (admin uniquement) */
         post: operations["MealsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meals/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tags existants, les plus utilisés en tête */
+        get: operations["MealsController_tags"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -372,6 +389,8 @@ export interface components {
             status: "PRIVATE" | "PENDING" | "PUBLISHED";
             rating: number | null;
             tags: string[];
+            /** @description 0 = repas à compléter, absent de la liste de courses. */
+            ingredientCount: number;
             /** Format: date-time */
             createdAt: string;
         };
@@ -381,6 +400,11 @@ export interface components {
             page: number;
             limit: number;
         };
+        TagCountDto: {
+            name: string;
+            /** @description Nombre de repas qui portent ce tag. */
+            count: number;
+        };
         MealIngredientDto: {
             ingredientId: string;
             quantity: number;
@@ -389,6 +413,7 @@ export interface components {
         };
         CreateMealDto: {
             name: string;
+            /** @description Normalisés : minuscules, espaces réduits, doublons retirés. */
             tags?: string[];
             /** @description Procédé, astuces. Espaces de bord retirés ; une chaîne vide ou blanche vaut null. */
             description?: string | null;
@@ -411,6 +436,8 @@ export interface components {
             status: "PRIVATE" | "PENDING" | "PUBLISHED";
             rating: number | null;
             tags: string[];
+            /** @description 0 = repas à compléter, absent de la liste de courses. */
+            ingredientCount: number;
             /** Format: date-time */
             createdAt: string;
             description: string | null;
@@ -418,6 +445,7 @@ export interface components {
         };
         UpdateMealDto: {
             name?: string;
+            /** @description Normalisés : minuscules, espaces réduits, doublons retirés. */
             tags?: string[];
             /** @description Procédé, astuces. Espaces de bord retirés ; une chaîne vide ou blanche vaut null. */
             description?: string | null;
@@ -463,6 +491,10 @@ export interface components {
             quantity: number | null;
             checked: boolean;
         };
+        IncompleteMealDto: {
+            id: string;
+            name: string;
+        };
         ShoppingListDto: {
             planId: string;
             /** @description Premier jour du plan (YYYY-MM-DD) */
@@ -470,6 +502,8 @@ export interface components {
             items: components["schemas"]["ShoppingListItemDto"][];
             /** @description Articles issus des plats que l’utilisateur a supprimés de la liste ; la synchro les ramène */
             dismissedCount: number;
+            /** @description Repas planifiés sans ingrédient : la liste ne les couvre pas. */
+            incompleteMeals: components["schemas"]["IncompleteMealDto"][];
         };
         CreateShoppingListItemDto: {
             name: string;
@@ -676,7 +710,9 @@ export interface operations {
             query?: {
                 page?: number;
                 limit?: number;
-                /** @description Filtre par tag exact */
+                /** @description true = repas sans ingrédient */
+                incomplete?: boolean;
+                /** @description Filtre par tag, normalisé comme à l’écriture */
                 tag?: string;
                 /** @description Filtre par nom (ILike) */
                 name?: string;
@@ -716,6 +752,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MealDto"];
+                };
+            };
+        };
+    };
+    MealsController_tags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagCountDto"][];
                 };
             };
         };

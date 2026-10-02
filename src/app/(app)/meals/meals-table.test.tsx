@@ -18,6 +18,7 @@ function meal(overrides: Partial<MealSummary> = {}): MealSummary {
     status: "PUBLISHED",
     rating: null,
     tags: [],
+    ingredientCount: 1,
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };
@@ -74,5 +75,16 @@ describe("MealsTable", () => {
 
     rerender(<MealsTable meals={[meal()]} isAdmin />);
     expect(screen.getByRole("columnheader", { name: "Actions" })).toBeInTheDocument();
+  });
+
+  it("signale un repas sans ingrédient, et lui seul", () => {
+    render(
+      <MealsTable
+        meals={[meal({ id: "m1", name: "Porc", ingredientCount: 0 }), meal({ id: "m2", name: "Salade" })]}
+        isAdmin={false}
+      />,
+    );
+
+    expect(screen.getAllByText("À compléter")).toHaveLength(1);
   });
 });

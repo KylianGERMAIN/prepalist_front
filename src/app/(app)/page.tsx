@@ -1,4 +1,5 @@
 import { serverApi } from "@/lib/api";
+import { getCurrentUser } from "@/lib/auth";
 import { PlanGrid } from "./plan-grid";
 import { todayInAppTimeZone } from "./planner-today";
 import { dayIndexOf } from "./planner-utils";
@@ -6,7 +7,7 @@ import { dayIndexOf } from "./planner-utils";
 export default async function PlannerPage() {
   const api = await serverApi();
   // Le back crée le plan à la volée : pas d'état vide à gérer, pas de date à passer.
-  const { data: plan } = await api.GET("/plan", {});
+  const [{ data: plan }, user] = await Promise.all([api.GET("/plan", {}), getCurrentUser()]);
 
   if (!plan) {
     return <p className="text-destructive">Impossible de charger le plan.</p>;
@@ -20,5 +21,7 @@ export default async function PlannerPage() {
     plan.dayCount,
   );
 
-  return <PlanGrid plan={plan} todayIndex={todayIndex} />;
+  return (
+    <PlanGrid plan={plan} todayIndex={todayIndex} canCreateMeals={user?.role === "ADMIN"} />
+  );
 }

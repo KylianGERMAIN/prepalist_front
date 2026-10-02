@@ -11,9 +11,10 @@ import { getMeal } from "./meals/actions";
 vi.mock("./planner-actions", () => ({
   assignSlot: vi.fn(),
   searchMeals: vi.fn(),
+  createQuickMeal: vi.fn(),
 }));
 
-import { searchMeals } from "./planner-actions";
+import { createQuickMeal, searchMeals } from "./planner-actions";
 
 const CARBO = { id: "m1", name: "Pâtes carbo", tags: [] } as unknown as MealSummary;
 
@@ -28,10 +29,16 @@ const EMPTY_SLOT = {
 
 const NEXT: NextSlotInfo = { label: "mercredi soir", occupant: null };
 
-function renderCell(next: NextSlotInfo | null = NEXT) {
+function renderCell(next: NextSlotInfo | null = NEXT, canCreateMeals = false) {
   const onAssign = vi.fn();
   render(
-    <SlotCell slot={EMPTY_SLOT} next={next ?? undefined} onAssign={onAssign} onClear={vi.fn()} />,
+    <SlotCell
+      slot={EMPTY_SLOT}
+      next={next ?? undefined}
+      canCreateMeals={canCreateMeals}
+      onAssign={onAssign}
+      onClear={vi.fn()}
+    />,
   );
   return onAssign;
 }
@@ -145,6 +152,41 @@ describe("SlotCell", () => {
       expect(screen.queryByText("Ne pas cuire la crème.")).not.toBeInTheDocument(),
     );
     expect(screen.getByRole("button", { name: "Enregistrer" })).toBeInTheDocument();
+  });
+});
+
+describe("SlotCell — création rapide", () => {
+  beforeEach(() => {
+    vi.mocked(searchMeals).mockResolvedValue([]);
+  });
+
+  async function search(user: ReturnType<typeof userEvent.setup>, text: string) {
+    await user.click(screen.getByRole("button", { name: /ajouter/i }));
+    await user.click(await screen.findByRole("combobox"));
+    await user.type(screen.getByPlaceholderText("Rechercher un repas…"), text);
+  }
+
+  it("crée le repas par son nom et le sélectionne", async () => {
+    const PORC = { id: "m9", name: "Porc à la crème", tags: [], ingredientCount: 0 } as unknown as MealSummary;
+    vi.mocked(createQuickMeal).mockResolvedValue({ ok: true, meal: PORC });
+    const user = userEvent.setup();
+    const onAssign = renderCell(NEXT, true);
+    await search(user, "Porc à la crème");
+
+    await user.click(await screen.findByRole("option", { name: "Créer « Porc à la crème »" }));
+    await user.click(await screen.findByRole("button", { name: "Enregistrer" }));
+
+    expect(createQuickMeal).toHaveBeenCalledWith("Porc à la crème");
+    expect(onAssign).toHaveBeenCalledWith(EMPTY_SLOT, PORC, 2, true);
+  });
+
+  it("ne propose pas la création à un compte non admin", async () => {
+    const user = userEvent.setup();
+    renderCell(NEXT, false);
+    await search(user, "Porc");
+
+    expect(await screen.findByText("Aucun repas.")).toBeInTheDocument();
+    expect(screen.queryByRole("option", { name: /Créer/ })).not.toBeInTheDocument();
   });
 });
 

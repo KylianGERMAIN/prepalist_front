@@ -49,6 +49,17 @@ export async function assignSlot(
   return { ok: true };
 }
 
+/** Repas créé avec son seul nom, depuis le planning : ses ingrédients se complètent plus tard. */
+export async function createQuickMeal(
+  name: string,
+): Promise<{ ok: true; meal: MealSummary } | { ok: false; error: string }> {
+  const api = await serverApi();
+  const { data, error } = await api.POST("/meals", { body: { name } });
+  if (error || !data) return { ok: false, error: errorText(error) };
+  revalidatePath("/meals");
+  return { ok: true, meal: data };
+}
+
 export async function searchMeals(name: string): Promise<MealSummary[]> {
   const api = await serverApi();
   const { data } = await api.GET("/meals", {

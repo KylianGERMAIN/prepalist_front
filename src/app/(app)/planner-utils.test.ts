@@ -10,6 +10,7 @@ function meal(overrides: Partial<MealSummary> = {}): MealSummary {
     status: "PUBLISHED",
     rating: 4,
     tags: [],
+    ingredientCount: 1,
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };
