@@ -67,7 +67,6 @@ jobs:
 
     env:
       API_URL: http://localhost:3000
-      NODE_ENV: local
       DB_HOST: localhost
       DB_PORT: 5432
       DB_USERNAME: prepalist
@@ -95,8 +94,6 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: pnpm build
-        env:
-          NODE_ENV: production
 
       # Après le build : le tsconfig du front (`**/*.ts`) type-checkerait sinon `api/`.
       - uses: actions/checkout@v4
@@ -107,6 +104,8 @@ jobs:
 
       - name: Start API (migrated)
         working-directory: api
+        env:
+          NODE_ENV: local
         run: |
           # `api/` est sous le workspace pnpm du front : sans ce flag, ses dépendances ne sont pas installées.
           pnpm install --frozen-lockfile --ignore-workspace
@@ -119,8 +118,6 @@ jobs:
       - run: pnpm exec playwright install --with-deps chromium
 
       - run: pnpm test:e2e
-        env:
-          NODE_ENV: production
 
       - if: failure()
         uses: actions/upload-artifact@v4
