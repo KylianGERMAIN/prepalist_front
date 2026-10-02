@@ -1,4 +1,5 @@
 import { serverApi } from "@/lib/api";
+import { LiveRefresh } from "./live-refresh";
 import { ShoppingListView } from "./shopping-list-view";
 import { SyncButton } from "./sync-button";
 
@@ -24,6 +25,7 @@ export default async function ShoppingListPage() {
         <SyncButton dismissedCount={list.dismissedCount} />
       </div>
       <ShoppingListView items={list.items} />
+      <LiveRefresh />
     </div>
   );
 }
