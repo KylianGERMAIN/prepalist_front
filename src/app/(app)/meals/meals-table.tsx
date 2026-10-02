@@ -152,7 +152,7 @@ function MealRow({
                 </Button>
               }
             />
-        </span>
+          </span>
         </TableCell>
       )}
     </TableRow>
