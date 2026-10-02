@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { describe, expect, it } from "vitest";
@@ -6,7 +6,7 @@ import { TagInput } from "./tag-input";
 
 const SUGGESTIONS = [
   { name: "hiver", count: 3 },
-  { name: "rapide", count: 2 },
+  { name: "riz cantonais", count: 2 },
 ];
 
 function Harness({ initial = [] as string[] }) {
@@ -14,12 +14,12 @@ function Harness({ initial = [] as string[] }) {
   return (
     <>
       <TagInput id="tags" value={tags} onChange={setTags} suggestions={SUGGESTIONS} />
-      <output>{tags.join("|")}</output>
+      <output data-testid="tags">{tags.join("|")}</output>
     </>
   );
 }
 
-const value = () => screen.getByRole("status").textContent;
+const value = () => screen.getByTestId("tags").textContent;
 
 describe("TagInput", () => {
   it("propose le tag existant quelle que soit la casse saisie", async () => {
@@ -27,9 +27,8 @@ describe("TagInput", () => {
     render(<Harness />);
 
     await user.type(screen.getByRole("combobox"), "HIV");
+    await user.click(await screen.findByRole("option", { name: /hiver/ }));
 
-    expect(screen.getAllByRole("option")[0]).toHaveTextContent("hiver");
-    await user.keyboard("{Enter}");
     expect(value()).toBe("hiver");
   });
 
@@ -39,6 +38,7 @@ describe("TagInput", () => {
 
     await user.type(screen.getByRole("combobox"), "Hiver");
 
+    await screen.findByRole("option", { name: /hiver/ });
     expect(screen.queryByRole("option", { name: /Créer/ })).not.toBeInTheDocument();
   });
 
@@ -46,20 +46,19 @@ describe("TagInput", () => {
     const user = userEvent.setup();
     render(<Harness />);
 
-    await user.type(screen.getByRole("combobox"), "  Plat  du jour {Enter}");
+    await user.type(screen.getByRole("combobox"), "  Plat  du jour");
+    await user.click(await screen.findByRole("option", { name: "Créer « plat du jour »" }));
 
     expect(value()).toBe("plat du jour");
   });
 
-  it("ajoute avec la virgule et retire le dernier avec Retour arrière", async () => {
+  it("ajoute le texte tapé avec la virgule, pas la suggestion", async () => {
     const user = userEvent.setup();
-    render(<Harness initial={["hiver"]} />);
+    render(<Harness />);
 
-    await user.type(screen.getByRole("combobox"), "rapide,");
-    expect(value()).toBe("hiver|rapide");
+    await user.type(screen.getByRole("combobox"), "riz,");
 
-    await user.keyboard("{Backspace}");
-    expect(value()).toBe("hiver");
+    expect(value()).toBe("riz");
   });
 
   it("retire une puce par son bouton", async () => {
@@ -68,16 +67,6 @@ describe("TagInput", () => {
 
     await user.click(screen.getByRole("button", { name: "Retirer le tag hiver" }));
 
-    expect(value()).toBe("rapide");
-  });
-
-  it("n'ajoute rien avec Entrée sur un champ vide", async () => {
-    const user = userEvent.setup();
-    render(<Harness initial={["hiver"]} />);
-
-    await user.click(screen.getByRole("combobox"));
-    await user.keyboard("{Enter}");
-
-    expect(value()).toBe("hiver");
+    await waitFor(() => expect(value()).toBe("rapide"));
   });
 });

@@ -23,7 +23,11 @@ export default async function MealsPage({
   const isAdmin = user?.role === "ADMIN";
 
   const api = await serverApi();
-  const tagsPromise = api.GET("/meals/tags", {});
+  // Les tags ne servent qu'au filtre : leur échec ne doit pas faire tomber la page.
+  const tagsPromise = api
+    .GET("/meals/tags", {})
+    .then((res) => res.data ?? [])
+    .catch(() => []);
   const { data, error } = await api.GET("/meals", {
     params: {
       query: {
@@ -53,7 +57,12 @@ export default async function MealsPage({
         {isAdmin && <MealDialog mode="create" />}
       </div>
 
-      <MealsFilters tags={(await tagsPromise).data ?? []} />
+      {/* Remonté à chaque changement d'URL : son état local copie les filtres, qu'un
+          badge de tag ou l'historique peuvent changer sans passer par lui. */}
+      <MealsFilters
+        key={`${sp.name ?? ""}|${sp.tag ?? ""}|${sp.incomplete ?? ""}`}
+        tags={await tagsPromise}
+      />
       <MealsTable meals={meals} isAdmin={isAdmin} />
 
       {totalPages > 1 ? (

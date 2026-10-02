@@ -24,6 +24,7 @@ export type PlanSlot = components["schemas"]["PlanSlotDto"];
 export type ShoppingList = components["schemas"]["ShoppingListDto"];
 export type ShoppingListItem = components["schemas"]["ShoppingListItemDto"];
 /** DERIVED = issu d'un plat, MANUAL = ajouté à la main. */
+export type TagCount = components["schemas"]["TagCountDto"];
 export type ShoppingItemSource = ShoppingListItem["source"];
 export type ClearScope = operations["ShoppingListController_clear"]["parameters"]["query"]["scope"];
 export type AddShoppingItemInput = components["schemas"]["CreateShoppingListItemDto"];

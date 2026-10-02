@@ -184,3 +184,21 @@ describe("MealDialog — description", () => {
     );
   });
 });
+
+describe("MealDialog — tags", () => {
+  it("ferme la liste des tags avec Échap sans fermer la modale", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    const user = userEvent.setup();
+    render(<MealDialog mode="create" />);
+    await user.click(screen.getByRole("button", { name: /Nouveau repas/ }));
+    const tags = await screen.findByLabelText("Tags");
+
+    await user.type(tags, "hi");
+    await screen.findByRole("option", { name: /hiver/ });
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => expect(screen.queryByRole("option", { name: /hiver/ })).not.toBeInTheDocument());
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText("Nom")).toBeInTheDocument();
+  });
+});

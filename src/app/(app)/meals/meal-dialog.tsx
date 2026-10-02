@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { TagInput } from "@/components/tag-input";
+import { TAG_MAX_LENGTH, TagInput } from "@/components/tag-input";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { CreateMealInput, Meal } from "@/lib/models";
+import type { CreateMealInput, Meal, TagCount } from "@/lib/models";
 import { asUnit, UNITS } from "@/lib/units";
 import { UnitSelect } from "@/components/unit-select";
 import { IngredientCombobox } from "./ingredient-combobox";
@@ -27,7 +27,7 @@ import { createMeal, getMeal, listTags, updateMeal } from "./actions";
 
 const schema = z.object({
   name: z.string().min(1, "Nom requis."),
-  tags: z.array(z.string()),
+  tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(20, "20 tags au plus."),
   description: z.string().max(5000, "5 000 caractères au plus."),
   ingredients: z.array(
     z.object({
@@ -86,7 +86,7 @@ export function MealDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [tagSuggestions, setTagSuggestions] = useState<{ name: string; count: number }[]>([]);
+  const [tagSuggestions, setTagSuggestions] = useState<TagCount[]>([]);
   const {
     register,
     handleSubmit,
@@ -196,6 +196,7 @@ export function MealDialog({
                   />
                 )}
               />
+              <FieldError message={errors.tags?.message} />
             </div>
 
             <div className="space-y-2">

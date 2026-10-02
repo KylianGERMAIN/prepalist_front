@@ -4,10 +4,11 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Input, inputClassName } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import type { TagCount } from "@/lib/models";
 import { Button } from "@/components/ui/button";
 
 /** Pilote les query params que la page serveur relit (`?name=&tag=&incomplete=`). */
-export function MealsFilters({ tags }: { tags: { name: string; count: number }[] }) {
+export function MealsFilters({ tags }: { tags: TagCount[] }) {
   const router = useRouter();
   const sp = useSearchParams();
   const [name, setName] = useState(sp.get("name") ?? "");
@@ -46,6 +47,7 @@ export function MealsFilters({ tags }: { tags: { name: string; count: number }[]
         className={cn(inputClassName, "w-auto max-w-[200px]")}
       >
         <option value="">Tous les tags</option>
+        {tag && !tags.some((t) => t.name === tag) ? <option value={tag}>{tag}</option> : null}
         {tags.map((t) => (
           <option key={t.name} value={t.name}>
             {t.name} ({t.count})

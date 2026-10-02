@@ -1,14 +1,18 @@
 "use client";
 
-import { useId, useState, type KeyboardEvent } from "react";
-import { X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import { useState, type KeyboardEvent } from "react";
+import { Combobox } from "@base-ui/react/combobox";
+import { Check, Plus, X } from "lucide-react";
+import type { TagCount } from "@/lib/models";
 
 /** Même forme canonique que l'API (minuscules, espaces réduits) : « Hiver » retrouve « hiver ». */
 export function normalizeTag(tag: string): string {
   return tag.normalize("NFC").trim().replace(/\s+/g, " ").toLowerCase();
 }
+
+export const TAG_MAX_LENGTH = 40;
+
+type Option = { value: string; count?: number; creatable?: boolean };
 
 export function TagInput({
   id,
@@ -19,116 +23,112 @@ export function TagInput({
   id?: string;
   value: string[];
   onChange: (tags: string[]) => void;
-  suggestions: { name: string; count: number }[];
+  suggestions: TagCount[];
 }) {
-  const [draft, setDraft] = useState("");
-  const [open, setOpen] = useState(false);
-  const [active, setActive] = useState(0);
-  const listId = useId();
-
-  const query = normalizeTag(draft);
-  const matches = suggestions
-    .filter((s) => !value.includes(s.name) && s.name.includes(query))
-    .slice(0, 8);
-  const canCreate = query !== "" && !value.includes(query) && !matches.some((m) => m.name === query);
-  const options = [...matches.map((m) => m.name), ...(canCreate ? [query] : [])];
-  const shown = open && options.length > 0;
+  const [query, setQuery] = useState("");
+  const typed = normalizeTag(query);
+  const known = suggestions.map((s) => ({ value: s.name, count: s.count }));
+  const exists = typed === "" || value.includes(typed) || known.some((o) => o.value === typed);
+  const items: Option[] = exists ? known : [...known, { value: typed, creatable: true }];
 
   function add(tag: string) {
-    const tagName = normalizeTag(tag);
+    const tagName = normalizeTag(tag).slice(0, TAG_MAX_LENGTH);
     if (tagName && !value.includes(tagName)) onChange([...value, tagName]);
-    setDraft("");
-    setActive(0);
+    setQuery("");
   }
 
+  // La virgule ajoute toujours le texte tapé, comme l'ancienne saisie en CSV ;
+  // Entrée sans élément surligné fait de même plutôt que de soumettre le formulaire.
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter" || e.key === ",") {
-      if (query === "") return;
+    if (e.key === "," || (e.key === "Enter" && typed !== "" && !e.currentTarget.getAttribute("aria-activedescendant"))) {
       e.preventDefault();
-      add(options[active] ?? query);
-    } else if (e.key === "Backspace" && draft === "" && value.length > 0) {
-      onChange(value.slice(0, -1));
-    } else if (e.key === "ArrowDown" && shown) {
-      e.preventDefault();
-      setActive((i) => Math.min(i + 1, options.length - 1));
-    } else if (e.key === "ArrowUp" && shown) {
-      e.preventDefault();
-      setActive((i) => Math.max(i - 1, 0));
-    } else if (e.key === "Escape" && shown) {
-      e.stopPropagation();
-      setOpen(false);
+      if (typed !== "") add(typed);
     }
   }
 
   return (
-    <div className="relative">
-      <div className="flex min-h-9 flex-wrap items-center gap-1 rounded-lg border border-input px-2 py-1 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
-        {value.map((tag) => (
-          <Badge key={tag} variant="secondary" className="gap-0.5 pr-0.5">
-            {tag}
-            <button
-              type="button"
-              aria-label={`Retirer le tag ${tag}`}
-              onClick={() => onChange(value.filter((t) => t !== tag))}
-              className="rounded-full p-0.5 hover:bg-muted-foreground/20"
-            >
-              <X />
-            </button>
-          </Badge>
-        ))}
-        <input
-          id={id}
-          role="combobox"
-          aria-expanded={shown}
-          aria-controls={listId}
-          aria-autocomplete="list"
-          aria-activedescendant={shown ? `${listId}-${active}` : undefined}
-          value={draft}
-          onChange={(e) => {
-            setDraft(e.target.value);
-            setActive(0);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setOpen(false)}
-          onKeyDown={onKeyDown}
-          placeholder={value.length === 0 ? "hiver, rapide…" : ""}
-          className="min-w-24 flex-1 bg-transparent py-0.5 text-sm outline-none"
-        />
-      </div>
-      {shown ? (
-        <ul
-          id={listId}
-          role="listbox"
-          className="absolute z-50 mt-1 max-h-56 w-full overflow-y-auto rounded-lg bg-popover p-1 text-sm shadow-md ring-1 ring-foreground/10"
-        >
-          {options.map((option, index) => {
-            const suggestion = matches.find((m) => m.name === option);
-            return (
-              <li
-                key={option}
-                id={`${listId}-${index}`}
-                role="option"
-                aria-selected={index === active}
-                // mousedown et non click : le blur de l'input fermerait la liste avant.
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  add(option);
-                }}
-                className={cn(
-                  "flex cursor-pointer justify-between rounded-md px-2 py-1.5",
-                  index === active && "bg-muted",
-                )}
-              >
-                <span>{suggestion ? option : `Créer « ${option} »`}</span>
-                {suggestion ? (
-                  <span className="tabular-nums text-muted-foreground">{suggestion.count}</span>
-                ) : null}
-              </li>
-            );
-          })}
-        </ul>
-      ) : null}
-    </div>
+    <Combobox.Root
+      multiple
+      items={items}
+      value={value.map((tag) => ({ value: tag }))}
+      onValueChange={(next: Option[]) => {
+        onChange([...new Set(next.map((o) => normalizeTag(o.value)))]);
+        setQuery("");
+      }}
+      inputValue={query}
+      onInputValueChange={setQuery}
+      isItemEqualToValue={(a: Option, b: Option) => a.value === b.value}
+      itemToStringLabel={(o: Option) => o.value}
+      filter={(o: Option, q: string) => o.creatable === true || o.value.includes(normalizeTag(q))}
+    >
+      <Combobox.InputGroup className="flex min-h-9 cursor-text flex-wrap items-center gap-1 rounded-lg border border-input px-2 py-1 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
+        <Combobox.Chips className="flex w-full flex-wrap items-center gap-1">
+          <Combobox.Value>
+            {(selected: Option[]) => (
+              <>
+                {selected.map((tag) => (
+                  <Combobox.Chip
+                    key={tag.value}
+                    aria-label={tag.value}
+                    className="flex h-6 items-center gap-0.5 rounded-full bg-secondary pr-0.5 pl-2 text-xs text-secondary-foreground outline-none focus-within:ring-2 focus-within:ring-ring/50 data-highlighted:bg-muted"
+                  >
+                    {tag.value}
+                    <Combobox.ChipRemove
+                      aria-label={`Retirer le tag ${tag.value}`}
+                      className="rounded-full p-0.5 hover:bg-muted-foreground/20"
+                    >
+                      <X className="size-3" />
+                    </Combobox.ChipRemove>
+                  </Combobox.Chip>
+                ))}
+                <Combobox.Input
+                  id={id}
+                  maxLength={TAG_MAX_LENGTH}
+                  placeholder={selected.length === 0 ? "hiver, rapide…" : ""}
+                  onKeyDown={onKeyDown}
+                  className="h-6 min-w-24 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                />
+              </>
+            )}
+          </Combobox.Value>
+        </Combobox.Chips>
+      </Combobox.InputGroup>
+      <Combobox.Portal>
+        <Combobox.Positioner className="z-50 outline-none" sideOffset={4}>
+          <Combobox.Popup
+            aria-label="Tags existants"
+            className="max-h-56 w-(--anchor-width) overflow-y-auto rounded-lg bg-popover p-1 text-sm text-popover-foreground shadow-md ring-1 ring-foreground/10"
+          >
+            <Combobox.Empty className="px-2 py-1.5 text-muted-foreground empty:hidden">
+              Aucun tag.
+            </Combobox.Empty>
+            <Combobox.List>
+              {(item: Option) => (
+                <Combobox.Item
+                  key={item.creatable ? `create:${item.value}` : item.value}
+                  value={item}
+                  className="flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 outline-none select-none data-highlighted:bg-muted"
+                >
+                  {item.creatable ? (
+                    <>
+                      <Plus className="size-4" />
+                      Créer « {item.value} »
+                    </>
+                  ) : (
+                    <>
+                      <Combobox.ItemIndicator className="w-4">
+                        <Check className="size-4" />
+                      </Combobox.ItemIndicator>
+                      <span className="flex-1">{item.value}</span>
+                      <span className="tabular-nums text-muted-foreground">{item.count}</span>
+                    </>
+                  )}
+                </Combobox.Item>
+              )}
+            </Combobox.List>
+          </Combobox.Popup>
+        </Combobox.Positioner>
+      </Combobox.Portal>
+    </Combobox.Root>
   );
 }
