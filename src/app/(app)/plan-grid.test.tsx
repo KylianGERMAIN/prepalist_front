@@ -7,6 +7,8 @@ import { PlanGrid } from "./plan-grid";
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
+vi.mock("./meals/actions", () => ({ getMeal: vi.fn() }));
+
 vi.mock("./planner-actions", () => ({
   assignSlot: vi.fn(),
   searchMeals: vi.fn(),

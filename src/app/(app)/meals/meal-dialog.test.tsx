@@ -143,3 +143,43 @@ describe("MealDialog — unité par défaut de l’ingrédient", () => {
     await waitFor(() => expect(createIngredient).toHaveBeenCalledWith("Tom", "pièce"));
   });
 });
+
+describe("MealDialog — description", () => {
+  beforeEach(() => {
+    vi.mocked(getMeal).mockReset();
+    vi.mocked(updateMeal).mockReset().mockResolvedValue({ ok: true });
+  });
+
+  async function openWith(description: string | null) {
+    vi.mocked(getMeal).mockResolvedValue({ ...mealWith("tranche"), description } as Meal);
+    render(<MealDialog mode="edit" mealId="m1" />);
+    fireEvent.click(screen.getByRole("button"));
+    return screen.findByLabelText("Description");
+  }
+
+  it("préremplit et envoie la description saisie", async () => {
+    const field = await openWith("Saisir le porc.");
+    expect(field).toHaveValue("Saisir le porc.");
+
+    fireEvent.change(field, { target: { value: "Saisir le porc.\nDéglacer." } });
+    fireEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    await waitFor(() =>
+      expect(updateMeal).toHaveBeenCalledWith(
+        "m1",
+        expect.objectContaining({ description: "Saisir le porc.\nDéglacer." }),
+      ),
+    );
+  });
+
+  it("envoie null pour une description vide ou blanche", async () => {
+    const field = await openWith("Astuce");
+
+    fireEvent.change(field, { target: { value: "   " } });
+    fireEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+
+    await waitFor(() =>
+      expect(updateMeal).toHaveBeenCalledWith("m1", expect.objectContaining({ description: null })),
+    );
+  });
+});

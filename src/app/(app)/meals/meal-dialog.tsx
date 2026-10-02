@@ -9,6 +9,7 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,7 @@ import { createMeal, getMeal, updateMeal } from "./actions";
 const schema = z.object({
   name: z.string().min(1, "Nom requis."),
   tags: z.string(), // saisi en CSV, découpé à la soumission
+  description: z.string().max(5000, "5 000 caractères au plus."),
   ingredients: z.array(
     z.object({
       ingredientId: z.string().min(1, "Ingrédient requis."),
@@ -44,7 +46,7 @@ const schema = z.object({
 type FormValues = z.input<typeof schema>;
 type SubmittedValues = z.output<typeof schema>;
 
-const EMPTY: FormValues = { name: "", tags: "", ingredients: [] };
+const EMPTY: FormValues = { name: "", tags: "", description: "", ingredients: [] };
 
 const NEW_LINE = (): FormValues["ingredients"][number] => ({
   ingredientId: "",
@@ -57,6 +59,7 @@ function toDefaults(meal: Meal): FormValues {
   return {
     name: meal.name,
     tags: meal.tags.join(", "),
+    description: meal.description ?? "",
     ingredients: meal.ingredients.map((mi) => ({
       ingredientId: mi.ingredientId,
       ingredientName: mi.ingredient.name,
@@ -127,6 +130,7 @@ export function MealDialog({
         .split(",")
         .map((t) => t.trim())
         .filter(Boolean),
+      description: values.description.trim() || null,
       ingredients: values.ingredients.map((l) => ({
         ingredientId: l.ingredientId,
         quantity: l.quantity,
@@ -182,6 +186,18 @@ export function MealDialog({
                 placeholder="rapide, batch, végé (séparés par des virgules)"
                 {...register("tags")}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="meal-description">Description</Label>
+              <Textarea
+                id="meal-description"
+                placeholder="Procédé, cuisson, astuces…"
+                maxLength={5000}
+                className="max-h-60 resize-y"
+                {...register("description")}
+              />
+              <FieldError message={errors.description?.message} />
             </div>
 
             <div className="space-y-2">

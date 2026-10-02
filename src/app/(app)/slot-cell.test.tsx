@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { MealSummary, PlanSlot } from "@/lib/models";
 import { SlotCell, type NextSlotInfo } from "./slot-cell";
 
+vi.mock("./meals/actions", () => ({ getMeal: vi.fn() }));
+
 vi.mock("./planner-actions", () => ({
   assignSlot: vi.fn(),
   searchMeals: vi.fn(),
