@@ -14,7 +14,9 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "gen:api": "openapi-typescript http://localhost:3000/docs-json -o src/lib/api-types.ts",
+    "gen:api": "openapi-typescript https://raw.githubusercontent.com/KylianGERMAIN/prepalist_api/develop/openapi.json -o src/lib/api-types.ts",
+    "gen:api:local": "openapi-typescript http://localhost:3000/docs-json -o src/lib/api-types.ts",
+    "test:e2e": "playwright test",
     "prepare": "husky"
   },
   "dependencies": {
@@ -39,6 +41,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
