@@ -180,6 +180,16 @@ describe("SlotCell — création rapide", () => {
     expect(onAssign).toHaveBeenCalledWith(EMPTY_SLOT, PORC, 2, true);
   });
 
+  it("ne propose pas la création quand le nom existe déjà", async () => {
+    vi.mocked(searchMeals).mockResolvedValue([CARBO]);
+    const user = userEvent.setup();
+    renderCell(NEXT, true);
+    await search(user, "pâtes carbo");
+
+    await screen.findByRole("option", { name: "Pâtes carbo" });
+    expect(screen.queryByRole("option", { name: /Créer/ })).not.toBeInTheDocument();
+  });
+
   it("ne propose pas la création à un compte non admin", async () => {
     const user = userEvent.setup();
     renderCell(NEXT, false);
@@ -196,3 +206,20 @@ async function openDialogAndPickAgain(user: ReturnType<typeof userEvent.setup>) 
   await screen.findByRole("option", { name: "Pâtes carbo" });
   await user.keyboard("{Enter}");
 }
+
+describe("SlotCell — repas à compléter", () => {
+  function renderFilled(ingredientCount: number) {
+    const slot = { ...EMPTY_SLOT, mealId: "m1", meal: { ...CARBO, ingredientCount } } as PlanSlot;
+    render(<SlotCell slot={slot} next={NEXT} onAssign={vi.fn()} onClear={vi.fn()} />);
+  }
+
+  it("signale un repas sans ingrédient sur la carte", () => {
+    renderFilled(0);
+    expect(screen.getByRole("img", { name: "Ingrédients à compléter" })).toBeInTheDocument();
+  });
+
+  it("ne signale rien pour un repas complet", () => {
+    renderFilled(2);
+    expect(screen.queryByRole("img", { name: "Ingrédients à compléter" })).not.toBeInTheDocument();
+  });
+});

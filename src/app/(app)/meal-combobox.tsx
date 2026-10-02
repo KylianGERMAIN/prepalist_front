@@ -34,12 +34,16 @@ export function MealCombobox({
   const [picked, setPicked] = useState(false);
   const [query, setQuery] = useState("");
   const [items, setItems] = useState<MealSummary[]>([]);
+  const [itemsFor, setItemsFor] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [creating, startCreating] = useTransition();
   const trimmed = query.trim();
+  // Proposée seulement sur les résultats de la saisie en cours : sinon un Entrée
+  // tapé avant leur retour créerait un doublon d'un repas existant.
   const canOfferCreate =
     canCreate &&
     trimmed !== "" &&
+    itemsFor === trimmed &&
     !items.some((meal) => meal.name.toLocaleLowerCase("fr") === trimmed.toLocaleLowerCase("fr"));
 
   function pick(meal: MealSummary) {
@@ -67,7 +71,10 @@ export function MealCombobox({
     const timer = setTimeout(() => {
       startTransition(async () => {
         const results = await searchMeals(query.trim());
-        if (!stale) setItems(results);
+        if (!stale) {
+          setItems(results);
+          setItemsFor(query.trim());
+        }
       });
     }, 200);
     return () => {
@@ -102,9 +109,7 @@ export function MealCombobox({
         <Command shouldFilter={false}>
           <CommandInput placeholder="Rechercher un repas…" value={query} onValueChange={setQuery} />
           <CommandList>
-            {canOfferCreate ? null : (
-              <CommandEmpty>{pending ? "Recherche…" : "Aucun repas."}</CommandEmpty>
-            )}
+            <CommandEmpty>{pending ? "Recherche…" : "Aucun repas."}</CommandEmpty>
             <CommandGroup>
               {items.map((meal) => (
                 <CommandItem
