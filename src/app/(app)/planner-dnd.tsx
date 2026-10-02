@@ -83,7 +83,7 @@ export function DndSlot({
           aria-label={`Déplacer ${label}`}
           title="Déplacer"
           // touch-none : sans lui le navigateur prend le geste pour un défilement.
-          className="absolute right-1 bottom-1 z-10 touch-none rounded p-0.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover/dnd:opacity-100 [@media(hover:none)]:opacity-70"
+          className="absolute right-0.5 bottom-0.5 z-10 touch-none rounded p-1.5 text-muted-foreground opacity-0 transition-opacity hover:bg-muted hover:text-foreground focus-visible:opacity-100 group-hover/dnd:opacity-100 [@media(hover:none)]:opacity-70"
         >
           <GripVertical className="size-3.5" />
         </button>

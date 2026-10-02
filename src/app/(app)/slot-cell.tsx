@@ -118,7 +118,7 @@ export function SlotCell({
                   >
                     {meal.name}
                   </span>
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pr-6 text-xs text-muted-foreground">
                     <MomentIcon className="size-3.5 shrink-0" />
                     <span>
                       <span className="tnum">{slot.servings}</span> portion(s)

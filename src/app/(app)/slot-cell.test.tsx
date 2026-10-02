@@ -235,8 +235,8 @@ describe("SlotCell — dehors", () => {
     const onAway = vi.fn();
     const user = userEvent.setup();
     render(<SlotCell slot={EMPTY_SLOT} next={NEXT} onAssign={vi.fn()} onAway={onAway}
-        moveTargets={[]}
-        onMove={vi.fn()} onClear={vi.fn()} />);
+      moveTargets={[]}
+      onMove={vi.fn()} onClear={vi.fn()} />);
 
     await user.click(screen.getByRole("button", { name: /ajouter/i }));
     await user.click(await screen.findByRole("button", { name: "Je mange dehors" }));

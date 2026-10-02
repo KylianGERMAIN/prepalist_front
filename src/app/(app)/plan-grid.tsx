@@ -131,7 +131,8 @@ export function PlanGrid({
   function handleMove(slotId: string, targetSlotId: string, undoable = true) {
     if (slotId === targetSlotId) return;
     const target = slotById.get(targetSlotId);
-    const swapped = !!target?.meal || !!target?.away;
+    // L'annulation rejoue le mouvement avec l'état d'avant : son libellé est fixé.
+    const swapped = undoable && (!!target?.meal || !!target?.away);
     startTransition(async () => {
       dispatch({ type: "move", slotId, targetSlotId });
       const res = await moveSlot(slotId, targetSlotId);
@@ -140,7 +141,7 @@ export function PlanGrid({
         return;
       }
       // L'échange est symétrique : le refaire dans l'autre sens annule.
-      toast.success(swapped ? "Repas échangés" : "Repas déplacé", {
+      toast.success(!undoable ? "Déplacement annulé" : swapped ? "Repas échangés" : "Repas déplacé", {
         action: undoable
           ? { label: "Annuler", onClick: () => handleMove(targetSlotId, slotId, false) }
           : undefined,
@@ -169,11 +170,11 @@ export function PlanGrid({
     onDragCancel: () => "Déplacement annulé.",
   };
 
-  // Souris et tactile séparés : un PointerSensor capterait aussi le doigt, sans
-  // le délai qui laisse un appui bref défiler la page.
+  // Souris et tactile séparés : un PointerSensor appliquerait au doigt le seuil de
+  // la souris. Le délai tactile évite qu'un frôlement de la poignée lance un glisser.
   const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 6 } }),
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } }),
     useSensor(KeyboardSensor, { coordinateGetter: slotKeyboardCoordinates }),
   );
   const [dragging, setDragging] = useState<string | null>(null);
