@@ -42,14 +42,6 @@ export async function deleteMeal(id: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function markCooked(id: string): Promise<ActionResult> {
-  const api = await serverApi();
-  const { error } = await api.POST("/meals/{id}/cooked", { params: { path: { id } } });
-  if (error) return { ok: false, error: errorText(error) };
-  revalidatePath("/meals");
-  return { ok: true };
-}
-
 export async function setMealState(
   id: string,
   input: UpdateMealStateInput,

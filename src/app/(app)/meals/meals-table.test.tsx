@@ -5,7 +5,6 @@ import { MealsTable } from "./meals-table";
 
 vi.mock("./actions", () => ({
   setMealState: vi.fn(),
-  markCooked: vi.fn(),
   deleteMeal: vi.fn(),
 }));
 

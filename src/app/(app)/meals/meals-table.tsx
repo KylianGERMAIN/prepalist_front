@@ -2,7 +2,7 @@
 
 import { useOptimistic, useTransition } from "react";
 import { toast } from "sonner";
-import { ChefHat, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { inputClassName } from "@/components/ui/input";
 import {
@@ -17,7 +17,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import type { MealSummary, UpdateMealStateInput } from "@/lib/models";
-import { deleteMeal, markCooked, setMealState } from "./actions";
+import { deleteMeal, setMealState } from "./actions";
 import { MealDialog } from "./meal-dialog";
 
 const RATINGS = [1, 2, 3, 4, 5];
@@ -54,7 +54,6 @@ export function MealsTable({ meals, isAdmin }: { meals: MealSummary[]; isAdmin: 
         <TableRow>
           <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Nom</TableHead>
           <TableHead className="text-xs uppercase tracking-wider text-muted-foreground">Tags</TableHead>
-          <TableHead className="text-center text-xs uppercase tracking-wider text-muted-foreground">Cuisiné</TableHead>
           <TableHead className="text-right text-xs uppercase tracking-wider text-muted-foreground">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -107,16 +106,6 @@ function MealRow({
   isAdmin: boolean;
   onRate: (rating: number | null) => void;
 }) {
-  const [pending, startTransition] = useTransition();
-
-  function cook() {
-    startTransition(async () => {
-      const res = await markCooked(meal.id);
-      if (res.ok) toast.success(`« ${meal.name} » marqué cuisiné`);
-      else toast.error(res.error);
-    });
-  }
-
   return (
     <TableRow>
       <TableCell className="font-medium">
@@ -134,12 +123,8 @@ function MealRow({
           ))}
         </span>
       </TableCell>
-      <TableCell className="text-center">{meal.timesCooked}×</TableCell>
       <TableCell className="text-right">
         <span className="flex justify-end gap-1">
-          <Button variant="ghost" size="sm" onClick={cook} disabled={pending} title="Marquer cuisiné">
-            <ChefHat className="size-4" />
-          </Button>
           {isAdmin && (
             <>
               <MealDialog
