@@ -9,7 +9,7 @@ import { MealDialog } from "./meal-dialog";
 
 const LIMIT = 20;
 
-type SearchParams = { page?: string; name?: string; tag?: string };
+type SearchParams = { page?: string; name?: string; tag?: string; incomplete?: string };
 
 export default async function MealsPage({
   searchParams,
@@ -30,6 +30,7 @@ export default async function MealsPage({
         limit: LIMIT,
         ...(sp.tag ? { tag: sp.tag } : {}),
         ...(sp.name ? { name: sp.name } : {}),
+        ...(sp.incomplete === "true" ? { incomplete: true } : {}),
       },
     },
   });
@@ -88,6 +89,7 @@ function pageHref(sp: SearchParams, page: number): string {
   const q = new URLSearchParams();
   if (sp.name) q.set("name", sp.name);
   if (sp.tag) q.set("tag", sp.tag);
+  if (sp.incomplete === "true") q.set("incomplete", "true");
   q.set("page", String(page));
   return `/meals?${q}`;
 }

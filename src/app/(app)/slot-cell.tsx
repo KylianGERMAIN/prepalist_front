@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Moon, Plus, Star, Sun, X } from "lucide-react";
+import { CircleAlert, Moon, Plus, Star, Sun, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -30,10 +30,12 @@ export type NextSlotInfo = {
 export function SlotCell({
   slot,
   next,
+  canCreateMeals = false,
   onAssign,
   onClear,
 }: {
   slot: PlanSlot;
+  canCreateMeals?: boolean;
   /** Absent : dernier créneau du plan, rien après. */
   next?: NextSlotInfo;
   onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
@@ -109,6 +111,11 @@ export function SlotCell({
                         <span className="tnum">{meal.rating}</span>
                       </span>
                     )}
+                    {meal.ingredientCount === 0 && (
+                      <span title="Ingrédients à compléter" className="text-warning-foreground">
+                        <CircleAlert role="img" aria-label="Ingrédients à compléter" className="size-3.5" />
+                      </span>
+                    )}
                     {firstTag && (
                       <Badge
                         variant="secondary"
@@ -152,6 +159,7 @@ export function SlotCell({
                 label={selected?.name}
                 onSelect={setSelected}
                 focusAfterSelect={submitRef}
+                canCreate={canCreateMeals}
               />
               {selected ? (
                 <MealDetailsDialog
