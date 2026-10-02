@@ -30,6 +30,8 @@ next-themes (dark mode). pnpm.
 | Variable  | Description                               | Requis                       |
 |-----------|-------------------------------------------|------------------------------|
 | `API_URL` | URL du back NestJS (lue **côté serveur**) | en prod (fail-fast au boot)  |
+| `NEXT_PUBLIC_SENTRY_DSN` | DSN Sentry ; vide = suivi d'erreurs désactivé | non |
+| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Envoi des source maps au build (Vercel) | non |
 
 Copier `.env.example` → `.env.local` pour le dev (défaut `http://localhost:3000`).
 
