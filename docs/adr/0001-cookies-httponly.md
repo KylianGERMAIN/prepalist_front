@@ -21,5 +21,5 @@ La v1 gardait `access_token` et `refresh_token` dans `localStorage` et appelait 
 - Le navigateur ne peut pas appeler l'API directement : toutes les lectures et mutations passent par des Server Components et des Server Actions (voir [architecture.md](../architecture.md#pourquoi-aucun-fetch-client-ne-vise-lapi)).
 - Le refresh doit avoir lieu dans le proxy, seul endroit où un cookie peut être posé avant le rendu (`src/proxy.ts:16-17`).
 - Les durées des cookies doivent rester alignées sur l'expiration des JWT de l'API (`src/lib/cookies.ts:6-9`).
-- `getCurrentUser()` peut décoder le JWT sans vérifier sa signature, puisque le cookie n'est posé que par le front (`src/lib/auth.ts:63-66`).
+- `getCurrentUser()` décode le JWT sans vérifier sa signature (`src/lib/auth.ts:63-79`). `httpOnly` n'empêche pas un utilisateur de forger son propre cookie : la garantie vient de l'API, qui vérifie la signature à chaque appel. Le rôle décodé ne sert qu'à l'affichage ; ne jamais autoriser une action sur ce rôle.
 - Un 401 inattendu est traité hors du proxy par `handle401` (`src/lib/api.ts:11-21`). Détail des séquences : [auth.md](../auth.md).

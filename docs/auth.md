@@ -1,12 +1,12 @@
 # Authentification
 
-Deux cookies httpOnly, `pl_access` (15 min) et `pl_refresh` (7 j), posés uniquement par le code serveur du front (`src/lib/cookies.ts:3-17`). Le navigateur ne voit jamais les tokens. Décision : [ADR 0001](adr/0001-cookies-httponly.md).
+Deux cookies httpOnly, `pl_access` (15 min) et `pl_refresh` (7 j), posés par le code serveur du front (`src/lib/cookies.ts`). Le JavaScript du navigateur ne lit jamais les tokens. Décision : [ADR 0001](adr/0001-cookies-httponly.md).
 
-Les durées des cookies doivent suivre `JWT_ACCESS_EXPIRES_IN` et `JWT_REFRESH_EXPIRES_IN` côté API : le proxy ne lit jamais l'`exp` du JWT et tient la présence du cookie pour une preuve de validité (`src/lib/cookies.ts:6-9`).
+`ACCESS_MAX_AGE` et `REFRESH_MAX_AGE` doivent suivre `JWT_ACCESS_EXPIRES_IN` et `JWT_REFRESH_EXPIRES_IN` côté API : le proxy ne lit jamais l'`exp` du JWT et tient la présence du cookie pour une preuve de validité.
 
 ## Login
 
-Même séquence pour `/api/auth/register`, avec un mot de passe d'au moins 8 caractères (`src/app/api/auth/register/route.ts:7`).
+Même séquence pour `/api/auth/register`, avec un mot de passe d'au moins 8 caractères (`parseCredentials(…, 8)` dans `src/app/api/auth/register/route.ts`).
 
 ```mermaid
 sequenceDiagram
@@ -20,9 +20,11 @@ sequenceDiagram
         RH-->>B: 400 {message}
     else
         RH->>API: POST /auth/login
-        alt identifiants refusés
-            API-->>RH: 4xx {message}
+        alt API en erreur (4xx ou 5xx)
+            API-->>RH: statut d'erreur, {message}
             RH-->>B: même statut, {message}
+        else erreur réseau ou inattendue
+            RH-->>B: 500 {message: "Erreur serveur."}
         else
             API-->>RH: {accessToken, refreshToken}
             RH-->>B: 200 {ok: true} + Set-Cookie pl_access, pl_refresh (httpOnly)
@@ -31,13 +33,13 @@ sequenceDiagram
     end
 ```
 
-Sources : `src/app/(auth)/login/login-form.tsx:14-31`, `src/app/api/auth/login/route.ts:5-15`, `src/lib/credentials.ts:10-28`, `src/lib/auth.ts:25-49`.
+Sources : `LoginForm` (`src/app/(auth)/login/login-form.tsx`), `POST` (`src/app/api/auth/login/route.ts`), `parseCredentials` (`src/lib/credentials.ts`), `postAuth` et `setTokens` (`src/lib/auth.ts`). `postAuth` lève une `ApiError` qui porte le statut de l'API, quel qu'il soit ; toute autre exception, dont une erreur réseau, tombe dans le 500.
 
-Le matcher du proxy exclut `/api` : les Route Handlers d'auth ne passent pas par lui (`src/proxy.ts:70-73`).
+Le matcher du proxy exclut `/api` : les Route Handlers d'auth ne passent pas par lui (`config.matcher`, `src/proxy.ts`).
 
 ## Refresh transparent dans `src/proxy.ts`
 
-Le refresh vit dans le proxy parce qu'un Server Component ne peut pas poser de cookie pendant le rendu (`src/proxy.ts:13-21`).
+Le refresh vit dans le proxy parce qu'un Server Component ne peut pas poser de cookie pendant le rendu.
 
 ```mermaid
 sequenceDiagram
@@ -62,13 +64,20 @@ sequenceDiagram
     end
 ```
 
-Sources : `src/proxy.ts:22-46` pour l'aiguillage, `src/proxy.ts:48-68` pour `tryRefresh`. La réponse est validée avant de poser les cookies (`src/proxy.ts:60-63`). Sur une page publique (`/login`, `/register`, `src/proxy.ts:11`), un utilisateur déjà connecté ou rafraîchi est redirigé vers `/`, sinon la page s'affiche (`src/proxy.ts:28-44`).
+Sources : `proxy` pour l'aiguillage, `tryRefresh` pour l'appel et la validation de la paire avant pose des cookies (`src/proxy.ts`). Sur une page publique (`PUBLIC_PATHS` : `/login`, `/register`), un utilisateur déjà connecté ou rafraîchi est redirigé vers `/`, sinon la page s'affiche.
 
-Le proxy fait un appel réseau à chaque expiration de l'access, soit environ toutes les 15 min ; décoder l'`exp` localement est noté comme optimisation possible (`src/proxy.ts:19-20`).
+Le proxy fait un appel réseau à chaque expiration de l'access, soit environ toutes les 15 min ; le commentaire `ponytail:` de `proxy` note qu'on peut décoder l'`exp` localement si la latence gêne.
+
+Limites connues, laissées en l'état ([#26](https://github.com/KylianGERMAIN/prepalist_front/issues/26), fermée NOT_PLANNED) :
+
+- `tryRefresh` avale toute erreur, réseau compris : une API endormie déconnecte une session valide.
+- Aucun timeout sur les `fetch` serveur (`serverApi`, `postAuth`, `tryRefresh`) ; seul `fetchApiVersion` du footer en pose un.
+- `handle401` réagit à tout 401, quelle qu'en soit la cause.
+- Ces limites restent sans effet tant que le moniteur d'uptime externe pingue `/health` et empêche l'instance Render de s'endormir.
 
 ## 401 hors proxy
 
-Le proxy ne voit que la présence du cookie. Un access non expiré peut être rejeté par l'API (clé JWT tournée, compte supprimé) : le middleware `handle401` de `serverApi` le rattrape (`src/lib/api.ts:11-21`).
+Le proxy ne voit que la présence du cookie. Un access non expiré peut être rejeté par l'API (clé JWT tournée, compte supprimé) : le middleware `handle401` de `serverApi` le rattrape (`src/lib/api.ts`).
 
 ```mermaid
 sequenceDiagram
@@ -86,8 +95,8 @@ sequenceDiagram
     LO-->>B: redirection /login
 ```
 
-Sources : `src/lib/api.ts:14-21`, `src/app/api/auth/logout/route.ts:9-13`, `src/lib/auth.ts:51-55`. La déconnexion volontaire passe par `POST /api/auth/logout` (`src/app/(app)/logout-button.tsx:10-14`, `src/app/api/auth/logout/route.ts:4-7`).
+Sources : `handle401` (`src/lib/api.ts`), `GET` (`src/app/api/auth/logout/route.ts`), `clearTokens` (`src/lib/auth.ts`). La déconnexion volontaire passe par `POST /api/auth/logout`, appelé par `LogoutButton`.
 
 ## Identité côté serveur
 
-`getCurrentUser()` décode le payload du JWT sans vérifier la signature, ce qui n'est sûr que parce que seul le code serveur du front pose le cookie (`src/lib/auth.ts:63-79`). Le rôle sert à masquer les actions réservées à `ADMIN` (`src/app/(app)/meals/page.tsx:22-23`, `src/app/(app)/meals/page.tsx:57`).
+`getCurrentUser()` (`src/lib/auth.ts`) décode le payload du JWT sans vérifier la signature. `httpOnly` n'empêche pas un utilisateur de forger son propre cookie : la garantie vient de l'API, qui vérifie la signature à chaque appel. Le rôle décodé ne sert qu'à l'affichage, par exemple masquer les actions réservées à `ADMIN` dans `MealsPage`. Ne jamais autoriser une action sur ce rôle.
