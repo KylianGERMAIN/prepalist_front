@@ -20,10 +20,8 @@ function mealWith(unit: string): Meal {
     userId: null,
     status: "PUBLISHED",
     rating: null,
-    isFavorite: false,
-    lastCookedAt: null,
-    timesCooked: 0,
     tags: [],
+    description: null,
     createdAt: "2026-01-01T00:00:00.000Z",
     ingredients: [
       {
