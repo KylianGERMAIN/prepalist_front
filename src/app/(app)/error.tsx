@@ -5,8 +5,9 @@ import * as Sentry from "@sentry/nextjs";
 import { Button } from "@/components/ui/button";
 
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
+  // Une erreur serveur (avec digest) est déjà capturée par `onRequestError`.
   useEffect(() => {
-    Sentry.captureException(error);
+    if (!error.digest) Sentry.captureException(error);
   }, [error]);
 
   return (

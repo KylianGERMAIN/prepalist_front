@@ -3,6 +3,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import createClient, { type Middleware } from "openapi-fetch";
 import type { paths } from "./api-types";
+import * as Sentry from "@sentry/nextjs";
+import { getCurrentUser } from "./auth";
 import { ACCESS_COOKIE } from "./cookies";
 import { API_URL } from "./env";
 import { requestId } from "./request-id";
@@ -27,6 +29,9 @@ const handle401: Middleware = {
  */
 export async function serverApi() {
   const token = (await cookies()).get(ACCESS_COOKIE)?.value;
+  // Identifié par son id seul, jamais par son e-mail.
+  const user = token ? await getCurrentUser() : null;
+  if (user) Sentry.getIsolationScope().setUser({ id: user.id });
   const client = createClient<paths>({ baseUrl });
   client.use(requestId);
   if (token) {

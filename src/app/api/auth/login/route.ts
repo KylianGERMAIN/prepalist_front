@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/nextjs";
 import { NextResponse, type NextRequest } from "next/server";
 import { ApiError, login, setTokens } from "@/lib/auth";
 import { CredentialsError, parseCredentials } from "@/lib/credentials";
@@ -10,6 +11,8 @@ export async function POST(req: NextRequest) {
   } catch (e) {
     if (e instanceof CredentialsError) return NextResponse.json({ message: e.message }, { status: 400 });
     if (e instanceof ApiError) return NextResponse.json({ message: e.message }, { status: e.status });
+    // Rendue en 500, l'erreur n'atteint jamais `onRequestError`.
+    Sentry.captureException(e);
     return NextResponse.json({ message: "Erreur serveur." }, { status: 500 });
   }
 }

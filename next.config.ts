@@ -5,18 +5,18 @@ import { version } from "./package.json";
 const nextConfig: NextConfig = {
   // Build autonome pour image Docker légère (sans dommage sur Vercel, qui l'ignore).
   output: "standalone",
-  // Inline la version du package au build, côté serveur (footer) et client (release Sentry).
+  // Inline la version du package au build. Pas de préfixe NEXT_PUBLIC_ : lue
+  // uniquement côté serveur (footer = Server Component), inutile de l'exposer au bundle client.
   env: {
     APP_VERSION: version,
   },
 };
 
-// Sans `SENTRY_AUTH_TOKEN`, aucune source map n'est envoyée ; envoyées, elles sont
-// supprimées du build (`deleteSourcemapsAfterUpload`, vrai par défaut) donc jamais publiques.
+// `SENTRY_ORG`, `SENTRY_PROJECT` et `SENTRY_AUTH_TOKEN` sont lus dans l'environnement ;
+// sans token, rien n'est envoyé. Les source maps sont supprimées du build dans tous les cas.
 export default withSentryConfig(nextConfig, {
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Même release pour les source maps du build et pour les événements, sinon le SHA git.
+  release: { name: version },
   silent: !process.env.CI,
   telemetry: false,
 });
