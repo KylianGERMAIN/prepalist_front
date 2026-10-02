@@ -13,6 +13,7 @@ export type UpdateMealInput = components["schemas"]["UpdateMealDto"];
 export type MealIngredientInput = components["schemas"]["MealIngredientDto"];
 /** Note : propre au compte connecté, pas à la recette. */
 export type UpdateMealStateInput = components["schemas"]["UpdateMealStateDto"];
+export type TagCount = components["schemas"]["TagCountDto"];
 
 export type Me = components["schemas"]["MeDto"];
 
@@ -24,7 +25,6 @@ export type PlanSlot = components["schemas"]["PlanSlotDto"];
 export type ShoppingList = components["schemas"]["ShoppingListDto"];
 export type ShoppingListItem = components["schemas"]["ShoppingListItemDto"];
 /** DERIVED = issu d'un plat, MANUAL = ajouté à la main. */
-export type TagCount = components["schemas"]["TagCountDto"];
 export type ShoppingItemSource = ShoppingListItem["source"];
 export type ClearScope = operations["ShoppingListController_clear"]["parameters"]["query"]["scope"];
 export type AddShoppingItemInput = components["schemas"]["CreateShoppingListItemDto"];

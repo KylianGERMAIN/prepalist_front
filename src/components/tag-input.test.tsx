@@ -22,12 +22,13 @@ function Harness({ initial = [] as string[] }) {
 const value = () => screen.getByTestId("tags").textContent;
 
 describe("TagInput", () => {
-  it("propose le tag existant quelle que soit la casse saisie", async () => {
+  it("choisit avec Entrée le tag existant qui correspond, quelle que soit la casse", async () => {
     const user = userEvent.setup();
     render(<Harness />);
 
     await user.type(screen.getByRole("combobox"), "HIV");
-    await user.click(await screen.findByRole("option", { name: /hiver/ }));
+    await screen.findByRole("option", { name: /hiver/ });
+    await user.keyboard("{Enter}");
 
     expect(value()).toBe("hiver");
   });
@@ -68,5 +69,37 @@ describe("TagInput", () => {
     await user.click(screen.getByRole("button", { name: "Retirer le tag hiver" }));
 
     await waitFor(() => expect(value()).toBe("rapide"));
+  });
+
+  it("crée au clavier un tag absent, via l'option Créer", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.type(screen.getByRole("combobox"), "batch");
+    await screen.findByRole("option", { name: "Créer « batch »" });
+    await user.keyboard("{Enter}");
+
+    expect(value()).toBe("batch");
+  });
+
+  it("retire la dernière puce avec Retour arrière sur un champ vide", async () => {
+    const user = userEvent.setup();
+    render(<Harness initial={["hiver", "rapide"]} />);
+
+    await user.click(screen.getByRole("combobox"));
+    await user.keyboard("{Backspace}");
+
+    await waitFor(() => expect(value()).toBe("hiver"));
+  });
+
+  it("ajoute chaque tag d'un collage séparé par des virgules", async () => {
+    const user = userEvent.setup();
+    render(<Harness />);
+
+    await user.click(screen.getByRole("combobox"));
+    await user.paste("rapide, batch");
+
+    expect(value()).toBe("rapide");
+    expect(screen.getByRole("combobox")).toHaveValue(" batch");
   });
 });

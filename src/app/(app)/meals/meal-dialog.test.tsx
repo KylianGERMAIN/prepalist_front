@@ -201,4 +201,22 @@ describe("MealDialog — tags", () => {
     expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByLabelText("Nom")).toBeInTheDocument();
   });
+
+  it("garde les tags quand un second Échap ferme la modale", async () => {
+    const { default: userEvent } = await import("@testing-library/user-event");
+    vi.mocked(getMeal).mockResolvedValue({ ...mealWith("tranche"), tags: ["hiver", "rapide"] } as Meal);
+    const user = userEvent.setup();
+    render(<MealDialog mode="edit" mealId="m1" />);
+    await user.click(screen.getByRole("button"));
+    const tags = await screen.findByLabelText("Tags");
+    await user.click(tags);
+
+    await user.keyboard("{Escape}");
+    await user.keyboard("{Escape}");
+
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    await user.click(screen.getByRole("button"));
+    await screen.findByLabelText("Tags");
+    expect(screen.getByRole("button", { name: "Retirer le tag hiver" })).toBeInTheDocument();
+  });
 });

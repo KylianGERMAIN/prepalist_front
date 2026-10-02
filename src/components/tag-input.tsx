@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type KeyboardEvent } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Combobox } from "@base-ui/react/combobox";
 import { Check, Plus, X } from "lucide-react";
 import type { TagCount } from "@/lib/models";
@@ -26,37 +26,62 @@ export function TagInput({
   suggestions: TagCount[];
 }) {
   const [query, setQuery] = useState("");
+  const highlighted = useRef<Option | undefined>(undefined);
   const typed = normalizeTag(query);
-  const known = suggestions.map((s) => ({ value: s.name, count: s.count }));
+
+  const selected = useMemo(() => value.map((tag) => ({ value: tag })), [value]);
+  const known = useMemo(() => suggestions.map((s) => ({ value: s.name, count: s.count })), [suggestions]);
   const exists = typed === "" || value.includes(typed) || known.some((o) => o.value === typed);
   const items: Option[] = exists ? known : [...known, { value: typed, creatable: true }];
 
-  function add(tag: string) {
-    const tagName = normalizeTag(tag).slice(0, TAG_MAX_LENGTH);
-    if (tagName && !value.includes(tagName)) onChange([...value, tagName]);
+  function addAll(tags: string[]) {
+    const added = tags.map((t) => normalizeTag(t).slice(0, TAG_MAX_LENGTH)).filter(Boolean);
+    onChange([...new Set([...value, ...added])]);
     setQuery("");
   }
 
-  // La virgule ajoute toujours le texte tapé, comme l'ancienne saisie en CSV ;
-  // Entrée sans élément surligné fait de même plutôt que de soumettre le formulaire.
   function onKeyDown(e: KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "," || (e.key === "Enter" && typed !== "" && !e.currentTarget.getAttribute("aria-activedescendant"))) {
+    // La virgule sépare des tags : elle valide le texte tapé, jamais une suggestion.
+    if (e.key === ",") {
       e.preventDefault();
-      if (typed !== "") add(typed);
+      if (typed !== "") addAll([typed]);
+    } else if (e.key === "Enter" && typed !== "" && !highlighted.current) {
+      e.preventDefault();
+      addAll([typed]);
     }
   }
 
   return (
     <Combobox.Root
       multiple
+      autoHighlight
       items={items}
-      value={value.map((tag) => ({ value: tag }))}
-      onValueChange={(next: Option[]) => {
+      value={selected}
+      onValueChange={(next: Option[], details) => {
+        // Échap sur la liste fermée viderait toutes les puces : on laisse l'événement
+        // remonter jusqu'à la modale, qui se ferme.
+        if (details.reason === "escape-key") {
+          details.cancel();
+          details.allowPropagation();
+          return;
+        }
         onChange([...new Set(next.map((o) => normalizeTag(o.value)))]);
         setQuery("");
       }}
       inputValue={query}
-      onInputValueChange={setQuery}
+      onInputValueChange={(next) => {
+        // Un collage « a, b » ajoute deux tags plutôt qu'un tag contenant une virgule.
+        if (next.includes(",")) {
+          const parts = next.split(",");
+          addAll(parts.slice(0, -1));
+          setQuery(parts.at(-1) ?? "");
+        } else {
+          setQuery(next);
+        }
+      }}
+      onItemHighlighted={(item: Option | undefined) => {
+        highlighted.current = item;
+      }}
       isItemEqualToValue={(a: Option, b: Option) => a.value === b.value}
       itemToStringLabel={(o: Option) => o.value}
       filter={(o: Option, q: string) => o.creatable === true || o.value.includes(normalizeTag(q))}
@@ -64,9 +89,9 @@ export function TagInput({
       <Combobox.InputGroup className="flex min-h-9 cursor-text flex-wrap items-center gap-1 rounded-lg border border-input px-2 py-1 focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/50">
         <Combobox.Chips className="flex w-full flex-wrap items-center gap-1">
           <Combobox.Value>
-            {(selected: Option[]) => (
+            {(chosen: Option[]) => (
               <>
-                {selected.map((tag) => (
+                {chosen.map((tag) => (
                   <Combobox.Chip
                     key={tag.value}
                     aria-label={tag.value}
@@ -84,7 +109,7 @@ export function TagInput({
                 <Combobox.Input
                   id={id}
                   maxLength={TAG_MAX_LENGTH}
-                  placeholder={selected.length === 0 ? "hiver, rapide…" : ""}
+                  placeholder={chosen.length === 0 ? "hiver, rapide…" : ""}
                   onKeyDown={onKeyDown}
                   className="h-6 min-w-24 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 />
