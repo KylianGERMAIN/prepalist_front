@@ -70,4 +70,12 @@ describe("MealsTable", () => {
 
     expect(screen.getByText("Aucun repas.")).toBeInTheDocument();
   });
+
+  it("ne montre la colonne Actions qu’à l’admin", () => {
+    const { rerender } = render(<MealsTable meals={[meal()]} isAdmin={false} />);
+    expect(screen.queryByRole("columnheader", { name: "Actions" })).toBeNull();
+
+    rerender(<MealsTable meals={[meal()]} isAdmin />);
+    expect(screen.getByRole("columnheader", { name: "Actions" })).toBeInTheDocument();
+  });
 });

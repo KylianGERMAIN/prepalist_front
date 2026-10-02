@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MealSummary, PlanSlot } from "@/lib/models";
-import {
-  dayIndexOf,
-  dayLabel,
-  slotsReducer,
-} from "./planner-utils";
+import { dayIndexOf, dayLabel, slotsReducer } from "./planner-utils";
 
 function meal(overrides: Partial<MealSummary> = {}): MealSummary {
   return {
