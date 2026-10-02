@@ -112,11 +112,19 @@ describe("formatListAsText", () => {
       item({ id: "1", name: "Oignon", quantity: 0.5, unit: "pièce" }),
       item({ id: "2", name: "Crème", quantity: 20, unit: "c.à.s" }),
       item({ id: "3", name: "Beurre", checked: true }),
-      item({ id: "4", name: "Sel", quantity: null, unit: null, source: "MANUAL" }),
+      item({ id: "4", name: "Sel", quantity: null, unit: "pièce", source: "MANUAL" }),
+      item({ id: "5", name: "Tomate", quantity: 1.999, unit: "pièce" }),
     ]);
 
     expect(text).toBe(
-      ["Courses — 3 articles", "", "- Crème — 20 c.à.s", "- Oignon — 0,5 pièce", "- Sel"].join("\n"),
+      [
+        "Courses — 4 articles",
+        "",
+        "- Crème — 20 c.à.s",
+        "- Oignon — 0,5 pièce",
+        "- Sel",
+        "- Tomate — 2 pièces",
+      ].join("\n"),
     );
   });
 

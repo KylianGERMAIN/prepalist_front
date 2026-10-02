@@ -14,7 +14,6 @@ const ITEMS = [
 
 describe("ShareButton", () => {
   afterEach(() => {
-    vi.unstubAllGlobals();
     vi.clearAllMocks();
     Reflect.deleteProperty(navigator, "share");
   });
@@ -41,7 +40,26 @@ describe("ShareButton", () => {
 
     await user.click(screen.getByRole("button", { name: "Partager" }));
 
+    await waitFor(() => expect(navigator.share).toHaveBeenCalled());
     expect(toast.error).not.toHaveBeenCalled();
+  });
+
+  it("retombe sur la copie si le partage natif est refusé", async () => {
+    const refused = Object.assign(new Error("denied"), { name: "NotAllowedError" });
+    Object.defineProperty(navigator, "share", { value: vi.fn().mockRejectedValue(refused), configurable: true });
+    const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue();
+    const user = userEvent.setup();
+    render(<ShareButton items={ITEMS} />);
+
+    await user.click(screen.getByRole("button", { name: "Partager" }));
+
+    await waitFor(() => expect(toast.success).toHaveBeenCalledWith("Liste copiée"));
+    expect(writeText).toHaveBeenCalled();
+  });
+
+  it("se désactive quand tout est acheté", () => {
+    render(<ShareButton items={[{ ...ITEMS[0], checked: true }]} />);
+    expect(screen.getByRole("button", { name: "Partager" })).toBeDisabled();
   });
 
   it("copie dans le presse-papiers sans partage natif", async () => {

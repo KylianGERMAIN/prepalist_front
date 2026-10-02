@@ -46,13 +46,10 @@ export function formatListAsText(items: ShoppingListItem[]): string {
   const toBuy = sortItems(items).filter((item) => !item.checked);
   if (toBuy.length === 0) return "Courses — rien à acheter";
   const lines = toBuy.map((item) => {
-    const amount = [
-      item.quantity != null ? QUANTITY.format(item.quantity) : null,
-      formatUnit(item.quantity, item.unit) || null,
-    ]
-      .filter(Boolean)
-      .join(" ");
-    return amount ? `- ${item.name} — ${amount}` : `- ${item.name}`;
+    if (item.quantity == null) return `- ${item.name}`;
+    // L'accord suit le nombre affiché, arrondi : 1,999 s'écrit « 2 pièces ».
+    const shown = Math.round(item.quantity * 100) / 100;
+    return `- ${item.name} — ${`${QUANTITY.format(shown)} ${formatUnit(shown, item.unit)}`.trimEnd()}`;
   });
   const count = toBuy.length === 1 ? "1 article" : `${toBuy.length} articles`;
   return [`Courses — ${count}`, "", ...lines].join("\n");

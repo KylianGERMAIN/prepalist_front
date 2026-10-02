@@ -7,16 +7,19 @@ import { Button } from "@/components/ui/button";
 import { formatListAsText } from "./shopping-list-utils";
 
 export function ShareButton({ items }: { items: ShoppingListItem[] }) {
+  const nothingToBuy = items.every((item) => item.checked);
+
   async function share() {
     const text = formatListAsText(items);
     if (typeof navigator.share === "function") {
       try {
         await navigator.share({ title: "Liste de courses", text });
+        return;
       } catch (err) {
-        // Fermer la feuille de partage rejette avec AbortError : ce n'est pas une erreur.
-        if ((err as Error).name !== "AbortError") toast.error("Partage impossible.");
+        // Fermer la feuille de partage rejette avec AbortError : ce n'est pas une
+        // erreur. Tout autre refus (politique, second clic) retombe sur la copie.
+        if ((err as Error).name === "AbortError") return;
       }
-      return;
     }
     try {
       await navigator.clipboard.writeText(text);
@@ -27,7 +30,7 @@ export function ShareButton({ items }: { items: ShoppingListItem[] }) {
   }
 
   return (
-    <Button variant="ghost" size="sm" onClick={share}>
+    <Button variant="ghost" size="sm" onClick={share} disabled={nothingToBuy}>
       <Share2 className="mr-2 size-4" />
       Partager
     </Button>
