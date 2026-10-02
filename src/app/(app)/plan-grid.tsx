@@ -254,7 +254,7 @@ export function PlanGrid({
       >
         <div
           ref={daysRef}
-          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-3 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-7"
+          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:gap-3 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-7"
         >
           {days.map((dayIndex) => {
             const isToday = dayIndex === todayIndex;

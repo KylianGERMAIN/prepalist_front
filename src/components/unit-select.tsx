@@ -1,5 +1,5 @@
 import type { ComponentProps } from "react";
-import { inputClassName } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { asUnit, UNITS } from "@/lib/units";
 
 /**
@@ -14,7 +14,7 @@ export function UnitSelect({
   const legacy = current && !asUnit(current) ? current : null;
 
   return (
-    <select aria-label="Unité" className={inputClassName} {...props}>
+    <NativeSelect aria-label="Unité" {...props}>
       <option value="" disabled>
         Unité
       </option>
@@ -24,6 +24,6 @@ export function UnitSelect({
           {unit}
         </option>
       ))}
-    </select>
+    </NativeSelect>
   );
 }

@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input, inputClassName } from "@/components/ui/input";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { MealSummary, PlanSlot } from "@/lib/models";
 import { MealCombobox } from "./meal-combobox";
 import { MealDetailsDialog } from "./meals/meal-details-dialog";
 import { readAlsoNext, writeAlsoNext } from "./planner-utils";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
 
@@ -240,11 +241,11 @@ export function SlotCell({
                 {/* Validation par bouton : sur Windows, une flèche sur un select fermé
                     change déjà sa valeur. */}
                 <div className="flex gap-2">
-                  <select
+                  <NativeSelect
                     id={`move-${slot.id}`}
                     value={moveTo}
                     onChange={(e) => setMoveTo(e.target.value)}
-                    className={cn(inputClassName, "flex-1")}
+                    className="flex-1"
                   >
                     <option value="">Choisir un créneau…</option>
                     {moveTargets
@@ -254,7 +255,7 @@ export function SlotCell({
                           {t.label}
                         </option>
                       ))}
-                  </select>
+                  </NativeSelect>
                   <Button
                     type="button"
                     variant="outline"
