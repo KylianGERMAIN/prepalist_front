@@ -183,6 +183,6 @@ describe("ShoppingListView", () => {
 
     const headers = [...document.querySelectorAll("summary > span:first-child")].map((el) => el.textContent);
     expect(headers).toEqual(["Fruits et légumes", "Crèmerie"]);
-    expect(screen.getByLabelText("1 restants sur 2")).toBeInTheDocument();
+    expect(screen.getByText("1 restants sur 2")).toBeInTheDocument();
   });
 });

@@ -51,8 +51,8 @@ export function AddItemForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-      <div className="flex items-start gap-2">
-        <div className="flex-1">
+      <div className="flex flex-wrap items-start gap-2">
+        <div className="w-full sm:w-auto sm:flex-1">
           <Input placeholder="Ajouter un article…" aria-label="Nom" {...register("name")} />
         </div>
         <div className="w-20">
@@ -68,7 +68,7 @@ export function AddItemForm() {
         <div className="w-24">
           <UnitSelect defaultValue="" {...register("unit")} />
         </div>
-        <div className="w-36">
+        <div className="min-w-0 flex-1 sm:w-36 sm:flex-none">
           <AisleSelect {...register("aisle")} />
         </div>
         <Button type="submit" disabled={isSubmitting} title="Ajouter">

@@ -98,6 +98,7 @@ export function ShoppingListView({
               void addManualItem({
                 name: item.name,
                 unit: asUnit(item.unit ?? "") ?? "pièce",
+                ...(item.aisle ? { aisle: item.aisle } : {}),
                 ...(item.quantity != null ? { quantity: item.quantity } : {}),
               });
             },
@@ -117,7 +118,15 @@ export function ShoppingListView({
   }
 
   function setChecked(item: ShoppingListItem, checked: boolean) {
+    const aisle = item.aisle ?? "OTHER";
+    const closesSection =
+      checked && sections.find((s) => s.aisle === aisle)?.remaining === 1;
+    const hadFocus = listRef.current?.contains(document.activeElement);
     run({ type: "setChecked", itemId: item.id, checked }, () => toggleChecked(item.id, checked));
+    // La section terminée descend en bas : déplacée dans le DOM, sa case perd le focus.
+    if (closesSection && hadFocus) {
+      requestAnimationFrame(() => document.getElementById(`aisle-${aisle}`)?.focus());
+    }
   }
 
   function checkInStore(item: ShoppingListItem, checked: boolean) {
@@ -227,17 +236,21 @@ export function ShoppingListView({
       ) : (
         <div ref={listRef} className="space-y-3">
           {sections.map((section) => (
-            // La clé change quand la section se termine : elle se remonte, donc se replie.
             <details
-              key={`${section.aisle}-${section.remaining === 0}`}
-              open={section.remaining > 0}
+              key={section.aisle}
+              open={selecting || section.remaining > 0}
               className="group rounded-md border"
             >
-              <summary className="sticky top-14 z-[5] flex cursor-pointer list-none items-center justify-between rounded-md bg-card px-4 py-2 text-sm font-medium">
+              <summary
+                id={`aisle-${section.aisle}`}
+                className="sticky top-14 z-[5] flex cursor-pointer list-none items-center justify-between rounded-md bg-card px-4 py-2 text-sm font-medium">
                 <span>{aisleLabel(section.aisle)}</span>
                 <span className="flex items-center gap-2 text-muted-foreground">
-                  <span className="tnum" aria-label={`${section.remaining} restants sur ${section.items.length}`}>
+                  <span className="tnum" aria-hidden>
                     {section.remaining} / {section.items.length}
+                  </span>
+                  <span className="sr-only">
+                    {section.remaining} restants sur {section.items.length}
                   </span>
                   <ChevronDown className="size-4 transition-transform group-open:rotate-180 motion-reduce:transition-none" />
                 </span>

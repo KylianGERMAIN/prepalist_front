@@ -3,12 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ShoppingItemSource, ShoppingListItem } from "@/lib/models";
 import { EditItemDialog } from "./edit-item-dialog";
 
-vi.mock("./shopping-list-actions", () => ({ updateItem: vi.fn() }));
+vi.mock("./shopping-list-actions", () => ({ updateItem: vi.fn(), updateIngredientAisle: vi.fn() }));
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 
-import { updateItem } from "./shopping-list-actions";
+import { updateIngredientAisle, updateItem } from "./shopping-list-actions";
 
-function openFor(source: ShoppingItemSource, unit: string | null) {
+function openFor(source: ShoppingItemSource, unit: string | null, canEditIngredient = false) {
   const item = {
     id: "it1",
     source,
@@ -17,8 +17,11 @@ function openFor(source: ShoppingItemSource, unit: string | null) {
     unit,
     quantity: 5,
     checked: false,
+    aisle: "PRODUCE",
   } as ShoppingListItem;
-  render(<EditItemDialog item={item} trigger={<button>Modifier</button>} />);
+  render(
+    <EditItemDialog item={item} canEditIngredient={canEditIngredient} trigger={<button>Modifier</button>} />,
+  );
   fireEvent.click(screen.getByRole("button", { name: "Modifier" }));
 }
 
@@ -68,6 +71,54 @@ describe("EditItemDialog — unité", () => {
     fireEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
 
     expect(await screen.findByText("Unité requise.")).toBeInTheDocument();
+    expect(updateItem).not.toHaveBeenCalled();
+  });
+});
+
+describe("EditItemDialog — rayon", () => {
+  beforeEach(() => {
+    vi.mocked(updateItem).mockReset().mockResolvedValue({ ok: true });
+    vi.mocked(updateIngredientAisle).mockReset().mockResolvedValue({ ok: true });
+  });
+
+  async function changeAisle(value: string) {
+    const select = await waitFor(() => screen.getByRole("combobox", { name: "Rayon" }));
+    fireEvent.change(select, { target: { value } });
+    fireEvent.click(screen.getByRole("button", { name: "Enregistrer" }));
+  }
+
+  it("envoie le rayon d'un article manuel avec l'article", async () => {
+    openFor("MANUAL", "pièce");
+    await changeAisle("HOUSEHOLD");
+
+    await waitFor(() =>
+      expect(updateItem).toHaveBeenCalledWith("it1", expect.objectContaining({ aisle: "HOUSEHOLD" })),
+    );
+    expect(updateIngredientAisle).not.toHaveBeenCalled();
+  });
+
+  it("cache le rayon d'un article issu des plats hors admin", async () => {
+    openFor("DERIVED", "pièce");
+
+    await waitFor(() => screen.getByRole("combobox", { name: "Unité" }));
+    expect(screen.queryByRole("combobox", { name: "Rayon" })).not.toBeInTheDocument();
+  });
+
+  it("corrige l'ingrédient pour un admin, sans rayon dans l'article", async () => {
+    openFor("DERIVED", "pièce", true);
+    await changeAisle("DAIRY");
+
+    await waitFor(() => expect(updateItem).toHaveBeenCalled());
+    expect(updateIngredientAisle).toHaveBeenCalledWith("i1", "DAIRY");
+    expect(vi.mocked(updateItem).mock.calls[0][1]).not.toHaveProperty("aisle");
+  });
+
+  it("s'arrête si la correction de l'ingrédient échoue", async () => {
+    vi.mocked(updateIngredientAisle).mockResolvedValue({ ok: false, error: "Interdit" });
+    openFor("DERIVED", "pièce", true);
+    await changeAisle("DAIRY");
+
+    await waitFor(() => expect(updateIngredientAisle).toHaveBeenCalled());
     expect(updateItem).not.toHaveBeenCalled();
   });
 });

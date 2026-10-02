@@ -54,7 +54,9 @@ export function groupByAisle(items: ShoppingListItem[], order: readonly Aisle[])
   const byAisle = new Map<Aisle, ShoppingListItem[]>();
   for (const item of items) {
     const aisle = item.aisle ?? "OTHER";
-    byAisle.set(aisle, [...(byAisle.get(aisle) ?? []), item]);
+    const list = byAisle.get(aisle);
+    if (list) list.push(item);
+    else byAisle.set(aisle, [item]);
   }
   const rank = (aisle: Aisle) => {
     const i = order.indexOf(aisle);

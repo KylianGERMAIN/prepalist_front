@@ -79,12 +79,22 @@ export function EditItemDialog({
     };
     const aisleChanged = values.aisle !== (item.aisle ?? "OTHER");
     if (!ingredientId && aisleChanged) patch.aisle = values.aisle;
-    const res =
-      ingredientId && aisleChanged && canEditIngredient
-        ? await updateIngredientAisle(ingredientId, values.aisle).then((r) =>
-            r.ok ? updateItem(item.id, patch) : r,
-          )
-        : await updateItem(item.id, patch);
+    if (ingredientId && aisleChanged && canEditIngredient) {
+      const aisleRes = await updateIngredientAisle(ingredientId, values.aisle);
+      if (!aisleRes.ok) {
+        toast.error(aisleRes.error);
+        return;
+      }
+      const itemRes = await updateItem(item.id, patch);
+      if (!itemRes.ok) {
+        toast.error(`Rayon enregistré, mais pas le reste : ${itemRes.error}`);
+        return;
+      }
+      toast.success("Article mis à jour");
+      setOpen(false);
+      return;
+    }
+    const res = await updateItem(item.id, patch);
     if (res.ok) {
       toast.success("Article mis à jour");
       setOpen(false);
@@ -130,7 +140,7 @@ export function EditItemDialog({
               <AisleSelect id="edit-item-aisle" {...register("aisle")} />
               {ingredientId ? (
                 <p className="text-xs text-muted-foreground">
-                  Vaut pour cet ingrédient dans toutes les listes suivantes.
+                  Change le rayon de cet ingrédient partout, pour tous les comptes.
                 </p>
               ) : null}
             </div>
