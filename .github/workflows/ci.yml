@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
@@ -82,7 +82,7 @@ jobs:
       PGDATABASE: prepalist
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: pnpm/action-setup@v4
 
@@ -96,7 +96,7 @@ jobs:
       - run: pnpm build
 
       # Après le build : le tsconfig du front (`**/*.ts`) type-checkerait sinon `api/`.
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           repository: KylianGERMAIN/prepalist_api
           ref: develop
