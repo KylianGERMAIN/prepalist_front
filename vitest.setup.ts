@@ -3,3 +3,21 @@ import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
 afterEach(cleanup);
+
+// Absents de jsdom, et appelés par cmdk au montage d'un `Command`.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+Element.prototype.scrollIntoView ??= function () {};
+globalThis.IntersectionObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() {
+    return [];
+  }
+} as unknown as typeof IntersectionObserver;
+window.matchMedia ??= (query: string) =>
+  ({ matches: false, media: query, addEventListener() {}, removeEventListener() {} }) as unknown as MediaQueryList;

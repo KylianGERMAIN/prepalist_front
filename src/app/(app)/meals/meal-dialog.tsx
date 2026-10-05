@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, type ReactElement } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useRef, useState, type ReactElement } from "react";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
 import { standardSchemaResolver } from "@hookform/resolvers/standard-schema";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -9,6 +9,8 @@ import { Loader2, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { TAG_MAX_LENGTH, TagInput } from "@/components/tag-input";
 import {
   Dialog,
   DialogContent,
@@ -17,31 +19,48 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import type { CreateMealInput, Meal } from "@/lib/models";
+import type { CreateMealInput, Meal, TagCount } from "@/lib/models";
+import { asUnit, UNITS } from "@/lib/units";
+import { UnitSelect } from "@/components/unit-select";
 import { IngredientCombobox } from "./ingredient-combobox";
-import { createMeal, getMeal, updateMeal } from "./actions";
+import { createMeal, getMeal, listTags, updateMeal } from "./actions";
 
 const schema = z.object({
   name: z.string().min(1, "Nom requis."),
-  tags: z.string(), // saisi en CSV, découpé à la soumission
+  tags: z.array(z.string().max(TAG_MAX_LENGTH)).max(20, "20 tags au plus."),
+  description: z.string().max(5000, "5 000 caractères au plus."),
   ingredients: z.array(
     z.object({
       ingredientId: z.string().min(1, "Ingrédient requis."),
       ingredientName: z.string(),
       quantity: z.number().positive("Quantité > 0."),
-      unit: z.string().min(1, "Unité requise."),
+      // Saisi comme une chaîne, rendu comme une `Unit` : le formulaire doit
+      // pouvoir porter le vide et une valeur héritée, pas la soumission.
+      unit: z
+        .string()
+        .min(1, "Unité requise.")
+        .pipe(z.enum(UNITS, { message: "Unité hors liste." })),
     }),
   ),
 });
 
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.input<typeof schema>;
+type SubmittedValues = z.output<typeof schema>;
 
-const EMPTY: FormValues = { name: "", tags: "", ingredients: [] };
+const EMPTY: FormValues = { name: "", tags: [], description: "", ingredients: [] };
+
+const NEW_LINE = (): FormValues["ingredients"][number] => ({
+  ingredientId: "",
+  ingredientName: "",
+  quantity: 1,
+  unit: "",
+});
 
 function toDefaults(meal: Meal): FormValues {
   return {
     name: meal.name,
-    tags: meal.tags.join(", "),
+    tags: meal.tags,
+    description: meal.description ?? "",
     ingredients: meal.ingredients.map((mi) => ({
       ingredientId: mi.ingredientId,
       ingredientName: mi.ingredient.name,
@@ -67,25 +86,34 @@ export function MealDialog({
 }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [tagSuggestions, setTagSuggestions] = useState<TagCount[]>([]);
   const {
     register,
     handleSubmit,
     control,
     watch,
     setValue,
+    getValues,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<FormValues>({
+  } = useForm<FormValues, unknown, SubmittedValues>({
     resolver: standardSchemaResolver(schema),
     defaultValues: EMPTY,
   });
   const lines = useFieldArray({ control, name: "ingredients" });
+  const descriptionLength = useWatch({ control, name: "description" })?.length ?? 0;
+  // Unité posée par le préremplissage, par ligne : elle suit l'ingrédient tant
+  // que l'utilisateur ne l'a pas changée lui-même.
+  const prefilledUnits = useRef(new Map<string, string>());
 
   // En édition, un fetch du détail est nécessaire : la ligne de liste n'est qu'un
   // résumé, sans les `ingredients`.
   async function handleOpenChange(next: boolean) {
     setOpen(next);
     if (!next) return;
+    void listTags()
+      .then(setTagSuggestions)
+      .catch(() => setTagSuggestions([]));
     if (mode === "edit" && mealId) {
       setLoading(true);
       const full = await getMeal(mealId);
@@ -101,13 +129,11 @@ export function MealDialog({
     }
   }
 
-  async function onSubmit(values: FormValues) {
+  async function onSubmit(values: SubmittedValues) {
     const payload: CreateMealInput = {
       name: values.name,
-      tags: values.tags
-        .split(",")
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tags: values.tags,
+      description: values.description.trim() || null,
       ingredients: values.ingredients.map((l) => ({
         ingredientId: l.ingredientId,
         quantity: l.quantity,
@@ -158,11 +184,35 @@ export function MealDialog({
 
             <div className="space-y-2">
               <Label htmlFor="meal-tags">Tags</Label>
-              <Input
-                id="meal-tags"
-                placeholder="rapide, batch, végé (séparés par des virgules)"
-                {...register("tags")}
+              <Controller
+                control={control}
+                name="tags"
+                render={({ field }) => (
+                  <TagInput
+                    id="meal-tags"
+                    value={field.value}
+                    onChange={field.onChange}
+                    suggestions={tagSuggestions}
+                  />
+                )}
               />
+              <FieldError message={errors.tags?.message} />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="meal-description">Description</Label>
+              <Textarea
+                id="meal-description"
+                placeholder="Procédé, cuisson, astuces…"
+                className="max-h-60 resize-y"
+                {...register("description")}
+              />
+              {descriptionLength >= 4500 ? (
+                <p className="text-right text-xs tabular-nums text-muted-foreground">
+                  {descriptionLength} / 5000
+                </p>
+              ) : null}
+              <FieldError message={errors.description?.message} />
             </div>
 
             <div className="space-y-2">
@@ -172,9 +222,7 @@ export function MealDialog({
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() =>
-                    lines.append({ ingredientId: "", ingredientName: "", quantity: 1, unit: "" })
-                  }
+                  onClick={() => lines.append(NEW_LINE())}
                 >
                   <Plus className="mr-2 size-4" />
                   Ligne
@@ -188,11 +236,20 @@ export function MealDialog({
                       // eslint-disable-next-line react-hooks/incompatible-library -- React Compiler n'est pas activé sur ce projet
                       value={watch(`ingredients.${index}.ingredientId`)}
                       label={watch(`ingredients.${index}.ingredientName`) || undefined}
+                      defaultUnit={asUnit(watch(`ingredients.${index}.unit`))}
                       onSelect={(ing) => {
                         setValue(`ingredients.${index}.ingredientId`, ing.id, {
                           shouldValidate: true,
                         });
                         setValue(`ingredients.${index}.ingredientName`, ing.name);
+                        const unit = getValues(`ingredients.${index}.unit`);
+                        if (!unit || unit === prefilledUnits.current.get(row.id)) {
+                          const next = ing.defaultUnit ?? "";
+                          setValue(`ingredients.${index}.unit`, next, {
+                            shouldValidate: next !== "",
+                          });
+                          prefilledUnits.current.set(row.id, next);
+                        }
                       }}
                     />
                     <FieldError message={errors.ingredients?.[index]?.ingredientId?.message} />
@@ -208,7 +265,10 @@ export function MealDialog({
                     <FieldError message={errors.ingredients?.[index]?.quantity?.message} />
                   </div>
                   <div className="w-24">
-                    <Input placeholder="Unité" {...register(`ingredients.${index}.unit`)} />
+                    <UnitSelect
+                      current={watch(`ingredients.${index}.unit`)}
+                      {...register(`ingredients.${index}.unit`)}
+                    />
                     <FieldError message={errors.ingredients?.[index]?.unit?.message} />
                   </div>
                   <Button

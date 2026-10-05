@@ -15,15 +15,18 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import type { Ingredient } from "@/lib/models";
+import type { Unit } from "@/lib/units";
 import { createIngredient, searchIngredients } from "./actions";
 
 export function IngredientCombobox({
   value,
   label,
+  defaultUnit,
   onSelect,
 }: {
   value?: string;
   label?: string;
+  defaultUnit?: Unit;
   onSelect: (ingredient: Ingredient) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -52,7 +55,7 @@ export function IngredientCombobox({
     const name = query.trim();
     if (!name) return;
     startTransition(async () => {
-      const res = await createIngredient(name);
+      const res = await createIngredient(name, defaultUnit);
       if (res.ok) {
         onSelect(res.ingredient);
         setOpen(false);
@@ -76,7 +79,7 @@ export function IngredientCombobox({
           </Button>
         }
       />
-      <PopoverContent className="w-[280px] p-0" align="start">
+      <PopoverContent className="w-(--anchor-width) max-w-(--available-width) min-w-72 p-0" align="start">
         <Command shouldFilter={false}>
           <CommandInput placeholder="Rechercher un ingrédient…" value={query} onValueChange={setQuery} />
           <CommandList>

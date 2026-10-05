@@ -2,27 +2,31 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { RefreshCw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { syncShoppingList } from "./shopping-list-actions";
 
-export function SyncButton() {
+/** Rien à restaurer : le bouton disparaît, la liste suit déjà le plan toute seule. */
+export function SyncButton({ dismissedCount }: { dismissedCount: number }) {
   const [pending, startTransition] = useTransition();
+  if (dismissedCount === 0) return null;
+
   return (
     <Button
       variant="outline"
       size="sm"
       disabled={pending}
+      title="Ramène les articles retirés. Les quantités issues des plats sont recalculées."
       onClick={() =>
         startTransition(async () => {
           const res = await syncShoppingList();
-          if (res.ok) toast.success("Liste synchronisée depuis les plats");
+          if (res.ok) toast.success("Articles restaurés, quantités recalculées depuis les plats");
           else toast.error(res.error);
         })
       }
     >
-      <RefreshCw className={pending ? "mr-2 size-4 animate-spin" : "mr-2 size-4"} />
-      {pending ? "Synchronisation…" : "Synchroniser"}
+      <RotateCcw className="mr-2 size-4" />
+      Restaurer ({dismissedCount})
     </Button>
   );
 }

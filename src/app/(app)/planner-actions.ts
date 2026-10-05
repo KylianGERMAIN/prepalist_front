@@ -7,32 +7,14 @@ import type { MealSummary } from "@/lib/models";
 
 /**
  * Ne remplit que les créneaux vides : une assignation manuelle n'est jamais écrasée.
- *
- * Synchronise ensuite la liste explicitement, car l'init paresseuse du back n'agit
- * que sur une liste vide : un seul item manuel survivant masquerait le nouveau plan.
+ * Le back met la liste de courses à jour dans la même transaction.
  */
 export async function generatePlan(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/generate", {});
   if (error) return { ok: false, error: errorText(error) };
-
-  // La génération est déjà acquise en base : un rejet réseau de la synchro (back
-  // tombé entre les deux appels) ne doit pas remonter jusqu'à error.tsx.
-  const synced = await api
-    .POST("/plan/shopping-list/sync", {})
-    .then((res) => !res.error)
-    .catch(() => false);
-
   revalidatePath("/");
   revalidatePath("/shopping-list");
-
-  if (!synced) {
-    return {
-      ok: true,
-      warning:
-        "Plan généré, mais la liste de courses n'a pas pu être resynchronisée. Lance Synchroniser depuis la liste.",
-    };
-  }
   return { ok: true };
 }
 
@@ -46,15 +28,17 @@ export async function clearPlan(): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** `mealId` à `null` vide le créneau. */
+/** `mealId` à `null` vide le créneau ; `alsoNext` recopie le résultat sur le créneau suivant. */
 export async function assignSlot(
   slotId: string,
   mealId: string | null,
   servings?: number,
+  alsoNext?: boolean,
 ): Promise<ActionResult> {
   const api = await serverApi();
-  const body: { mealId?: string | null; servings?: number } = { mealId };
+  const body: { mealId?: string | null; servings?: number; alsoNext?: boolean } = { mealId };
   if (servings !== undefined) body.servings = servings;
+  if (alsoNext) body.alsoNext = true;
   const { error } = await api.PATCH("/plan/slots/{slotId}", {
     params: { path: { slotId } },
     body,
@@ -62,6 +46,42 @@ export async function assignSlot(
   if (error) return { ok: false, error: errorText(error) };
   revalidatePath("/");
   revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
+/** Repas créé avec son seul nom, depuis le planning : ses ingrédients se complètent plus tard. */
+export async function createQuickMeal(
+  name: string,
+): Promise<{ ok: true; meal: MealSummary } | { ok: false; error: string }> {
+  const api = await serverApi();
+  const { data, error } = await api.POST("/meals", { body: { name } });
+  if (error || !data) return { ok: false, error: errorText(error) };
+  revalidatePath("/meals");
+  return { ok: true, meal: data };
+}
+
+/** Vide le créneau et le marque « dehors » ; `alsoNext` le reporte sur le suivant. */
+export async function setSlotAway(slotId: string, alsoNext: boolean): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.PATCH("/plan/slots/{slotId}", {
+    params: { path: { slotId } },
+    body: { away: true, alsoNext },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/");
+  revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
+/** Cible occupée : les deux créneaux échangent leur contenu, en une transaction. */
+export async function moveSlot(slotId: string, targetSlotId: string): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.POST("/plan/slots/{slotId}/move", {
+    params: { path: { slotId } },
+    body: { targetSlotId },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/");
   return { ok: true };
 }
 

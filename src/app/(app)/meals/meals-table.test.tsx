@@ -5,7 +5,6 @@ import { MealsTable } from "./meals-table";
 
 vi.mock("./actions", () => ({
   setMealState: vi.fn(),
-  markCooked: vi.fn(),
   deleteMeal: vi.fn(),
 }));
 
@@ -18,10 +17,8 @@ function meal(overrides: Partial<MealSummary> = {}): MealSummary {
     userId: null,
     status: "PUBLISHED",
     rating: null,
-    isFavorite: false,
-    lastCookedAt: null,
-    timesCooked: 0,
     tags: [],
+    ingredientCount: 1,
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };
@@ -32,36 +29,62 @@ describe("MealsTable", () => {
     vi.mocked(setMealState).mockReset();
   });
 
-  it("envoie le favori inversé", async () => {
+  it("envoie la note choisie", async () => {
     vi.mocked(setMealState).mockResolvedValue({ ok: true });
-    render(<MealsTable meals={[meal({ isFavorite: true })]} isAdmin={false} />);
-
-    fireEvent.click(screen.getByRole("button", { name: "Retirer des favoris" }));
-
-    await waitFor(() =>
-      expect(setMealState).toHaveBeenCalledWith("m1", { isFavorite: false }),
-    );
-  });
-
-  it("bascule l’étoile avant la réponse du serveur", async () => {
-    // La valeur optimiste ne survit pas à la résolution de l'action : sans promesse
-    // en attente, React réconcilie sur la prop `meals` et l'étoile revient.
-    vi.mocked(setMealState).mockReturnValue(new Promise(() => {}));
     render(<MealsTable meals={[meal()]} isAdmin={false} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Ajouter aux favoris" }));
+    fireEvent.change(screen.getByRole("combobox", { name: "Note de Chili" }), {
+      target: { value: "4" },
+    });
 
-    await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Retirer des favoris" })).toHaveAttribute(
-        "aria-pressed",
-        "true",
-      ),
-    );
+    await waitFor(() => expect(setMealState).toHaveBeenCalledWith("m1", { rating: 4 }));
+  });
+
+  it("efface la note avec null, pas avec une note par défaut", async () => {
+    vi.mocked(setMealState).mockResolvedValue({ ok: true });
+    render(<MealsTable meals={[meal({ rating: 2 })]} isAdmin={false} />);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Note de Chili" }), {
+      target: { value: "" },
+    });
+
+    await waitFor(() => expect(setMealState).toHaveBeenCalledWith("m1", { rating: null }));
+  });
+
+  it("affiche la note avant la réponse du serveur", async () => {
+    // La valeur optimiste ne survit pas à la résolution de l'action : sans promesse
+    // en attente, React réconcilie sur la prop `meals` et la note revient.
+    vi.mocked(setMealState).mockReturnValue(new Promise(() => {}));
+    render(<MealsTable meals={[meal()]} isAdmin={false} />);
+    const select = screen.getByRole("combobox", { name: "Note de Chili" });
+
+    fireEvent.change(select, { target: { value: "5" } });
+
+    await waitFor(() => expect(select).toHaveValue("5"));
   });
 
   it("n’invite pas un compte sans droit de création à créer un repas", () => {
     render(<MealsTable meals={[]} isAdmin={false} />);
 
     expect(screen.getByText("Aucun repas.")).toBeInTheDocument();
+  });
+
+  it("ne montre la colonne Actions qu’à l’admin", () => {
+    const { rerender } = render(<MealsTable meals={[meal()]} isAdmin={false} />);
+    expect(screen.queryByRole("columnheader", { name: "Actions" })).toBeNull();
+
+    rerender(<MealsTable meals={[meal()]} isAdmin />);
+    expect(screen.getByRole("columnheader", { name: "Actions" })).toBeInTheDocument();
+  });
+
+  it("signale un repas sans ingrédient, et lui seul", () => {
+    render(
+      <MealsTable
+        meals={[meal({ id: "m1", name: "Porc", ingredientCount: 0 }), meal({ id: "m2", name: "Salade" })]}
+        isAdmin={false}
+      />,
+    );
+
+    expect(screen.getAllByText("À compléter")).toHaveLength(1);
   });
 });

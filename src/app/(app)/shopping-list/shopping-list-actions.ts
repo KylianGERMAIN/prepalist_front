@@ -3,13 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
-import type {
-  AddShoppingItemInput,
-  UpdateShoppingItemInput,
-} from "@/lib/models";
-
-// `toggleChecked`, `updateItem` et `deleteItem` valent pour un item DERIVED comme
-// pour un MANUAL : le back n'oppose les deux sources qu'à la synchro.
+import type { Aisle } from "@/lib/aisles";
+import type { AddShoppingItemInput, UpdateShoppingItemInput } from "@/lib/models";
 
 export async function toggleChecked(
   itemId: string,
@@ -51,6 +46,21 @@ export async function updateItem(
   return { ok: true };
 }
 
+/** Admin : vaut pour toutes les listes, l'article issu des plats suivant le rayon de son ingrédient. */
+export async function updateIngredientAisle(
+  ingredientId: string,
+  aisle: Aisle,
+): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.PATCH("/ingredients/{id}", {
+    params: { path: { id: ingredientId } },
+    body: { aisle },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
 export async function deleteItem(itemId: string): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.DELETE("/plan/shopping-list/items/{itemId}", {
@@ -61,7 +71,28 @@ export async function deleteItem(itemId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Préserve les items cochés et les manuels. */
+/** Les ids qui ne sont pas dans la liste du compte sont ignorés par le back. */
+export async function deleteItems(itemIds: string[]): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.POST("/plan/shopping-list/items/delete", {
+    body: { itemIds },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
+export async function clearList(): Promise<ActionResult> {
+  const api = await serverApi();
+  const { error } = await api.DELETE("/plan/shopping-list/items", {
+    params: { query: { scope: "all" } },
+  });
+  if (error) return { ok: false, error: errorText(error) };
+  revalidatePath("/shopping-list");
+  return { ok: true };
+}
+
+/** Ramène les items dérivés supprimés à la main ; coches et items manuels sont conservés. */
 export async function syncShoppingList(): Promise<ActionResult> {
   const api = await serverApi();
   const { error } = await api.POST("/plan/shopping-list/sync", {});

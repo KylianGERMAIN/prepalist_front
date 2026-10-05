@@ -1,13 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { MealSummary, PlanSlot } from "@/lib/models";
-import {
-  cookedRecently,
-  dayIndexOf,
-  dayLabel,
-  slotsReducer,
-} from "./planner-utils";
-
-const DAY = 86_400_000;
+import { dayIndexOf, dayLabel, dayName, nextSlotOf, slotsReducer } from "./planner-utils";
 
 function meal(overrides: Partial<MealSummary> = {}): MealSummary {
   return {
@@ -16,10 +9,8 @@ function meal(overrides: Partial<MealSummary> = {}): MealSummary {
     userId: null,
     status: "PUBLISHED",
     rating: 4,
-    isFavorite: false,
-    lastCookedAt: null,
-    timesCooked: 0,
     tags: [],
+    ingredientCount: 1,
     createdAt: "2026-01-01T00:00:00.000Z",
     ...overrides,
   };
@@ -32,6 +23,7 @@ function slot(overrides: Partial<PlanSlot> = {}): PlanSlot {
     slot: "LUNCH",
     mealId: null,
     meal: null,
+    away: false,
     servings: 2,
     ...overrides,
   };
@@ -110,26 +102,69 @@ describe("dayIndexOf", () => {
   });
 });
 
-describe("cookedRecently", () => {
-  it("false si jamais cuisiné (null)", () => {
-    expect(cookedRecently(null)).toBe(false);
+describe("nextSlotOf", () => {
+  const slots = [0, 1].flatMap((dayIndex) =>
+    (["LUNCH", "DINNER"] as const).map(
+      (slot) => ({ id: `${dayIndex}-${slot}`, dayIndex, slot }) as unknown as PlanSlot,
+    ),
+  );
+  const at = (id: string) => slots.find((s) => s.id === id) as PlanSlot;
+
+  it("passe du midi au soir du même jour", () => {
+    expect(nextSlotOf(slots, at("0-LUNCH"))?.id).toBe("0-DINNER");
   });
 
-  it("true si cuisiné il y a moins de 7 jours", () => {
-    expect(cookedRecently(new Date(Date.now() - 3 * DAY).toISOString())).toBe(
-      true,
-    );
+  it("passe du soir au midi du lendemain", () => {
+    expect(nextSlotOf(slots, at("0-DINNER"))?.id).toBe("1-LUNCH");
   });
 
-  it("false si cuisiné il y a plus de 7 jours", () => {
-    expect(cookedRecently(new Date(Date.now() - 8 * DAY).toISOString())).toBe(
-      false,
-    );
+  it("n’a rien après le dernier dîner", () => {
+    expect(nextSlotOf(slots, at("1-DINNER"))).toBeUndefined();
+  });
+});
+
+describe("dayName", () => {
+  it("donne le nom complet en minuscules, suffixé au-delà de 7 jours", () => {
+    expect(dayName("2026-09-30", 1)).toBe("jeudi");
+    expect(dayName("2026-09-30", 8)).toBe("jeudi +1");
+  });
+});
+
+describe("slotsReducer — dehors", () => {
+  it("marque le créneau dehors en retirant le repas", () => {
+    const filled = slot({ id: "s1", mealId: "m1", meal: { id: "m1" } as MealSummary });
+    const [next] = slotsReducer([filled], { type: "setAway", slotId: "s1" });
+    expect(next).toMatchObject({ away: true, mealId: null, meal: null });
   });
 
-  it("false pour une date future (horloge/saisie incohérente)", () => {
-    expect(cookedRecently(new Date(Date.now() + DAY).toISOString())).toBe(
-      false,
-    );
+  it("sort du mode dehors quand on assigne un repas", () => {
+    const away = slot({ id: "s1", away: true });
+    const meal = { id: "m1" } as MealSummary;
+    const [next] = slotsReducer([away], { type: "assign", slotId: "s1", meal, servings: 2 });
+    expect(next).toMatchObject({ away: false, mealId: "m1" });
+  });
+});
+
+describe("slotsReducer — déplacement", () => {
+  const meal = { id: "m1", name: "Carbo" } as MealSummary;
+  const a = slot({ id: "a", mealId: "m1", meal, servings: 3 });
+  const b = slot({ id: "b", away: true });
+  const c = slot({ id: "c" });
+
+  it("échange le contenu de deux créneaux", () => {
+    const [na, nb] = slotsReducer([a, b], { type: "move", slotId: "a", targetSlotId: "b" });
+    expect(na).toMatchObject({ id: "a", away: true, mealId: null });
+    expect(nb).toMatchObject({ id: "b", mealId: "m1", servings: 3, away: false });
+  });
+
+  it("déplace vers un créneau vide", () => {
+    const [na, nc] = slotsReducer([a, c], { type: "move", slotId: "a", targetSlotId: "c" });
+    expect(na.mealId).toBeNull();
+    expect(nc.mealId).toBe("m1");
+  });
+
+  it("ne change rien vers le même créneau", () => {
+    const state = [a, c];
+    expect(slotsReducer(state, { type: "move", slotId: "a", targetSlotId: "a" })).toBe(state);
   });
 });

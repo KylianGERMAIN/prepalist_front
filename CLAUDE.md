@@ -1,5 +1,9 @@
 @AGENTS.md
 
+## Documentation
+
+Architecture, auth, conventions et ADR : `docs/` (point d'entrée `docs/architecture.md`). Une PR qui change une convention met à jour le doc concerné dans la même PR. Les docs citent le code par fichier et symbole, jamais par numéro de ligne (seuls les ADR, figés, gardent les lignes).
+
 ## Commentaires
 
 En français, et seulement quand le code ne suffit pas : contrainte externe

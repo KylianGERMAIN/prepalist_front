@@ -5,11 +5,13 @@ import { serverApi } from "@/lib/api";
 import { type ActionResult, errorText } from "@/lib/action-result";
 import type {
   CreateMealInput,
+  TagCount,
   Ingredient,
   Meal,
   UpdateMealInput,
   UpdateMealStateInput,
 } from "@/lib/models";
+import type { Unit } from "@/lib/units";
 
 export async function getMeal(id: string): Promise<Meal | null> {
   const api = await serverApi();
@@ -41,14 +43,6 @@ export async function deleteMeal(id: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-export async function markCooked(id: string): Promise<ActionResult> {
-  const api = await serverApi();
-  const { error } = await api.POST("/meals/{id}/cooked", { params: { path: { id } } });
-  if (error) return { ok: false, error: errorText(error) };
-  revalidatePath("/meals");
-  return { ok: true };
-}
-
 export async function setMealState(
   id: string,
   input: UpdateMealStateInput,
@@ -63,6 +57,12 @@ export async function setMealState(
   return { ok: true };
 }
 
+export async function listTags(): Promise<TagCount[]> {
+  const api = await serverApi();
+  const { data } = await api.GET("/meals/tags", {});
+  return data ?? [];
+}
+
 export async function searchIngredients(search: string): Promise<Ingredient[]> {
   const api = await serverApi();
   const { data } = await api.GET("/ingredients", {
@@ -73,9 +73,10 @@ export async function searchIngredients(search: string): Promise<Ingredient[]> {
 
 export async function createIngredient(
   name: string,
+  defaultUnit?: Unit,
 ): Promise<{ ok: true; ingredient: Ingredient } | { ok: false; error: string }> {
   const api = await serverApi();
-  const { data, error } = await api.POST("/ingredients", { body: { name } });
+  const { data, error } = await api.POST("/ingredients", { body: { name, defaultUnit } });
   if (error || !data) return { ok: false, error: errorText(error) };
   return { ok: true, ingredient: data };
 }

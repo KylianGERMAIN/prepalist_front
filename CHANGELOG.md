@@ -5,6 +5,51 @@ Toutes les évolutions notables du front PrepaList sont documentées ici.
 Le format suit [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/),
 et le projet respecte le [Semantic Versioning](https://semver.org/lang/fr/).
 
+## [0.6.0] - 2026-10-05
+
+### À lire avant de déployer
+
+- **Requiert l'API v0.6.0, à déployer juste avant.** Sur l'API v0.5.0, la liste de courses plante et l'enregistrement d'un repas ou d'un créneau rend 400.
+- **Nouvelles variables, toutes facultatives** : `NEXT_PUBLIC_SENTRY_DSN`, et au build `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT`.
+
+### Ajouté
+
+- **Planning** :
+  - déplacer un repas par glisser-déposer, ou par « Déplacer vers » ;
+  - option « aussi le repas suivant », qui remplace le bouton de copie des restes ;
+  - marquer un créneau « dehors » ;
+  - sur mobile, un jour par écran avec une barre de jours ;
+  - créer un repas à la volée depuis le créneau.
+- **Liste de courses** :
+  - groupée par rayon ;
+  - sélection multiple, suppression groupée, vidage, quantité modifiable sur la ligne, articles achetés en bas ;
+  - mode magasin : écran maintenu allumé, lignes cochées d'un seul tap ;
+  - partage de la liste en texte ;
+  - rafraîchissement automatique entre appareils du même compte.
+- **Repas** :
+  - description et fiche en lecture seule ;
+  - note depuis la liste ;
+  - tags choisis parmi les existants ;
+  - repas sans ingrédient signalés.
+- **Unités** choisies dans une liste fermée et accordées en nombre, unité de la ligne préremplie depuis l'ingrédient.
+
+### Modifié
+
+- **Plus de resynchronisation de la liste après « Générer »** : l'API réconcilie elle-même.
+- **Retours des tests en local** : sélecteurs, planning, liste de courses et repas.
+- **Valider l'affectation d'un créneau avec Entrée.**
+
+### Supprimé
+
+- **Favoris** et **suivi « cuisiné »**, de bout en bout.
+
+### Interne
+
+- **Observabilité** : Sentry et propagation de `x-request-id` vers l'API.
+- **CI** : contrôle du contrat de l'API, smoke Playwright, contrôle du titre de PR, Dependabot.
+- **Documentation d'architecture** : modèle de rendu, flux d'authentification, conventions, ADR.
+- **`api-types` régénérés** pour la liste réconciliée, les descriptions, le créneau suivant et les champs retirés.
+
 ## [0.5.0] - 2026-09-15
 
 ### Modifié

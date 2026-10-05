@@ -30,6 +30,8 @@ next-themes (dark mode). pnpm.
 | Variable  | Description                               | Requis                       |
 |-----------|-------------------------------------------|------------------------------|
 | `API_URL` | URL du back NestJS (lue **côté serveur**) | en prod (fail-fast au boot)  |
+| `NEXT_PUBLIC_SENTRY_DSN` | DSN Sentry ; vide = suivi d'erreurs désactivé | non |
+| `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT` | Envoi des source maps au build (Vercel) | non |
 
 Copier `.env.example` → `.env.local` pour le dev (défaut `http://localhost:3000`).
 
@@ -37,7 +39,8 @@ Copier `.env.example` → `.env.local` pour le dev (défaut `http://localhost:30
 
 ```bash
 pnpm install
-pnpm gen:api        # génère src/lib/api-types.ts depuis http://localhost:3000/docs-json (back lancé)
+pnpm gen:api        # génère src/lib/api-types.ts depuis l'openapi.json de prepalist_api (develop)
+pnpm gen:api:local  # idem depuis http://localhost:3000/docs-json (back local lancé)
 pnpm dev            # http://localhost:3001 (3000 étant pris par le back)
 ```
 
@@ -46,6 +49,7 @@ pnpm dev            # http://localhost:3001 (3000 étant pris par le back)
 ```bash
 pnpm lint
 pnpm test           # vitest
+pnpm test:e2e       # Playwright : back migré, Postgres et variables PG* requis (voir le job e2e de ci.yml)
 pnpm build
 ```
 

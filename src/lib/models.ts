@@ -11,8 +11,9 @@ export type Ingredient = components["schemas"]["Ingredient"];
 export type CreateMealInput = components["schemas"]["CreateMealDto"];
 export type UpdateMealInput = components["schemas"]["UpdateMealDto"];
 export type MealIngredientInput = components["schemas"]["MealIngredientDto"];
-/** Favori et note : propres au compte connecté, pas à la recette. */
+/** Note : propre au compte connecté, pas à la recette. */
 export type UpdateMealStateInput = components["schemas"]["UpdateMealStateDto"];
+export type TagCount = components["schemas"]["TagCountDto"];
 
 export type Me = components["schemas"]["MeDto"];
 

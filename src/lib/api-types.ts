@@ -108,6 +108,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/ingredients/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Corrige le rayon ou l’unité par défaut d’un ingrédient (admin uniquement) */
+        patch: operations["IngredientsController_update"];
+        trace?: never;
+    };
     "/meals": {
         parameters: {
             query?: never;
@@ -115,11 +132,28 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste paginée du catalogue de repas (filtres favorite/tag/name) */
+        /** Liste paginée du catalogue de repas (filtres tag/name/incomplete) */
         get: operations["MealsController_findAll"];
         put?: never;
         /** Crée un repas (admin uniquement) */
         post: operations["MealsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/meals/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Tags existants, les plus utilisés en tête */
+        get: operations["MealsController_tags"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -158,25 +192,8 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Favori et note du repas pour le compte appelant */
+        /** Note du repas pour le compte appelant */
         patch: operations["MealsController_updateState"];
-        trace?: never;
-    };
-    "/meals/{id}/cooked": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Marque un repas comme cuisiné par le compte appelant */
-        post: operations["MealsController_markCooked"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/plan": {
@@ -230,6 +247,23 @@ export interface paths {
         patch: operations["PlanController_updateSlot"];
         trace?: never;
     };
+    "/plan/slots/{slotId}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Déplace le contenu d’un créneau vers un autre, en l’échangeant si la cible est occupée */
+        post: operations["PlanController_moveSlot"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/plan/slots": {
         parameters: {
             query?: never;
@@ -254,7 +288,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Liste de courses matérialisée du plan (init paresseuse) */
+        /** Liste de courses du plan, tenue à jour à chaque écriture sur le plan */
         get: operations["ShoppingListController_forPlan"];
         put?: never;
         post?: never;
@@ -273,7 +307,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Resynchronise les items dérivés depuis les plats */
+        /** Recalcule les items dérivés et ramène ceux supprimés à la main (coches conservées) */
         post: operations["ShoppingListController_sync"];
         delete?: never;
         options?: never;
@@ -292,6 +326,27 @@ export interface paths {
         put?: never;
         /** Ajoute un item manuel à la liste */
         post: operations["ShoppingListController_addItem"];
+        /** Vide la liste, ou seulement les items cochés */
+        delete: operations["ShoppingListController_clear"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/plan/shopping-list/items/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Supprime plusieurs items de la liste
+         * @description POST et non DELETE : certains proxies ignorent le body d’un DELETE.
+         */
+        post: operations["ShoppingListController_removeItems"];
         delete?: never;
         options?: never;
         head?: never;
@@ -351,11 +406,23 @@ export interface components {
         Ingredient: {
             id: string;
             name: string;
-            defaultUnit: string | null;
+            /** @enum {string|null} */
+            defaultUnit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c" | null;
+            /** @enum {string|null} */
+            aisle: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
         };
         CreateIngredientDto: {
             name: string;
-            defaultUnit?: string | null;
+            /** @enum {string|null} */
+            defaultUnit?: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c" | null;
+            /** @enum {string|null} */
+            aisle?: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
+        };
+        UpdateIngredientDto: {
+            /** @enum {string|null} */
+            aisle?: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
+            /** @enum {string|null} */
+            defaultUnit?: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c" | null;
         };
         MealSummaryDto: {
             id: string;
@@ -365,11 +432,9 @@ export interface components {
             /** @enum {string} */
             status: "PRIVATE" | "PENDING" | "PUBLISHED";
             rating: number | null;
-            isFavorite: boolean;
-            /** Format: date-time */
-            lastCookedAt: string | null;
-            timesCooked: number;
             tags: string[];
+            /** @description 0 = repas à compléter, absent de la liste de courses. */
+            ingredientCount: number;
             /** Format: date-time */
             createdAt: string;
         };
@@ -379,14 +444,23 @@ export interface components {
             page: number;
             limit: number;
         };
+        TagCountDto: {
+            name: string;
+            /** @description Nombre de repas qui portent ce tag. */
+            count: number;
+        };
         MealIngredientDto: {
             ingredientId: string;
             quantity: number;
-            unit: string;
+            /** @enum {string} */
+            unit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c";
         };
         CreateMealDto: {
             name: string;
+            /** @description Normalisés : minuscules, espaces réduits, doublons retirés. */
             tags?: string[];
+            /** @description Procédé, astuces. Espaces de bord retirés ; une chaîne vide ou blanche vaut null. */
+            description?: string | null;
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
         MealIngredient: {
@@ -394,7 +468,8 @@ export interface components {
             ingredient: components["schemas"]["Ingredient"];
             ingredientId: string;
             quantity: number;
-            unit: string;
+            /** @enum {string} */
+            unit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c";
         };
         MealDto: {
             id: string;
@@ -404,22 +479,23 @@ export interface components {
             /** @enum {string} */
             status: "PRIVATE" | "PENDING" | "PUBLISHED";
             rating: number | null;
-            isFavorite: boolean;
-            /** Format: date-time */
-            lastCookedAt: string | null;
-            timesCooked: number;
             tags: string[];
+            /** @description 0 = repas à compléter, absent de la liste de courses. */
+            ingredientCount: number;
             /** Format: date-time */
             createdAt: string;
+            description: string | null;
             ingredients: components["schemas"]["MealIngredient"][];
         };
         UpdateMealDto: {
             name?: string;
+            /** @description Normalisés : minuscules, espaces réduits, doublons retirés. */
             tags?: string[];
+            /** @description Procédé, astuces. Espaces de bord retirés ; une chaîne vide ou blanche vaut null. */
+            description?: string | null;
             ingredients?: components["schemas"]["MealIngredientDto"][];
         };
         UpdateMealStateDto: {
-            isFavorite?: boolean;
             rating?: number | null;
         };
         PlanSlotDto: {
@@ -431,6 +507,7 @@ export interface components {
             mealId: string | null;
             meal: components["schemas"]["MealSummaryDto"] | null;
             servings: number;
+            away: boolean;
         };
         PlanDto: {
             id: string;
@@ -446,6 +523,14 @@ export interface components {
             /** @description Repas à assigner, ou null pour vider le créneau */
             mealId?: string | null;
             servings?: number;
+            /** @description true vide le créneau et le marque « dehors » ; assigner un repas le retire. Incompatible avec un mealId non nul. */
+            away?: boolean;
+            /** @description Recopie le résultat du patch sur le créneau suivant (midi → soir, soir → midi du lendemain), en l’écrasant : le repas et les portions, ou l’état « dehors » (sans portions). 400 après le dernier dîner, ou si le créneau n’a ni repas ni état « dehors ». */
+            alsoNext?: boolean;
+        };
+        MoveSlotDto: {
+            /** @description Créneau de destination. Occupé, les deux créneaux échangent leur contenu. */
+            targetSlotId: string;
         };
         ShoppingListItemDto: {
             id: string;
@@ -456,23 +541,53 @@ export interface components {
             unit: string | null;
             quantity: number | null;
             checked: boolean;
+            /**
+             * @description Celui de l’ingrédient pour un article issu des plats ; null = « Autre ».
+             * @enum {string|null}
+             */
+            aisle: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
+        };
+        IncompleteMealDto: {
+            id: string;
+            name: string;
         };
         ShoppingListDto: {
             planId: string;
             /** @description Premier jour du plan (YYYY-MM-DD) */
             startDate: string;
             items: components["schemas"]["ShoppingListItemDto"][];
+            /** @description Articles issus des plats que l’utilisateur a supprimés de la liste ; la synchro les ramène */
+            dismissedCount: number;
+            /** @description Repas planifiés sans ingrédient : la liste ne les couvre pas. */
+            incompleteMeals: components["schemas"]["IncompleteMealDto"][];
+            /** @description Ordre de parcours des rayons, celui du tri de `items`. */
+            aisleOrder: ("PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER")[];
         };
         CreateShoppingListItemDto: {
             name: string;
             quantity?: number;
-            unit?: string;
+            /** @enum {string} */
+            unit: "g" | "ml" | "pièce" | "tranche" | "gousse" | "feuille" | "boîte" | "rouleau" | "boule" | "c.à.s" | "c.à.c";
+            /**
+             * @description Rayon d’un article manuel. null = « Autre ».
+             * @enum {string|null}
+             */
+            aisle?: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
+        };
+        RemoveShoppingListItemsDto: {
+            /** @description Les ids hors de la liste de l’appelant sont ignorés. */
+            itemIds: string[];
         };
         UpdateShoppingListItemDto: {
             checked?: boolean;
             name?: string;
             quantity?: number;
             unit?: string;
+            /**
+             * @description Rayon d’un article manuel. Sur un article issu des plats, 400 s’il diffère du rayon de son ingrédient.
+             * @enum {string|null}
+             */
+            aisle?: "PRODUCE" | "BAKERY" | "MEAT_FISH" | "DAIRY" | "CHEESE_DELI" | "PANTRY_SAVORY" | "PANTRY_SWEET" | "FROZEN" | "DRINKS" | "HOUSEHOLD" | "OTHER" | null;
         };
     };
     responses: never;
@@ -658,13 +773,39 @@ export interface operations {
             };
         };
     };
+    IngredientsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateIngredientDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Ingredient"];
+                };
+            };
+        };
+    };
     MealsController_findAll: {
         parameters: {
             query?: {
                 page?: number;
                 limit?: number;
-                favorite?: boolean;
-                /** @description Filtre par tag exact */
+                /** @description true = repas sans ingrédient */
+                incomplete?: boolean;
+                /** @description Filtre par tag, normalisé comme à l’écriture */
                 tag?: string;
                 /** @description Filtre par nom (ILike) */
                 name?: string;
@@ -704,6 +845,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MealDto"];
+                };
+            };
+        };
+    };
+    MealsController_tags: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TagCountDto"][];
                 };
             };
         };
@@ -798,27 +958,6 @@ export interface operations {
             };
         };
     };
-    MealsController_markCooked: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            201: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MealDto"];
-                };
-            };
-        };
-    };
     PlanController_find: {
         parameters: {
             query?: never;
@@ -869,6 +1008,31 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["UpdateSlotDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PlanDto"];
+                };
+            };
+        };
+    };
+    PlanController_moveSlot: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slotId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveSlotDto"];
             };
         };
         responses: {
@@ -958,6 +1122,50 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ShoppingListItemDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_clear: {
+        parameters: {
+            query: {
+                scope: "all" | "checked";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListDto"];
+                };
+            };
+        };
+    };
+    ShoppingListController_removeItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RemoveShoppingListItemsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ShoppingListDto"];
                 };
             };
         };

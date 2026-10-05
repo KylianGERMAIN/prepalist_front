@@ -9,7 +9,7 @@ import { MealDialog } from "./meal-dialog";
 
 const LIMIT = 20;
 
-type SearchParams = { page?: string; name?: string; tag?: string; favorite?: string };
+type SearchParams = { page?: string; name?: string; tag?: string; incomplete?: string };
 
 export default async function MealsPage({
   searchParams,
@@ -23,14 +23,19 @@ export default async function MealsPage({
   const isAdmin = user?.role === "ADMIN";
 
   const api = await serverApi();
+  // Les tags ne servent qu'au filtre : leur échec ne doit pas faire tomber la page.
+  const tagsPromise = api
+    .GET("/meals/tags", {})
+    .then((res) => res.data ?? [])
+    .catch(() => []);
   const { data, error } = await api.GET("/meals", {
     params: {
       query: {
         page,
         limit: LIMIT,
-        ...(sp.favorite === "true" ? { favorite: true } : {}),
         ...(sp.tag ? { tag: sp.tag } : {}),
         ...(sp.name ? { name: sp.name } : {}),
+        ...(sp.incomplete === "true" ? { incomplete: true } : {}),
       },
     },
   });
@@ -52,7 +57,12 @@ export default async function MealsPage({
         {isAdmin && <MealDialog mode="create" />}
       </div>
 
-      <MealsFilters />
+      {/* Remonté à chaque changement d'URL : son état local copie les filtres, qu'un
+          badge de tag ou l'historique peuvent changer sans passer par lui. */}
+      <MealsFilters
+        key={`${sp.name ?? ""}|${sp.tag ?? ""}|${sp.incomplete ?? ""}`}
+        tags={await tagsPromise}
+      />
       <MealsTable meals={meals} isAdmin={isAdmin} />
 
       {totalPages > 1 ? (
@@ -89,7 +99,7 @@ function pageHref(sp: SearchParams, page: number): string {
   const q = new URLSearchParams();
   if (sp.name) q.set("name", sp.name);
   if (sp.tag) q.set("tag", sp.tag);
-  if (sp.favorite === "true") q.set("favorite", "true");
+  if (sp.incomplete === "true") q.set("incomplete", "true");
   q.set("page", String(page));
   return `/meals?${q}`;
 }

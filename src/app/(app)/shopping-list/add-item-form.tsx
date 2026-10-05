@@ -7,7 +7,11 @@ import { toast } from "sonner";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { UnitSelect } from "@/components/unit-select";
+import { AisleSelect } from "@/components/aisle-select";
+import { AISLES } from "@/lib/aisles";
 import type { AddShoppingItemInput } from "@/lib/models";
+import { UNITS } from "@/lib/units";
 import { addManualItem } from "./shopping-list-actions";
 
 const schema = z.object({
@@ -15,7 +19,8 @@ const schema = z.object({
   quantity: z
     .union([z.number().positive("Quantité > 0."), z.nan()])
     .optional(),
-  unit: z.string(),
+  unit: z.enum(UNITS, { message: "Unité requise." }),
+  aisle: z.enum(AISLES),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -28,13 +33,12 @@ export function AddItemForm() {
     formState: { errors, isSubmitting },
   } = useForm<FormValues>({
     resolver: standardSchemaResolver(schema),
-    defaultValues: { name: "", quantity: undefined, unit: "" },
+    defaultValues: { name: "", quantity: undefined, aisle: "OTHER" },
   });
 
   async function onSubmit(values: FormValues) {
-    const payload: AddShoppingItemInput = { name: values.name };
+    const payload: AddShoppingItemInput = { name: values.name, unit: values.unit, aisle: values.aisle };
     if (values.quantity && !Number.isNaN(values.quantity)) payload.quantity = values.quantity;
-    if (values.unit.trim()) payload.unit = values.unit.trim();
 
     const res = await addManualItem(payload);
     if (res.ok) {
@@ -47,8 +51,8 @@ export function AddItemForm() {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-2">
-      <div className="flex items-start gap-2">
-        <div className="flex-1">
+      <div className="flex flex-wrap items-start gap-2">
+        <div className="w-full sm:w-auto sm:flex-1">
           <Input placeholder="Ajouter un article…" aria-label="Nom" {...register("name")} />
         </div>
         <div className="w-20">
@@ -62,7 +66,10 @@ export function AddItemForm() {
           />
         </div>
         <div className="w-24">
-          <Input placeholder="Unité" aria-label="Unité" {...register("unit")} />
+          <UnitSelect defaultValue="" {...register("unit")} />
+        </div>
+        <div className="min-w-0 flex-1 sm:w-36 sm:flex-none">
+          <AisleSelect {...register("aisle")} />
         </div>
         <Button type="submit" disabled={isSubmitting} title="Ajouter">
           <Plus className="size-4" />
@@ -73,6 +80,9 @@ export function AddItemForm() {
       ) : null}
       {errors.quantity?.message ? (
         <p className="text-sm text-destructive">{errors.quantity.message}</p>
+      ) : null}
+      {errors.unit?.message ? (
+        <p className="text-sm text-destructive">{errors.unit.message}</p>
       ) : null}
     </form>
   );

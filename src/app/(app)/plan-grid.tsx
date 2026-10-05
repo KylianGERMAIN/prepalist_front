@@ -1,14 +1,27 @@
 "use client";
 
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic, useRef, useState, useTransition } from "react";
+import {
+  DndContext,
+  DragOverlay,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type Announcements,
+  type DragEndEvent,
+} from "@dnd-kit/core";
 import { Moon, Sun } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { MealSummary, Plan, PlanSlot } from "@/lib/models";
 import { ClearPlanButton, GeneratePlanButton } from "./plan-actions";
-import { SlotCell } from "./slot-cell";
-import { assignSlot } from "./planner-actions";
-import { dayLabel, slotsReducer } from "./planner-utils";
+import { SlotCell, type NextSlotInfo } from "./slot-cell";
+import { DndSlot, slotKeyboardCoordinates } from "./planner-dnd";
+import { DayStrip, useIsMobile, useVisibleDay } from "./day-strip";
+import { assignSlot, moveSlot, setSlotAway } from "./planner-actions";
+import { dayLabel, dayName, nextSlotOf, slotsReducer } from "./planner-utils";
 
 // Inatteignable en pratique : le back crée toujours les deux créneaux d'un jour.
 // N'existe que parce que `Map.get` rend `PlanSlot | undefined`.
@@ -27,9 +40,11 @@ function EmptySlot({ moment }: { moment: PlanSlot["slot"] }) {
 export function PlanGrid({
   plan,
   todayIndex,
+  canCreateMeals = false,
 }: {
   plan: Plan;
   todayIndex: number | null;
+  canCreateMeals?: boolean;
 }) {
   const [optimisticSlots, dispatch] = useOptimistic(plan.slots, slotsReducer);
   const [, startTransition] = useTransition();
@@ -43,40 +58,151 @@ export function PlanGrid({
   }
 
   function handleClear(slot: PlanSlot) {
-    if (!slot.meal) return;
+    if (!slot.meal && !slot.away) return;
     const meal = slot.meal;
     const servings = slot.servings;
     startTransition(async () => {
       dispatch({ type: "clear", slotId: slot.id });
       const res = await assignSlot(slot.id, null);
-      if (res.ok) {
+      if (!res.ok) toast.error(res.error);
+      else if (meal) {
         toast.success("Créneau vidé", {
-          action: {
-            label: "Annuler",
-            onClick: () => handleUndo(slot.id, meal, servings),
-          },
+          action: { label: "Annuler", onClick: () => handleUndo(slot.id, meal, servings) },
         });
       } else {
-        toast.error(res.error);
+        toast.success("Créneau vidé");
       }
     });
   }
 
-  // Report des restes du dîner vers le déjeuner du lendemain.
-  function handleDuplicate(slot: PlanSlot) {
-    if (!slot.meal || slot.slot !== "DINNER") return;
-    const target = optimisticSlots.find(
-      (s) => s.dayIndex === slot.dayIndex + 1 && s.slot === "LUNCH",
+  function handleAway(slot: PlanSlot, alsoNext: boolean) {
+    const next = alsoNext ? nextSlotOf(optimisticSlots, slot) : undefined;
+    // Repas effacés par « dehors », pour que « Annuler » les remette.
+    const erased = [slot, next].filter(
+      (s): s is PlanSlot & { meal: MealSummary } => !!s?.meal,
     );
-    if (!target) return;
-    const meal = slot.meal;
-    const servings = slot.servings;
     startTransition(async () => {
-      dispatch({ type: "assign", slotId: target.id, meal, servings });
-      const res = await assignSlot(target.id, meal.id, servings);
-      if (res.ok) toast.success("Reporté au midi du lendemain");
-      else toast.error(res.error);
+      dispatch({ type: "setAway", slotId: slot.id });
+      if (next) dispatch({ type: "setAway", slotId: next.id });
+      const res = await setSlotAway(slot.id, !!next);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success(next ? "Deux repas dehors" : "Repas dehors", {
+        action:
+          erased.length > 0
+            ? {
+                label: "Annuler",
+                onClick: () => erased.forEach((s) => handleUndo(s.id, s.meal, s.servings)),
+              }
+            : undefined,
+      });
     });
+  }
+
+  function handleAssign(
+    slot: PlanSlot,
+    meal: MealSummary,
+    servings: number,
+    alsoNext: boolean,
+  ) {
+    const next = alsoNext ? nextSlotOf(optimisticSlots, slot) : undefined;
+    const replaced = next?.meal && next.meal.id !== meal.id ? next.meal : null;
+    const replacedServings = next?.servings ?? 1;
+    startTransition(async () => {
+      dispatch({ type: "assign", slotId: slot.id, meal, servings });
+      if (next) dispatch({ type: "assign", slotId: next.id, meal, servings });
+      const res = await assignSlot(slot.id, meal.id, servings, !!next);
+      if (!res.ok) {
+        toast.error(res.error);
+      } else if (next && replaced) {
+        toast.success(`« ${replaced.name} » remplacé`, {
+          action: {
+            label: "Annuler",
+            onClick: () => handleUndo(next.id, replaced, replacedServings),
+          },
+        });
+      } else {
+        toast.success(next ? "Créneaux mis à jour" : "Créneau mis à jour");
+      }
+    });
+  }
+
+  function handleMove(slotId: string, targetSlotId: string, undoable = true) {
+    if (slotId === targetSlotId) return;
+    const target = slotById.get(targetSlotId);
+    // L'annulation rejoue le mouvement avec l'état d'avant : son libellé est fixé.
+    const swapped = undoable && (!!target?.meal || !!target?.away);
+    startTransition(async () => {
+      dispatch({ type: "move", slotId, targetSlotId });
+      const res = await moveSlot(slotId, targetSlotId);
+      if (!res.ok) {
+        toast.error(res.error);
+        return;
+      }
+      // L'échange est symétrique : le refaire dans l'autre sens annule.
+      toast.success(!undoable ? "Déplacement annulé" : swapped ? "Repas échangés" : "Repas déplacé", {
+        action: undoable
+          ? { label: "Annuler", onClick: () => handleMove(targetSlotId, slotId, false) }
+          : undefined,
+      });
+    });
+  }
+
+  function slotLabel(slot: PlanSlot): string {
+    return `${dayName(plan.startDate, slot.dayIndex)} ${slot.slot === "LUNCH" ? "midi" : "soir"}`;
+  }
+
+  const slotById = new Map(optimisticSlots.map((s) => [s.id, s]));
+  const describe = (id: string | number) => {
+    const slot = slotById.get(String(id));
+    if (!slot) return "";
+    const content = slot.meal?.name ?? (slot.away ? "Dehors" : "vide");
+    return `${slotLabel(slot)} (${content})`;
+  };
+  const announcements: Announcements = {
+    onDragStart: ({ active }) => `Repas de ${describe(active.id)} saisi.`,
+    onDragOver: ({ over }) => (over ? `Au-dessus de ${describe(over.id)}.` : "Hors des créneaux."),
+    onDragEnd: ({ active, over }) =>
+      over && over.id !== active.id
+        ? `Déposé sur ${describe(over.id)}.`
+        : "Déplacement annulé.",
+    onDragCancel: () => "Déplacement annulé.",
+  };
+
+  // Souris et tactile séparés : un PointerSensor appliquerait au doigt le seuil de
+  // la souris. Le délai tactile évite qu'un frôlement de la poignée lance un glisser.
+  const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 200, tolerance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: slotKeyboardCoordinates }),
+  );
+  const [dragging, setDragging] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const draggedSlot = dragging ? slotById.get(dragging) : undefined;
+  const overSlot = overId && overId !== dragging ? slotById.get(overId) : undefined;
+  const overContent = overSlot?.meal?.name ?? (overSlot?.away ? "« dehors »" : null);
+
+  function onDragEnd({ active, over }: DragEndEvent) {
+    setDragging(null);
+    setOverId(null);
+    if (over) handleMove(String(active.id), String(over.id));
+  }
+
+  const moveTargets = optimisticSlots
+    .map((s) => ({ id: s.id, label: describe(s.id), order: s.dayIndex * 2 + (s.slot === "LUNCH" ? 0 : 1) }))
+    .sort((a, b) => a.order - b.order);
+
+  function nextInfo(slot: PlanSlot): NextSlotInfo | undefined {
+    const next = nextSlotOf(optimisticSlots, slot);
+    if (!next) return undefined;
+    const moment = next.slot === "LUNCH" ? "midi" : "soir";
+    return {
+      label: `${dayName(plan.startDate, next.dayIndex)} ${moment}`,
+      occupant: next.meal ?? null,
+      away: next.away,
+    };
   }
 
   const byKey = new Map<string, PlanSlot>();
@@ -84,6 +210,15 @@ export function PlanGrid({
     byKey.set(`${slot.dayIndex}_${slot.slot}`, slot);
   }
   const days = Array.from({ length: plan.dayCount }, (_, i) => i);
+  const daysRef = useRef<HTMLDivElement>(null);
+  const [visibleDay, showDay] = useVisibleDay(daysRef, todayIndex ?? 0);
+  const isMobile = useIsMobile();
+  const stripDays = days.map((dayIndex) => ({
+    index: dayIndex,
+    label: dayLabel(plan.startDate, dayIndex),
+    filled: optimisticSlots.filter((s) => s.dayIndex === dayIndex && (s.meal || s.away)).length,
+    isToday: dayIndex === todayIndex,
+  }));
 
   return (
     <div className="space-y-4">
@@ -95,50 +230,107 @@ export function PlanGrid({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
-        {days.map((dayIndex) => {
-          const isToday = dayIndex === todayIndex;
-          const lunch = byKey.get(`${dayIndex}_LUNCH`);
-          const dinner = byKey.get(`${dayIndex}_DINNER`);
-          // Report proposé seulement vers un midi libre : pas d'écrasement silencieux.
-          const nextLunch = byKey.get(`${dayIndex + 1}_LUNCH`);
-          const canDuplicate = !!nextLunch && !nextLunch.meal;
-          return (
-            <div
-              key={dayIndex}
-              className={cn(
-                "flex h-full flex-col gap-2 rounded-lg border border-transparent p-1.5",
-                isToday && "border-primary/20 bg-primary/5",
-              )}
-            >
+      <DayStrip days={stripDays} active={visibleDay} onSelect={showDay} />
+
+      <DndContext
+        id="plan-grid"
+        sensors={sensors}
+        // Sur mobile, glisser change de jour : l'autoscroll ferait sauter d'un jour à l'autre.
+        autoScroll={!isMobile}
+        accessibility={{
+          announcements,
+          screenReaderInstructions: {
+            draggable:
+              "Espace pour saisir le repas, flèches pour choisir un créneau, Espace pour le déposer, Échap pour annuler.",
+          },
+        }}
+        onDragStart={({ active }) => setDragging(String(active.id))}
+        onDragOver={({ over }) => setOverId(over ? String(over.id) : null)}
+        onDragCancel={() => {
+          setDragging(null);
+          setOverId(null);
+        }}
+        onDragEnd={onDragEnd}
+      >
+        <div
+          ref={daysRef}
+          className="-mx-4 flex snap-x snap-mandatory scroll-px-4 gap-4 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:gap-3 sm:grid sm:grid-cols-2 sm:overflow-visible sm:px-0 lg:grid-cols-7"
+        >
+          {days.map((dayIndex) => {
+            const isToday = dayIndex === todayIndex;
+            const lunch = byKey.get(`${dayIndex}_LUNCH`);
+            const dinner = byKey.get(`${dayIndex}_DINNER`);
+            return (
               <div
+                key={dayIndex}
+                id={`day-${dayIndex}`}
+                data-day={dayIndex}
+                role={isMobile ? "tabpanel" : undefined}
+                aria-labelledby={isMobile ? `day-tab-${dayIndex}` : undefined}
+                // Jours hors écran sortis du focus : Tab depuis le bandeau entre dans le jour choisi.
+                inert={isMobile && dayIndex !== visibleDay}
                 className={cn(
-                  "text-center font-heading text-sm",
-                  isToday ? "font-medium text-primary" : "text-foreground",
+                  "flex h-full w-full shrink-0 snap-start flex-col gap-2 rounded-lg border border-transparent p-1.5 sm:w-auto",
+                  isToday && "border-primary/20 bg-primary/5",
                 )}
               >
-                {dayLabel(plan.startDate, dayIndex)}
+                <div
+                  className={cn(
+                    "text-center font-heading text-sm",
+                    isToday ? "font-medium text-primary" : "text-foreground",
+                  )}
+                >
+                  {dayLabel(plan.startDate, dayIndex)}
+                </div>
+                <div className="flex flex-1 flex-col gap-2">
+                  {lunch ? (
+                    <DndSlot id={lunch.id} movable={!!lunch.meal || lunch.away} label={describe(lunch.id)}>
+                      <SlotCell
+                        slot={lunch}
+                        next={nextInfo(lunch)}
+                        canCreateMeals={canCreateMeals}
+                        moveTargets={moveTargets}
+                        onAssign={handleAssign}
+                        onAway={handleAway}
+                        onMove={handleMove}
+                        onClear={handleClear}
+                      />
+                    </DndSlot>
+                  ) : (
+                    <EmptySlot moment="LUNCH" />
+                  )}
+                  {dinner ? (
+                    <DndSlot id={dinner.id} movable={!!dinner.meal || dinner.away} label={describe(dinner.id)}>
+                      <SlotCell
+                        slot={dinner}
+                        next={nextInfo(dinner)}
+                        canCreateMeals={canCreateMeals}
+                        moveTargets={moveTargets}
+                        onAssign={handleAssign}
+                        onAway={handleAway}
+                        onMove={handleMove}
+                        onClear={handleClear}
+                      />
+                    </DndSlot>
+                  ) : (
+                    <EmptySlot moment="DINNER" />
+                  )}
+                </div>
               </div>
-              <div className="flex flex-1 flex-col gap-2">
-                {lunch ? (
-                  <SlotCell slot={lunch} onClear={handleClear} />
-                ) : (
-                  <EmptySlot moment="LUNCH" />
-                )}
-                {dinner ? (
-                  <SlotCell
-                    slot={dinner}
-                    onClear={handleClear}
-                    onDuplicate={canDuplicate ? handleDuplicate : undefined}
-                  />
-                ) : (
-                  <EmptySlot moment="DINNER" />
-                )}
-              </div>
+            );
+          })}
+        </div>
+        <DragOverlay dropAnimation={null}>
+          {draggedSlot ? (
+            <div className="rounded-md border border-l-4 border-border border-l-accent bg-card p-2 text-sm shadow-lg motion-safe:scale-[1.02]">
+              <p className="font-medium">{draggedSlot.meal?.name ?? (draggedSlot.away ? "Dehors" : "")}</p>
+              {overContent ? (
+                <p className="text-xs text-muted-foreground">⇄ Échanger avec {overContent}</p>
+              ) : null}
             </div>
-          );
-        })}
-      </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
     </div>
   );
 }

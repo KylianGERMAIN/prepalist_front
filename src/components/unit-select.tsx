@@ -1,0 +1,29 @@
+import type { ComponentProps } from "react";
+import { NativeSelect } from "@/components/ui/native-select";
+import { asUnit, UNITS } from "@/lib/units";
+
+/**
+ * Un `<select>` sans option correspondante vide son affichage sans rien dire :
+ * une valeur antérieure au jeu fermé reste donc listée ici, visible, plutôt que
+ * d'être effacée en silence.
+ */
+export function UnitSelect({
+  current,
+  ...props
+}: ComponentProps<typeof NativeSelect> & { current?: string }) {
+  const legacy = current && !asUnit(current) ? current : null;
+
+  return (
+    <NativeSelect aria-label="Unité" {...props}>
+      <option value="" disabled>
+        Unité
+      </option>
+      {legacy && <option value={legacy}>{legacy}</option>}
+      {UNITS.map((unit) => (
+        <option key={unit} value={unit}>
+          {unit}
+        </option>
+      ))}
+    </NativeSelect>
+  );
+}

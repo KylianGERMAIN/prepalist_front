@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { toast } from "sonner";
-import { Copy, Moon, Plus, Star, Sun, X } from "lucide-react";
+import { useRef, useState } from "react";
+import { CircleAlert, MapPin, Moon, Plus, Star, Sun, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -16,69 +15,65 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import type { PlanSlot } from "@/lib/models";
-import { assignSlot } from "./planner-actions";
-import { cookedRecently } from "./planner-utils";
+import type { MealSummary, PlanSlot } from "@/lib/models";
 import { MealCombobox } from "./meal-combobox";
+import { MealDetailsDialog } from "./meals/meal-details-dialog";
+import { readAlsoNext, writeAlsoNext } from "./planner-utils";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const SLOT_LABEL = { LUNCH: "Midi", DINNER: "Soir" } as const;
 
+export type NextSlotInfo = {
+  label: string;
+  occupant: Pick<MealSummary, "id" | "name"> | null;
+  away: boolean;
+};
+
 export function SlotCell({
   slot,
+  next,
+  canCreateMeals = false,
+  moveTargets,
+  onAssign,
+  onAway,
+  onMove,
   onClear,
-  onDuplicate,
 }: {
   slot: PlanSlot;
+  canCreateMeals?: boolean;
+  /** Absent : dernier créneau du plan, rien après. */
+  next?: NextSlotInfo;
+  onAssign: (slot: PlanSlot, meal: MealSummary, servings: number, alsoNext: boolean) => void;
+  onAway: (slot: PlanSlot, alsoNext: boolean) => void;
+  /** Alternative au glisser-déposer sans glisser : seul moyen de changer de jour sur mobile. */
+  moveTargets: { id: string; label: string }[];
+  onMove: (slotId: string, targetSlotId: string) => void;
   onClear: (slot: PlanSlot) => void;
-  onDuplicate?: (slot: PlanSlot) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [mealId, setMealId] = useState<string | null>(slot.meal?.id ?? null);
-  const [mealName, setMealName] = useState<string | undefined>(slot.meal?.name);
+  const [selected, setSelected] = useState<MealSummary | null>(slot.meal ?? null);
   const [servings, setServings] = useState(slot.servings);
-  const [pending, startTransition] = useTransition();
+  const [alsoNext, setAlsoNext] = useState(true);
+  const [moveTo, setMoveTo] = useState("");
+  const [showMove, setShowMove] = useState(false);
+  const submitRef = useRef<HTMLButtonElement>(null);
 
   function reset() {
-    setMealId(slot.meal?.id ?? null);
-    setMealName(slot.meal?.name);
+    setSelected(slot.meal ?? null);
     setServings(slot.servings);
-  }
-
-  function save(nextMealId: string) {
-    startTransition(async () => {
-      const res = await assignSlot(slot.id, nextMealId, servings);
-      if (res.ok) {
-        setOpen(false);
-        toast.success("Créneau mis à jour");
-      } else {
-        toast.error(res.error);
-      }
-    });
+    setAlsoNext(readAlsoNext());
+    setMoveTo("");
+    setShowMove(false);
   }
 
   const meal = slot.meal;
-  const recent = meal ? cookedRecently(meal.lastCookedAt) : false;
   const firstTag = meal?.tags[0];
   const MomentIcon = slot.slot === "LUNCH" ? Sun : Moon;
 
   return (
-    <div className="group relative flex-1">
-      {meal && (
+    <div className="group relative min-w-0 flex-1">
+      {(meal || slot.away) && (
         <div className="absolute right-1 top-1 z-10 flex gap-0.5 rounded-md bg-card/95 p-0.5 opacity-0 shadow-sm ring-1 ring-border backdrop-blur-sm transition-opacity group-hover:opacity-100 group-focus-within:opacity-100 [@media(hover:none)]:opacity-70">
-          {onDuplicate && (
-            <button
-              type="button"
-              aria-label="Reporter au midi du lendemain"
-              title="Reporter au midi du lendemain"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDuplicate(slot);
-              }}
-              className="rounded p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              <Copy className="size-3.5" />
-            </button>
-          )}
           <button
             type="button"
             aria-label="Vider le créneau"
@@ -105,23 +100,28 @@ export function SlotCell({
               type="button"
               className={cn(
                 "flex h-full min-h-16 w-full flex-col items-start justify-center gap-0.5 rounded-md p-2 text-left text-sm transition-colors",
-                meal
-                  ? "border border-l-4 border-border border-l-accent bg-card shadow-sm hover:bg-muted/40"
-                  : "border border-dashed border-border text-muted-foreground hover:border-l-4 hover:border-l-accent hover:bg-muted/40",
+                slot.away
+                  ? "border border-transparent bg-muted text-muted-foreground hover:bg-muted/70"
+                  : meal
+                    ? "border border-l-4 border-border border-l-accent bg-card shadow-sm hover:bg-muted/40"
+                    : "border border-dashed border-border text-muted-foreground hover:border-l-4 hover:border-l-accent hover:bg-muted/40",
               )}
             >
-              {meal ? (
+              {slot.away ? (
+                <span className="flex flex-wrap items-center gap-1 pr-6">
+                  <MomentIcon className="size-3.5 shrink-0" />
+                  <MapPin className="size-3.5 shrink-0" />
+                  Dehors
+                </span>
+              ) : meal ? (
                 <>
                   <span
-                    className="flex w-full items-start gap-1 pr-6 font-medium text-foreground"
+                    className="w-full break-words pr-6 font-medium text-foreground"
                     title={meal.name}
                   >
-                    {meal.isFavorite && (
-                      <Star className="mt-0.5 size-3.5 shrink-0 fill-current text-accent" />
-                    )}
-                    <span className="break-words">{meal.name}</span>
+                    {meal.name}
                   </span>
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5 pr-6 text-xs text-muted-foreground">
                     <MomentIcon className="size-3.5 shrink-0" />
                     <span>
                       <span className="tnum">{slot.servings}</span> portion(s)
@@ -132,13 +132,10 @@ export function SlotCell({
                         <span className="tnum">{meal.rating}</span>
                       </span>
                     )}
-                    {recent && (
-                      <span
-                        role="img"
-                        aria-label="Cuisiné récemment"
-                        title="Cuisiné récemment"
-                        className="size-1.5 rounded-full bg-accent"
-                      />
+                    {meal.ingredientCount === 0 && (
+                      <span title="Ingrédients à compléter" className="text-warning-foreground">
+                        <CircleAlert role="img" aria-label="Ingrédients à compléter" className="size-3.5" />
+                      </span>
                     )}
                     {firstTag && (
                       <Badge
@@ -167,17 +164,34 @@ export function SlotCell({
             </DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (!selected) return;
+              setOpen(false);
+              onAssign(slot, selected, servings, alsoNext && !!next);
+            }}
+          >
             <div className="space-y-2">
               <Label>Repas</Label>
               <MealCombobox
-                value={mealId ?? undefined}
-                label={mealName}
-                onSelect={(m) => {
-                  setMealId(m.id);
-                  setMealName(m.name);
-                }}
+                value={selected?.id}
+                label={selected?.name}
+                onSelect={setSelected}
+                focusAfterSelect={submitRef}
+                canCreate={canCreateMeals}
               />
+              {selected ? (
+                <MealDetailsDialog
+                  mealId={selected.id}
+                  trigger={
+                    <button type="button" className="text-xs text-muted-foreground underline-offset-4 hover:underline">
+                      Voir la fiche
+                    </button>
+                  }
+                />
+              ) : null}
             </div>
             <div className="space-y-2">
               <Label htmlFor="slot-servings">Portions</Label>
@@ -193,28 +207,112 @@ export function SlotCell({
                 className="w-24"
               />
             </div>
-          </div>
+            <label className="flex items-start gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={alsoNext && !!next}
+                disabled={!next}
+                onChange={(e) => {
+                  setAlsoNext(e.target.checked);
+                  writeAlsoNext(e.target.checked);
+                }}
+                className="mt-0.5 size-4 accent-accent"
+              />
+              <span className={cn(!next && "text-muted-foreground")}>
+                {next ? (
+                  <>
+                    Aussi {next.label}
+                    {next.away && <span className="text-muted-foreground"> (prévu dehors)</span>}
+                    {next.occupant && (
+                      <span className="text-muted-foreground">
+                        {next.occupant.id === selected?.id
+                          ? " (déjà prévu)"
+                          : ` (remplace ${next.occupant.name})`}
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  "Dernier créneau du plan : rien après"
+                )}
+              </span>
+            </label>
 
-          <DialogFooter className="gap-2 sm:justify-between">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                setOpen(false);
-                onClear(slot);
-              }}
-              disabled={pending || !meal}
-            >
-              Vider
-            </Button>
-            <Button
-              type="button"
-              onClick={() => mealId && save(mealId)}
-              disabled={pending || !mealId}
-            >
-              {pending ? "Enregistrement…" : "Enregistrer"}
-            </Button>
-          </DialogFooter>
+            {(meal || slot.away) && !showMove ? (
+              <button
+                type="button"
+                onClick={() => setShowMove(true)}
+                className="hidden text-xs text-muted-foreground underline-offset-4 hover:underline sm:inline"
+              >
+                Déplacer vers un autre créneau…
+              </button>
+            ) : null}
+            {meal || slot.away ? (
+              // Toujours visible sur mobile, où le glisser-déposer ne change pas de jour ;
+              // replié ailleurs, mais gardé pour qui ne peut pas glisser (WCAG 2.5.7).
+              <div className={cn("space-y-2", !showMove && "sm:hidden")}>
+                <Label htmlFor={`move-${slot.id}`}>Déplacer vers</Label>
+                {/* Validation par bouton : sur Windows, une flèche sur un select fermé
+                    change déjà sa valeur. */}
+                <div className="flex gap-2">
+                  <NativeSelect
+                    id={`move-${slot.id}`}
+                    value={moveTo}
+                    onChange={(e) => setMoveTo(e.target.value)}
+                    className="flex-1"
+                  >
+                    <option value="">Choisir un créneau…</option>
+                    {moveTargets
+                      .filter((t) => t.id !== slot.id)
+                      .map((t) => (
+                        <option key={t.id} value={t.id}>
+                          {t.label}
+                        </option>
+                      ))}
+                  </NativeSelect>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={!moveTo}
+                    onClick={() => {
+                      setOpen(false);
+                      onMove(slot.id, moveTo);
+                    }}
+                  >
+                    Déplacer
+                  </Button>
+                </div>
+              </div>
+            ) : null}
+
+            <DialogFooter className="gap-2 sm:justify-between">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => {
+                  setOpen(false);
+                  onClear(slot);
+                }}
+                disabled={!meal && !slot.away}
+              >
+                Vider
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setOpen(false);
+                  onAway(slot, alsoNext && !!next);
+                }}
+                disabled={slot.away}
+              >
+                <MapPin className="size-4" />
+                Je mange dehors
+              </Button>
+              <Button ref={submitRef} type="submit" disabled={!selected}>
+                Enregistrer
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>
